@@ -18,6 +18,8 @@ import PostDonation from "./pages/donor/post-donation";
 import DonorDonations from "./pages/donor/donor-donations";
 import DonorNotifications from "./pages/donor/donor-notifications";
 import DonorImpact from "./pages/donor/donor-impact";
+import AdminDashboard from "./pages/admin/admin-dashboard";
+import NgoDashboard from "./pages/ngo/ngo-dashboard";
 
 const queryClient = new QueryClient();
 
@@ -43,17 +45,22 @@ const App = () => (
               </Route>
 
               <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
-                {/* <Route index element={<NgoDashboard />} />
+                <Route index element={<NgoDashboard />} />
                 <Route path="nearby" element={<NgoDashboard />} />
                 <Route path="accepted" element={<NgoDashboard />} />
                 <Route path="volunteers" element={<NgoDashboard />} />
                 <Route path="notifications" element={<DonorNotifications />} />
                 <Route path="feedback" element={<NgoDashboard />} />
-                <Route path="impact" element={<DonorImpact />} /> */}
+                <Route path="impact" element={<DonorImpact />} />
               </Route>
 
               <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
-                {/* Admin routes... */}
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<AdminDashboard />} />
+                <Route path="reports" element={<AdminDashboard />} />
+                <Route path="tracking" element={<AdminDashboard />} />
+                <Route path="notifications" element={<AdminDashboard />} />
+                <Route path="moderation" element={<AdminDashboard />} />
               </Route>
 
               <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
