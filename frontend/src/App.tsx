@@ -13,6 +13,11 @@ import UnauthorizedPage from "./pages/unauthorized-page";
 
 import { DashboardLayout } from "./components/layout/dashboard-layout";
 import NotFound from "./pages/not-found";
+import DonorDashboard from "./pages/donor/donor-dashboard";
+import PostDonation from "./pages/donor/post-donation";
+import DonorDonations from "./pages/donor/donor-donations";
+import DonorNotifications from "./pages/donor/donor-notifications";
+import DonorImpact from "./pages/donor/donor-impact";
 
 const queryClient = new QueryClient();
 
@@ -30,11 +35,11 @@ const App = () => (
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
               <Route path="/donor" element={<DashboardLayout requiredRole="donor" />}>
-                {/* <Route index element={<DonorDashboard />} />
+                <Route index element={<DonorDashboard />} />
                 <Route path="post" element={<PostDonation />} />
                 <Route path="donations" element={<DonorDonations />} />
                 <Route path="notifications" element={<DonorNotifications />} />
-                <Route path="impact" element={<DonorImpact />} /> */}
+                <Route path="impact" element={<DonorImpact />} />
               </Route>
 
               <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
