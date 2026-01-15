@@ -198,28 +198,17 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuGroup>
-                                    <DropdownMenuItem>
-                                        <Sparkles className="mr-2 size-4" />
-                                        Upgrade to Pro
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem className="cursor-pointer">
                                         <UserIcon className="mr-2 size-4" />
                                         Account
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <CreditCard className="mr-2 size-4" />
-                                        Billing
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem className="cursor-pointer">
                                         <Settings className="mr-2 size-4" />
                                         Settings
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                                <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer hover:bg-white/20 ">
                                     <LogOut className="mr-2 size-4" />
                                     Log out
                                 </DropdownMenuItem>

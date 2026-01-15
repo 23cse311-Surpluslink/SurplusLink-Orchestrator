@@ -162,43 +162,12 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
           </Button>
 
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full relative hover:bg-primary/10"
-                onClick={() => navigate(`/${user.role}/notifications`)}
-              >
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full border-2 border-background">
-                    {unreadCount}
-                  </span>
-                )}
-              </Button>
-
-              <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-border/50">
-                <div className="text-right">
-                  <p className="text-sm font-semibold">{user.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{user.role}</p>
-                </div>
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="h-9 w-9 rounded-full ring-2 ring-primary/20 border-2 border-background object-cover"
-                />
-              </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all ml-1"
-                title="Logout"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
+            <Button
+              className="rounded-full px-7 bg-foreground text-background hover:bg-foreground/90 hover:scale-105 border-none transition-all font-bold shadow-2xl dark:shadow-white/20 shadow-black/20"
+              onClick={() => navigate(`/${user.role}`)}
+            >
+              Dashboard
+            </Button>
           ) : (
             <div className="hidden md:flex items-center gap-3">
               <Button
@@ -232,6 +201,18 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
                     </SheetTitle>
                   </SheetHeader>
                   <nav className="flex flex-col gap-4">
+                    {isAuthenticated && user && (
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          navigate(`/${user.role}`);
+                        }}
+                        className="flex items-center justify-between px-4 py-4 text-lg font-bold text-primary bg-primary/10 rounded-xl"
+                      >
+                        Go to Dashboard
+                        <ArrowRight className="h-5 w-5" />
+                      </button>
+                    )}
                     {navLinks.map((link) => (
                       <button
                         key={link.name}
