@@ -51,171 +51,194 @@ export default function PostDonation() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <PageHeader 
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <PageHeader
         title="Post a Donation"
         description="Share your surplus food with NGOs in your area."
       />
 
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              Food Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="grid lg:grid-cols-2 gap-8 items-start">
+        {/* Left Column: Food & Timing */}
+        <div className="space-y-6">
+          <Card className="border-border/50 shadow-sm overflow-hidden border-l-4 border-l-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Package className="h-5 w-5 text-primary" />
+                Food Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="foodType" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Food Type</Label>
+                  <Select required>
+                    <SelectTrigger id="foodType" className="h-11">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {foodTypes.map(type => (
+                        <SelectItem key={type} value={type.toLowerCase().replace(' ', '-')}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="quantity" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    placeholder="e.g., 25 portions"
+                    className="h-11"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="foodType">Food Type</Label>
+                <Label htmlFor="description" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Any ingredients, allergens, or special handling instructions..."
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm overflow-hidden border-l-4 border-l-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Clock className="h-5 w-5 text-primary" />
+                Timing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="expiryDate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Best Before Date</Label>
+                  <Input
+                    id="expiryDate"
+                    type="date"
+                    className="h-11"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="expiryTime" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Best Before Time</Label>
+                  <Input
+                    id="expiryTime"
+                    type="time"
+                    className="h-11"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pickupWindow" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preferred Pickup Window</Label>
                 <Select required>
-                  <SelectTrigger id="foodType">
-                    <SelectValue placeholder="Select food type" />
+                  <SelectTrigger id="pickupWindow" className="h-11">
+                    <SelectValue placeholder="Select window" />
                   </SelectTrigger>
                   <SelectContent>
-                    {foodTypes.map(type => (
-                      <SelectItem key={type} value={type.toLowerCase().replace(' ', '-')}>
-                        {type}
+                    {pickupWindows.map(window => (
+                      <SelectItem key={window} value={window}>
+                        {window}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Right Column: Location & Photo */}
+        <div className="space-y-6">
+          <Card className="border-border/50 shadow-sm overflow-hidden border-l-4 border-l-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <MapPin className="h-5 w-5 text-primary" />
+                Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input 
-                  id="quantity" 
-                  placeholder="e.g., 25 portions, 10 kg" 
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea 
-                id="description" 
-                placeholder="Any additional details about the food (ingredients, allergens, storage requirements)..."
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Timing
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expiryDate">Best Before Date</Label>
-                <Input 
-                  id="expiryDate" 
-                  type="date" 
+                <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pickup Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Street address, building, apartment..."
+                  defaultValue="123 Main Street, Downtown"
+                  className="h-11"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="expiryTime">Best Before Time</Label>
-                <Input 
-                  id="expiryTime" 
-                  type="time" 
-                  required
+                <Label htmlFor="instructions" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pickup Instructions (Optional)</Label>
+                <Textarea
+                  id="instructions"
+                  placeholder="Gate code, floor number, contact person details..."
+                  rows={3}
+                  className="resize-none"
                 />
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="pickupWindow">Preferred Pickup Window</Label>
-              <Select required>
-                <SelectTrigger id="pickupWindow">
-                  <SelectValue placeholder="Select pickup window" />
-                </SelectTrigger>
-                <SelectContent>
-                  {pickupWindows.map(window => (
-                    <SelectItem key={window} value={window}>
-                      {window}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="border-border/50 shadow-sm overflow-hidden border-l-4 border-l-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Upload className="h-5 w-5 text-primary" />
+                Photo (Optional)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="border-2 border-dashed border-primary/20 bg-primary/5 rounded-xl p-8 text-center hover:bg-primary/10 hover:border-primary/40 transition-all cursor-pointer group">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Upload className="h-6 w-6 text-primary" />
+                </div>
+                <p className="font-semibold text-sm">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG up to 10MB
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              Location
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="address">Pickup Address</Label>
-              <Input 
-                id="address" 
-                placeholder="Enter full address"
-                defaultValue="123 Main Street, Downtown"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="instructions">Pickup Instructions (Optional)</Label>
-              <Textarea 
-                id="instructions" 
-                placeholder="e.g., Use back entrance, ask for kitchen manager..."
-                rows={2}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-primary" />
-              Photo (Optional)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-              <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PNG, JPG up to 5MB
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-4 mt-8">
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="flex-1"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            variant="hero" 
-            className="flex-1"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Posting...' : 'Post Donation'}
-          </Button>
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="flex-1 h-12 text-base font-semibold"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="hero"
+              size="lg"
+              className="flex-2 lg:flex-1 h-12 text-base font-bold shadow-xl shadow-primary/20"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Posting...
+                </div>
+              ) : (
+                'Post Donation'
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
