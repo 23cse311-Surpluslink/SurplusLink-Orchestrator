@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
 import { Sidebar } from './sidebar';
 import { Navbar } from './navbar';
+import { useAuth } from '@/contexts/auth-context';
 
 interface DashboardLayoutProps {
     requiredRole: UserRole;
