@@ -1,10 +1,10 @@
 import { Sun, Moon, Bell, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { getUnreadCount } from '@/mockData/notifications';
+import { useTheme } from '@/contexts/theme-context';
+import { useAuth } from '@/contexts/auth-context';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -32,7 +32,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          
+
           {!isAuthenticated && (
             <a href="/" className="flex items-center gap-2">
               <div className="gradient-primary rounded-lg p-2">
