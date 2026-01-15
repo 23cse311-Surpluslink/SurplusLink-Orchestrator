@@ -1,13 +1,13 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  PlusCircle, 
-  List, 
-  Bell, 
-  BarChart3, 
-  MapPin, 
-  CheckSquare, 
-  Users, 
+import {
+  Home,
+  PlusCircle,
+  List,
+  Bell,
+  BarChart3,
+  MapPin,
+  CheckSquare,
+  Users,
   MessageSquare,
   FileText,
   Truck,
@@ -57,10 +57,18 @@ const adminNavItems: NavItem[] = [
   { label: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
 ];
 
+const volunteerNavItems: NavItem[] = [
+  { label: 'My Tasks', href: '/volunteer', icon: Truck },
+  { label: 'Available Jobs', href: '/volunteer/available', icon: MapPin },
+  { label: 'Mission History', href: '/volunteer/history', icon: List },
+  { label: 'Notifications', href: '/volunteer/notifications', icon: Bell },
+];
+
 const navItemsByRole: Record<UserRole, NavItem[]> = {
   donor: donorNavItems,
   ngo: ngoNavItems,
   admin: adminNavItems,
+  volunteer: volunteerNavItems,
 };
 
 export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
@@ -71,7 +79,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
@@ -95,9 +103,9 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             </div>
             <span className="font-bold text-lg text-sidebar-foreground">SurplusLink</span>
           </a>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             className="lg:hidden"
           >
@@ -135,6 +143,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             <p className="text-xs text-muted-foreground">
               {role === 'donor' && 'Post donations early for faster pickup matches.'}
               {role === 'ngo' && 'Accept nearby donations first for quicker delivery.'}
+              {role === 'volunteer' && 'Safety first! Always check food timestamps.'}
               {role === 'admin' && 'Monitor KPIs daily to ensure system efficiency.'}
             </p>
           </div>
