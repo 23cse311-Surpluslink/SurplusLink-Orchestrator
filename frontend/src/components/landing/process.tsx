@@ -49,7 +49,7 @@ export function Process() {
                 </div>
 
                 <div className="relative">
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-muted hidden lg:block -translate-y-1/2 z-0" />
+                   
 
                     <div className="grid lg:grid-cols-4 gap-12 relative z-10">
                         {steps.map((step, index) => (

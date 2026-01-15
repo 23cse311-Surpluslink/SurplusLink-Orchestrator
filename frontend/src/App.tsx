@@ -48,12 +48,11 @@ const App = () => (
               </Route>
 
               <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
-                {/* <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<AdminDashboard />} />
-                <Route path="reports" element={<AdminDashboard />} />
-                <Route path="tracking" element={<AdminDashboard />} />
-                <Route path="notifications" element={<DonorNotifications />} />
-                <Route path="moderation" element={<AdminDashboard />} /> */}
+                {/* Admin routes... */}
+              </Route>
+
+              <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
+                {/* Volunteer routes... */}
               </Route>
 
               <Route path="*" element={<NotFound />} />

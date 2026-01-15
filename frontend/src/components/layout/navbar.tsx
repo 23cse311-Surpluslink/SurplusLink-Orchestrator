@@ -68,7 +68,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
         "fixed left-0 right-0 z-50 transition-all duration-500 ease-in-out",
         isScrolled
           ? "top-4 mx-auto max-w-5xl w-[92%] rounded-full border border-border/40 bg-background/70 backdrop-blur-xl shadow-lg py-1.5"
-          : "top-0 w-full bg-transparent py-4"
+          : "top-2 lg:top-0 w-full bg-transparent py-4"
       )}
     >
       <div className={cn(

@@ -97,19 +97,7 @@ export function Impact() {
                             </ResponsiveContainer>
                         </div>
 
-                        <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
-                            <div className="flex -space-x-2">
-                                {[1, 2, 3, 4, 5].map(i => (
-                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-card bg-muted overflow-hidden">
-                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`} alt="user" />
-                                    </div>
-                                ))}
-                                <div className="w-8 h-8 rounded-full border-2 border-card bg-primary/20 flex items-center justify-center text-[10px] font-bold">
-                                    +50
-                                </div>
-                            </div>
-                            <p className="text-sm text-muted-foreground">NGOs joined last month</p>
-                        </div>
+                        
                     </motion.div>
                 </div>
             </div>

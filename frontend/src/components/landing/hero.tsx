@@ -8,7 +8,7 @@ export function Hero() {
     const navigate = useNavigate();
 
     return (
-        <section className="relative min-h-[90vh] flex items-start overflow-hidden pt-24 md:pt-32">
+        <section className="relative min-h-[90vh] flex items-start overflow-hidden pt-28 md:pt-32 pb-16 md:pb-24">
 
 
 
@@ -22,7 +22,7 @@ export function Hero() {
                     >
 
 
-                        <h1 className="text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
+                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
                             Feed the <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-emerald-500 to-teal-500">
                                 Future,
@@ -63,15 +63,15 @@ export function Hero() {
                         <motion.div
                             animate={{ y: [0, -10, 0] }}
                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute -top-10 -right-4 z-20 bg-background/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-border/50"
+                            className="absolute -top-6 -right-2 md:-top-10 md:-right-4 z-20 bg-background/95 backdrop-blur-md p-3 md:p-4 rounded-xl md:rounded-2xl shadow-xl border border-border/50"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                    <Users className="h-7 w-7" />
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <div className="h-10 w-10 md:h-14 md:w-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                    <Users className="h-5 w-5 md:h-7 md:w-7" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-black text-foreground">1,240+</p>
-                                    <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">Volunteers</p>
+                                    <p className="text-xl md:text-3xl font-black text-foreground leading-none">1,240+</p>
+                                    <p className="text-[8px] md:text-[10px] text-muted-foreground font-bold tracking-widest uppercase mt-1">Volunteers</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -79,15 +79,15 @@ export function Hero() {
                         <motion.div
                             animate={{ y: [0, 10, 0] }}
                             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                            className="absolute -bottom-8 -left-6 z-20 bg-background/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-border/50"
+                            className="absolute -bottom-4 -left-2 md:-bottom-8 md:-left-6 z-20 bg-background/95 backdrop-blur-md p-4 md:p-5 rounded-xl md:rounded-2xl shadow-xl border border-border/50"
                         >
-                            <div className="flex items-center gap-5">
-                                <div className="h-16 w-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                                    <Heart className="h-8 w-8 fill-current" />
+                            <div className="flex items-center gap-3 md:gap-5">
+                                <div className="h-12 w-12 md:h-16 md:w-16 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                                    <Heart className="h-6 w-6 md:h-8 md:w-8 fill-current" />
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-black text-foreground">12.4k</p>
-                                    <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">Meals Saved</p>
+                                    <p className="text-2xl md:text-4xl font-black text-foreground leading-none">12.4k</p>
+                                    <p className="text-[8px] md:text-[10px] text-muted-foreground font-bold tracking-widest uppercase mt-1">Meals Saved</p>
                                 </div>
                             </div>
                         </motion.div>
