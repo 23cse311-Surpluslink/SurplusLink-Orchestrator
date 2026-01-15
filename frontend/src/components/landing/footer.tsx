@@ -1,3 +1,5 @@
+import { Logo } from '@/components/ui/logo';
+import { Link } from 'react-router-dom';
 import { Github, Twitter, Linkedin, Mail } from 'lucide-react';
 
 export function Footer() {
@@ -5,15 +7,9 @@ export function Footer() {
         <footer className="bg-transparent border-t border-border/30 py-12">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col items-center text-center">
-                    <a href="/" className="flex items-center gap-2 mb-6 group">
-                        <div className="bg-primary/10 rounded-lg p-2 transition-colors group-hover:bg-primary/20">
-                            <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                <path d="M2 17l10 5 10-5" />
-                            </svg>
-                        </div>
-                        <span className="font-semibold text-xl tracking-tight">SurplusLink</span>
-                    </a>
+                    <Link to="/" className="mb-6">
+                        <Logo size="md" />
+                    </Link>
 
 
 

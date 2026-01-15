@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import {
   Home,
   PlusCircle,
@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/ui/logo';
 
 interface SidebarProps {
   role: UserRole;
@@ -93,16 +94,9 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         )}
       >
         <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
-          <a href={`/${role}`} className="flex items-center gap-2">
-            <div className="gradient-primary rounded-lg p-2">
-              <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <span className="font-bold text-lg text-sidebar-foreground">SurplusLink</span>
-          </a>
+          <Link to={`/${role}`} className="flex items-center gap-2">
+            <Logo size="sm" showText={true} />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
