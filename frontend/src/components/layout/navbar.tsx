@@ -64,6 +64,78 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
     }
   };
 
+  if (showMenu) {
+    return (
+      <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-background border-b border-border/50 sticky top-0 z-40">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
+            <Menu className="h-5 w-5" />
+          </Button>
+          {!isAuthenticated && (
+            <div className="hidden lg:block">
+              <h1 className="text-xl font-bold">Dashboard</h1>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full hover:bg-primary/10"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-[1.2rem] w-[1.2rem]" />
+            ) : (
+              <Sun className="h-[1.2rem] w-[1.2rem]" />
+            )}
+          </Button>
+
+          {isAuthenticated && user && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full relative hover:bg-primary/10"
+                onClick={() => navigate(`/${user.role}/notifications`)}
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full border-2 border-background">
+                    {unreadCount}
+                  </span>
+                )}
+              </Button>
+
+              <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-border/50">
+                <div className="text-right">
+                  <p className="text-sm font-semibold">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{user.role}</p>
+                </div>
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-9 w-9 rounded-full ring-2 ring-primary/20 border-2 border-background object-cover"
+                />
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all ml-1"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header
       className={cn(
@@ -79,12 +151,6 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
       )}>
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-4">
-            {showMenu && (
-              <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-            )}
-
             <Link to="/">
               <Logo size={isScrolled ? "sm" : "md"} />
             </Link>
@@ -186,14 +252,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
                 <SheetContent side="right" className="flex flex-col gap-8 pt-16">
                   <SheetHeader className="text-left">
                     <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-                      <div className="gradient-primary rounded-lg p-1.5">
-                        <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                          <path d="M2 17l10 5 10-5" />
-                          <path d="M2 12l10 5 10-5" />
-                        </svg>
-                      </div>
-                      SurplusLink
+                      <Logo size="md" />
                     </SheetTitle>
                   </SheetHeader>
                   <nav className="flex flex-col gap-4">
