@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Building2, Heart, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
 
 const roles: { value: UserRole; label: string; icon: React.ElementType; description: string }[] = [
   {
@@ -122,13 +123,13 @@ export default function LoginPage() {
                         type="button"
                         onClick={() => setSelectedRole(role.value)}
                         className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 text-left ${selectedRole === role.value
-                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                            : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/50'
                           }`}
                       >
                         <div className={`rounded-lg p-2 ${selectedRole === role.value
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
                           }`}>
                           <role.icon className="h-4 w-4" />
                         </div>
