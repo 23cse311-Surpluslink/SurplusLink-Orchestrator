@@ -1,7 +1,6 @@
 import { Sun, Moon, Bell, LogOut, Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { getUnreadCount } from '@/mockData/notifications';
 import { useTheme } from '@/contexts/theme-context';
 import { useAuth } from '@/contexts/auth-context';
@@ -16,6 +15,8 @@ import {
 } from "@/components/ui/sheet";
 
 import { Logo } from '@/components/ui/logo';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -68,14 +69,11 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
     return (
       <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-background border-b border-border/50 sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-            <Menu className="h-5 w-5" />
-          </Button>
-          {!isAuthenticated && (
-            <div className="hidden lg:block">
-              <h1 className="text-xl font-bold">Dashboard</h1>
-            </div>
-          )}
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="mr-2 h-4 hidden lg:block" />
+          <div className="hidden lg:block">
+            <h1 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Dashboard</h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -106,28 +104,6 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
                     {unreadCount}
                   </span>
                 )}
-              </Button>
-
-              <div className="hidden sm:flex items-center gap-3 ml-2 pl-4 border-l border-border/50">
-                <div className="text-right">
-                  <p className="text-sm font-semibold">{user.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{user.role}</p>
-                </div>
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="h-9 w-9 rounded-full ring-2 ring-primary/20 border-2 border-background object-cover"
-                />
-              </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all ml-1"
-                title="Logout"
-              >
-                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           )}

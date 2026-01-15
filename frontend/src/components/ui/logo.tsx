@@ -28,7 +28,7 @@ export function Logo({
   };
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div className={cn("flex items-center", showText ? "gap-3" : "gap-0", className)}>
       <div
         className={cn(
           "flex items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40",
