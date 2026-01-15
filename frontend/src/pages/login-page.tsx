@@ -11,6 +11,7 @@ import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Building2, Heart, Shield, Zap, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { Logo } from '@/components/ui/logo';
 
 const roles: { value: UserRole; label: string; icon: React.ElementType; description: string }[] = [
   {
@@ -111,20 +112,11 @@ export default function LoginPage() {
 
           {/* Left Side: Brand Info (Matching the Uploaded Image) */}
           <div className="hidden lg:flex flex-col gap-10 flex-1">
-            <Link to="/" className="flex items-center gap-4">
-              <div className="bg-[#10b981] rounded-2xl p-4 shadow-xl shadow-emerald-500/20">
-                <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
-              <span className="font-bold text-4xl tracking-tight">SurplusLink</span>
-            </Link>
+            <Logo size="xl" showText={true} />
 
             <div className="space-y-8">
               <h2 className="text-6xl font-black leading-tight tracking-tighter">
-                Empowering <span className="text-[#10b981] italic">Global</span> <br />Sustainability.
+                Empowering <span className="text-primary italic">Global</span> <br />Sustainability.
               </h2>
               <div className="space-y-5">
                 {[

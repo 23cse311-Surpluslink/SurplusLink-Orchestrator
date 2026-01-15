@@ -1,6 +1,6 @@
 import { Sun, Moon, Bell, LogOut, Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { getUnreadCount } from '@/mockData/notifications';
 import { useTheme } from '@/contexts/theme-context';
@@ -14,6 +14,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
+import { Logo } from '@/components/ui/logo';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -83,18 +85,9 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
               </Button>
             )}
 
-            <a href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-              <div className="gradient-primary rounded-xl p-2.5">
-                <svg className="h-6 w-6 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
-              <span className="font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                SurplusLink
-              </span>
-            </a>
+            <Link to="/">
+              <Logo size={isScrolled ? "sm" : "md"} />
+            </Link>
           </div>
 
           {!isAuthenticated && (
@@ -168,7 +161,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             <div className="hidden md:flex items-center gap-3">
               <Button
                 variant="ghost"
-                className="rounded-full font-medium"
+                className="rounded-full font-medium hover:bg-white/20"
                 onClick={() => navigate('/login')}
               >
                 Sign In
