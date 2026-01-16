@@ -203,7 +203,7 @@ To ensure safety, the "Chain of Custody" is logged:
 3. **Environment Config:**
    Create `.env.local`:
    ```env
-   VITE_API_BASE_URL=http://localhost:5000/api/v1
+   VITE_API_BASE_URL=http://localhost:8000/api/v1
    VITE_MAP_PROVIDER_KEY=xxxxxx
    ```
 
