@@ -8,7 +8,7 @@ export function Hero() {
     const navigate = useNavigate();
 
     return (
-        <section className="relative min-h-[90vh] flex items-start overflow-hidden pt-28 md:pt-32 pb-16 md:pb-24">
+        <section className="relative min-h-[90vh] flex items-start overflow-hidden pt-28 md:pt-46 pb-16 md:pb-24">
 
 
 
