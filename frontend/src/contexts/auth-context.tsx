@@ -34,17 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { toast } = useToast();
 
     const verifySession = useCallback(async () => {
-        const token = localStorage.getItem('surpluslink_token');
-        if (token) {
-            try {
-                const user = await getProfile();
-                const newState = setAuthData(user, token);
-                setAuthState(newState);
-            } catch (error) {
-                console.error('Session verification failed:', error);
-                authLogout();
-                setAuthState({ isAuthenticated: false, user: null, role: null });
-            }
+        try {
+            const user = await getProfile();
+            const newState = setAuthData(user);
+            setAuthState(newState);
+        } catch (error) {
+            console.error('Session verification failed:', error);
+            authLogout();
+            setAuthState({ isAuthenticated: false, user: null, role: null });
         }
         setIsLoading(false);
     }, []);
@@ -55,8 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = useCallback(async (email: string, password: string) => {
         const response = await api.post<any>('/auth/login', { email, password });
-        const { token, ...user } = response.data;
-        const newState = setAuthData(user as User, token);
+        const user = response.data;
+        const newState = setAuthData(user as User);
         setAuthState(newState);
         toast({
             variant: "success",
@@ -67,8 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const signup = useCallback(async (signupData: Record<string, any>) => {
         const response = await api.post<any>('/auth/signup', signupData);
-        const { token, ...user } = response.data;
-        const newState = setAuthData(user as User, token);
+        const user = response.data;
+        const newState = setAuthData(user as User);
         setAuthState(newState);
         toast({
             variant: "success",

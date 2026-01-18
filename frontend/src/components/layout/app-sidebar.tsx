@@ -43,6 +43,16 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Logo } from "@/components/ui/logo"
 import { useAuth } from "@/contexts/auth-context"
@@ -86,6 +96,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
     const { user, logout } = useAuth()
     const { state } = useSidebar()
     const location = useLocation()
+    const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
     const navItems = navItemsByRole[role] || []
 
     const isCollapsed = state === "collapsed"
@@ -208,7 +219,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer hover:bg-white/20 ">
+                                <DropdownMenuItem onSelect={() => setShowLogoutDialog(true)} className="text-destructive cursor-pointer hover:bg-white/80 ">
                                     <LogOut className="mr-2 size-4" />
                                     Log out
                                 </DropdownMenuItem>
@@ -218,6 +229,28 @@ export function AppSidebar({ role }: { role: UserRole }) {
                 </SidebarMenu>
             </SidebarFooter>
             <SidebarRail />
+
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogContent className="rounded-2xl border-border/50 backdrop-blur-md bg-card/95">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-bold tracking-tight">Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground font-medium">
+                            This will end your current session and you will need to sign in again to access your workspace.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-4 gap-2">
+                        <AlertDialogCancel className="rounded-xl font-bold uppercase tracking-wider h-11 border-none hover:bg-muted transition-colors">
+                            Stay Signed In
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={logout}
+                            className="rounded-xl font-bold uppercase tracking-wider h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all shadow-lg shadow-destructive/20"
+                        >
+                            Log Out
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Sidebar>
     )
 }
