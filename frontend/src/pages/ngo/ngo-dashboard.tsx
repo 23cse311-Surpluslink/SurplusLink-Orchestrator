@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Package, Clock, TrendingUp } from 'lucide-react';
+import { MapPin, Package, Clock, TrendingUp, Lock } from 'lucide-react';
 import { getPendingDonations } from '@/mockData/donations';
 import { ngoMetrics } from '@/mockData/metrics';
 import { useState } from 'react';
@@ -9,10 +9,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { PageHeader } from '@/components/common/page-header';
 import { StatCard } from '@/components/common/stat-card';
 import { DonationCard } from '@/components/common/donation-card';
+import { useAuth } from '@/contexts/auth-context';
+import { VerificationBanner } from '@/components/layout/verification-banner';
 
 export default function NgoDashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [donations, setDonations] = useState(getPendingDonations());
+  const isVerified = user?.status === 'active';
 
   const handleAccept = (id: string) => {
     setDonations(prev => prev.filter(d => d.id !== id));
@@ -21,6 +25,7 @@ export default function NgoDashboard() {
 
   return (
     <div className="space-y-8">
+      <VerificationBanner />
       <PageHeader title="NGO Dashboard" description="Browse and accept nearby food donations." />
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -51,7 +56,14 @@ export default function NgoDashboard() {
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Available Donations</h3>
           {donations.slice(0, 3).map(d => (
-            <DonationCard key={d.id} donation={d} showActions onAccept={handleAccept} onReject={() => setDonations(prev => prev.filter(don => don.id !== d.id))} />
+            <DonationCard
+              key={d.id}
+              donation={d}
+              showActions
+              onAccept={handleAccept}
+              onReject={() => setDonations(prev => prev.filter(don => don.id !== d.id))}
+              disabled={!isVerified}
+            />
           ))}
         </div>
       </div>
