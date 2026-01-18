@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/error.middleware.js';
 import authRoutes from './routes/auth.routes.js';
@@ -14,7 +15,11 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:5173', // Your frontend URL
+    credentials: true
+}));
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));

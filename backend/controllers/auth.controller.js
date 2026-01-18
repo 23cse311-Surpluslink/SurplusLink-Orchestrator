@@ -35,6 +35,15 @@ const signupUser = async (req, res, next) => {
         });
 
         if (user) {
+            const token = generateToken(user._id, user.role);
+            
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            });
+
             res.status(201).json({
                 id: user.id,
                 name: user.name,
@@ -43,7 +52,6 @@ const signupUser = async (req, res, next) => {
                 organization: user.organization,
                 status: user.status,
                 createdAt: user.createdAt,
-                token: generateToken(user._id, user.role),
             });
         } else {
             res.status(400);
@@ -69,6 +77,15 @@ const loginUser = async (req, res, next) => {
                 throw new Error('User account is deactivated');
             }
 
+            const token = generateToken(user._id, user.role);
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000
+            });
+
             res.json({
                 id: user.id,
                 name: user.name,
@@ -77,7 +94,6 @@ const loginUser = async (req, res, next) => {
                 organization: user.organization,
                 status: user.status,
                 createdAt: user.createdAt,
-                token: generateToken(user._id, user.role),
             });
         } else {
             res.status(401);
@@ -93,6 +109,10 @@ const loginUser = async (req, res, next) => {
 // @access  Public
 const logoutUser = async (req, res, next) => {
     try {
+        res.cookie('token', '', {
+            httpOnly: true,
+            expires: new Date(0),
+        });
         res.status(200).json({ success: true, message: 'Successfully logged out' });
     } catch (error) {
         next(error);
