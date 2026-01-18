@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/theme-context';
 
 interface DashboardLayoutProps {
-    requiredRole: UserRole;
+    requiredRole?: UserRole;
 }
 
 export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
@@ -20,14 +20,14 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         return <Navigate to="/login" replace />;
     }
 
-    if (role !== requiredRole) {
+    if (requiredRole && role !== requiredRole) {
         return <Navigate to="/unauthorized" replace />;
     }
 
     return (
         <SidebarProvider>
             <div className="flex min-h-screen w-full bg-background font-sans selection:bg-primary/20">
-                <AppSidebar role={requiredRole} />
+                <AppSidebar role={(role || 'donor') as UserRole} />
 
                 <SidebarInset className="flex flex-col flex-1 min-w-0">
                     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 sticky top-0 bg-background/80 backdrop-blur-md z-10">

@@ -57,7 +57,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Logo } from "@/components/ui/logo"
 import { useAuth } from "@/contexts/auth-context"
 import { UserRole } from "@/types"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 const navItemsByRole = {
     donor: [
@@ -96,6 +96,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
     const { user, logout } = useAuth()
     const { state } = useSidebar()
     const location = useLocation()
+    const navigate = useNavigate()
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
     const navItems = navItemsByRole[role] || []
 
@@ -209,7 +210,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuGroup>
-                                    <DropdownMenuItem className="cursor-pointer">
+                                    <DropdownMenuItem onClick={() => navigate('/account')} className="cursor-pointer">
                                         <UserIcon className="mr-2 size-4" />
                                         Account
                                     </DropdownMenuItem>
