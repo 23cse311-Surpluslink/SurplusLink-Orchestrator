@@ -19,6 +19,7 @@ import {
     Sparkles,
 } from "lucide-react"
 import api from "@/lib/api"
+import { cn } from "@/lib/utils"
 
 import {
     Sidebar,
@@ -126,20 +127,20 @@ export function AppSidebar({ role }: { role: UserRole }) {
 
     return (
         <Sidebar collapsible="icon">
-            <SidebarHeader>
+            <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/50 p-0 overflow-hidden">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild className="group-data-[collapsible=icon]:!p-0">
-                            <Link to="/" className="flex items-center justify-center w-full">
-                                <Logo size={isCollapsed ? "md" : "sm"} showText={!isCollapsed} />
+                        <SidebarMenuButton size="lg" asChild className="h-16 w-full hover:bg-transparent active:bg-transparent p-0">
+                            <Link to="/" className={cn("flex items-center justify-center w-full", !isCollapsed && "px-4")}>
+                                <Logo size="md" showText={!isCollapsed} />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Platform</SidebarGroupLabel>
+                <SidebarGroup className="pt-4">
+                    <SidebarGroupLabel>Platform</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {navItems.map((item) => (
@@ -149,7 +150,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                         isActive={location.pathname === item.href}
                                         tooltip={item.label}
                                         size="lg"
-                                        className="h-11 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center"
+                                        className="h-12 group-data-[collapsible=icon]:justify-center"
                                     >
                                         <Link
                                             to={item.href}
