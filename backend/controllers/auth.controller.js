@@ -32,7 +32,7 @@ const signupUser = async (req, res, next) => {
             email,
             password,
             role,
-            status: role === 'volunteer' ? 'active' : 'pending',
+            status: (role === 'volunteer' || role === 'admin') ? 'active' : 'pending',
             organization: (role === 'ngo' || role === 'donor') ? organization : undefined,
         });
 
