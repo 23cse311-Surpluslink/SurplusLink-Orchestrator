@@ -42,6 +42,7 @@ const signupUser = async (req, res, next) => {
                 role: user.role,
                 organization: user.organization,
                 status: user.status,
+                createdAt: user.createdAt,
                 token: generateToken(user._id, user.role),
             });
         } else {
@@ -75,6 +76,7 @@ const loginUser = async (req, res, next) => {
                 role: user.role,
                 organization: user.organization,
                 status: user.status,
+                createdAt: user.createdAt,
                 token: generateToken(user._id, user.role),
             });
         } else {
@@ -86,4 +88,15 @@ const loginUser = async (req, res, next) => {
     }
 };
 
-export { signupUser, loginUser };
+// @desc    Logout user / clear session
+// @route   POST /api/v1/auth/logout
+// @access  Public
+const logoutUser = async (req, res, next) => {
+    try {
+        res.status(200).json({ success: true, message: 'Successfully logged out' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { signupUser, loginUser, logoutUser };
