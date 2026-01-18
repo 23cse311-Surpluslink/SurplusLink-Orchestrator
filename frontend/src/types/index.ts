@@ -5,10 +5,14 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  status: 'active' | 'pending' | 'deactivated';
+  status: 'active' | 'pending' | 'deactivated' | 'rejected';
   organization?: string;
   createdAt: string;
   avatar?: string;
+  taxId?: string;
+  permitNumber?: string;
+  documentUrl?: string;
+  address?: string;
 }
 
 export interface Donation {

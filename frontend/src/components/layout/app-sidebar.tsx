@@ -16,9 +16,9 @@ import {
     LogOut,
     User as UserIcon,
     Settings,
-    CreditCard,
     Sparkles,
 } from "lucide-react"
+import api from "@/lib/api"
 
 import {
     Sidebar,
@@ -98,7 +98,29 @@ export function AppSidebar({ role }: { role: UserRole }) {
     const location = useLocation()
     const navigate = useNavigate()
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
+    const [pendingCount, setPendingCount] = React.useState(0)
     const navItems = navItemsByRole[role] || []
+
+    const fetchPending = async () => {
+        if (role === 'admin') {
+            try {
+                const { data } = await api.get('/users/admin/pending');
+                const nonAdminPending = data.filter((u: { role: string }) => u.role !== 'admin');
+                setPendingCount(nonAdminPending.length);
+            } catch (error) {
+                console.error('Error fetching pending count:', error);
+            }
+        }
+    };
+
+    React.useEffect(() => {
+        fetchPending();
+        if (role === 'admin') {
+            const interval = setInterval(fetchPending, 10000);
+            return () => clearInterval(interval);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [role]);
 
     const isCollapsed = state === "collapsed"
 
@@ -137,6 +159,12 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                             <span className="text-sm font-medium ml-3 group-data-[collapsible=icon]:hidden">
                                                 {item.label}
                                             </span>
+                                            {item.label === "User Management" && pendingCount > 0 && (
+                                                <span className="ml-auto flex h-2 w-2 rounded-full bg-orange-500 animate-pulse group-data-[collapsible=icon]:hidden" />
+                                            )}
+                                            {item.label === "User Management" && pendingCount > 0 && isCollapsed && (
+                                                <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                                            )}
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
