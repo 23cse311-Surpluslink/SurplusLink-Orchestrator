@@ -242,7 +242,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                         <UserIcon className="mr-2 size-4" />
                                         Account
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="cursor-pointer">
+                                    <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                                         <Settings className="mr-2 size-4" />
                                         Settings
                                     </DropdownMenuItem>

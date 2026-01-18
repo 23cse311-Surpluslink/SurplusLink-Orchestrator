@@ -25,6 +25,7 @@ import UserManagement from "./pages/admin/user-management";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
 import AccountPage from "./pages/account-page";
+import { SettingsPage } from "./pages/settings-page";
 
 const queryClient = new QueryClient();
 
@@ -79,7 +80,7 @@ const App = () => (
               </Route>
 
               <Route path="/settings" element={<DashboardLayout />}>
-                <Route index element={<div className="p-8">Settings Page (Coming Soon)</div>} />
+                <Route index element={<SettingsPage />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
