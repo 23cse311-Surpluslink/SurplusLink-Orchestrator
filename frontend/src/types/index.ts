@@ -13,6 +13,7 @@ export interface User {
   permitNumber?: string;
   documentUrl?: string;
   address?: string;
+  coordinates?: { lat: number; lng: number };
 }
 
 export interface Donation {

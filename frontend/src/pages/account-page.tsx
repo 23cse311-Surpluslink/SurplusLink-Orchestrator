@@ -74,7 +74,7 @@ export default function AccountPage() {
                     </h1>
                     <p className="text-muted-foreground font-medium">Manage your professional profile and credentials</p>
                 </div>
-          
+
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -90,7 +90,7 @@ export default function AccountPage() {
                                         {user.name.substring(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
-                               
+
                             </div>
 
                             <div className="flex-1 text-center md:text-left pt-2 pb-4">

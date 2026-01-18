@@ -23,7 +23,7 @@ interface AuthContextType extends AuthState {
     login: (email: string, password: string) => Promise<void>;
     signup: (data: Record<string, any>) => Promise<void>;
     logout: () => Promise<void>;
-    updateProfile: (data: { name: string }) => Promise<void>;
+    updateProfile: (data: Partial<User>) => Promise<void>;
     isLoading: boolean;
 }
 
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [toast]);
 
-    const updateProfile = useCallback(async (data: { name: string }) => {
+    const updateProfile = useCallback(async (data: Partial<User>) => {
         const response = await api.put<any>('/users/profile', data);
         const updatedUser = response.data;
         const newState = setAuthData(updatedUser as User);
