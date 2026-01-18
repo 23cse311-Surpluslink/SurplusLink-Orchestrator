@@ -5,7 +5,7 @@ import generateToken from '../utils/generateToken.js';
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res, next) => {
-    const { name, email, password, role, organizationName } = req.body;
+    const { name, email, password, role, organization } = req.body;
 
     try {
         const userExists = await User.findOne({ email });
@@ -15,14 +15,12 @@ const registerUser = async (req, res, next) => {
             throw new Error('User already exists');
         }
 
-        if (role === 'NGO_PARTNER' && !organizationName) {
+        if ((role === 'ngo' || role === 'donor') && !organization) {
             res.status(400);
-            throw new Error('Organization name is required for NGO Partners');
+            throw new Error('Organization/Business name is required for NGOs and Donors');
         }
 
-        // Validate role against enum manually or rely on Mongoose validation?
-        // Mongoose will validate, but we can do a quick check to be cleaner
-        const validRoles = ['FOOD_DONOR', 'NGO_PARTNER', 'VOLUNTEER', 'ADMIN'];
+        const validRoles = ['donor', 'ngo', 'volunteer', 'admin'];
         if (!validRoles.includes(role)) {
             res.status(400);
             throw new Error('Invalid role');
@@ -33,16 +31,17 @@ const registerUser = async (req, res, next) => {
             email,
             password,
             role,
-            organizationName: role === 'NGO_PARTNER' ? organizationName : undefined,
+            organization: role === 'ngo' ? organization : undefined,
         });
 
         if (user) {
             res.status(201).json({
-                _id: user._id,
+                id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                organizationName: user.organizationName,
+                organization: user.organization,
+                status: user.status,
                 token: generateToken(user._id, user.role),
             });
         } else {
@@ -64,17 +63,18 @@ const loginUser = async (req, res, next) => {
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {
-            if (!user.isActive) {
+            if (user.status === 'deactivated') {
                 res.status(401);
                 throw new Error('User account is deactivated');
             }
 
             res.json({
-                _id: user._id,
+                id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                organizationName: user.organizationName,
+                organization: user.organization,
+                status: user.status,
                 token: generateToken(user._id, user.role),
             });
         } else {
@@ -91,15 +91,20 @@ const loginUser = async (req, res, next) => {
 // @access  Private
 const getMe = async (req, res, next) => {
     try {
-        const user = {
-            _id: req.user._id,
+        if (!req.user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        res.json({
+            id: req.user.id,
             name: req.user.name,
             email: req.user.email,
             role: req.user.role,
-            organizationName: req.user.organizationName,
+            organization: req.user.organization,
+            status: req.user.status,
             createdAt: req.user.createdAt,
-        };
-        res.json(user);
+        });
     } catch (error) {
         next(error);
     }
