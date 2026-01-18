@@ -14,6 +14,7 @@ interface DonationCardProps {
   onView?: (id: string) => void;
   onCancel?: (id: string) => void;
   onEdit?: (id: string) => void;
+  disabled?: boolean;
 }
 
 const statusColors: Record<Donation['status'], string> = {
@@ -25,14 +26,15 @@ const statusColors: Record<Donation['status'], string> = {
   cancelled: 'bg-muted text-muted-foreground border-muted',
 };
 
-export function DonationCard({ 
-  donation, 
-  showActions = false, 
-  onAccept, 
-  onReject, 
+export function DonationCard({
+  donation,
+  showActions = false,
+  onAccept,
+  onReject,
   onView,
   onCancel,
-  onEdit
+  onEdit,
+  disabled = false
 }: DonationCardProps) {
   const timeLeft = getTimeUntil(donation.expiryTime);
   const isUrgent = timeLeft.includes('min') || (timeLeft.includes('h') && parseInt(timeLeft) < 3);
@@ -93,49 +95,54 @@ export function DonationCard({
       {showActions && (
         <CardFooter className="gap-2 pt-0">
           {onAccept && donation.status === 'pending' && (
-            <Button 
-              variant="hero" 
-              size="sm" 
+            <Button
+              variant={disabled ? "secondary" : "hero"}
+              size="sm"
               className="flex-1"
               onClick={() => onAccept(donation.id)}
+              disabled={disabled}
             >
               Accept
             </Button>
           )}
           {onReject && donation.status === 'pending' && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-1"
               onClick={() => onReject(donation.id)}
+              disabled={disabled}
             >
               Reject
             </Button>
           )}
           {onView && (
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               size="sm"
               onClick={() => onView(donation.id)}
+              disabled={disabled}
             >
               View
             </Button>
           )}
           {onEdit && donation.status === 'pending' && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => onEdit(donation.id)}
+              disabled={disabled}
             >
               Edit
             </Button>
           )}
           {onCancel && donation.status === 'pending' && (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => onCancel(donation.id)}
+              disabled={disabled}
             >
               Cancel
             </Button>

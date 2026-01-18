@@ -4,28 +4,38 @@ import { DonationCard } from '@/components/common/donation-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { PlusCircle, Package, Leaf, Clock, TrendingUp } from 'lucide-react';
+import { PlusCircle, Package, Leaf, Clock, TrendingUp, Lock } from 'lucide-react';
 import { getDonationsByDonor } from '@/mockData/donations';
 import { donorMetrics } from '@/mockData/metrics';
 import { useAuth } from '@/contexts/auth-context';
+import { VerificationBanner } from '@/components/layout/verification-banner';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DonorDashboard() {
     const { user } = useAuth();
     const donations = getDonationsByDonor(user?.id || 'donor-1').slice(0, 3);
+    const isVerified = user?.status === 'active';
 
     return (
         <div className="space-y-8">
+            <VerificationBanner />
             <PageHeader
                 title={`Welcome back, ${user?.name?.split(' ')[0] || 'there'}!`}
                 description="Manage your food donations and track your impact."
             >
-                <Button variant="hero" asChild>
-                    <Link to="/donor/post">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Post Donation
-                    </Link>
+                <Button variant={isVerified ? "hero" : "secondary"} asChild disabled={!isVerified}>
+                    {isVerified ? (
+                        <Link to="/donor/post">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Post Donation
+                        </Link>
+                    ) : (
+                        <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                            <Lock className="h-4 w-4" />
+                            Post Donation
+                        </div>
+                    )}
                 </Button>
             </PageHeader>
 
