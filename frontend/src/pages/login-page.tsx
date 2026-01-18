@@ -1,4 +1,5 @@
-import { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -43,27 +44,24 @@ const roles: { value: UserRole; label: string; icon: React.ElementType; descript
 export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('donor');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, signup, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
     try {
-      login(selectedRole);
-      toast({
-        title: "Welcome back!",
-        description: `Logged in as ${selectedRole}`,
-      });
-      navigate(`/${selectedRole}`);
-    } catch (error) {
+      await login(email, password);
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Please try again",
+        description: error.response?.data?.message || "Please check your credentials",
         variant: "destructive",
       });
     } finally {
@@ -71,20 +69,42 @@ export default function LoginPage() {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const email = formData.get('reg-email') as string;
+    const password = formData.get('reg-password') as string;
+    const organization = formData.get('org-name') as string;
 
-    login(selectedRole);
-    toast({
-      title: "Account created!",
-      description: "Welcome to SurplusLink",
-    });
-    navigate(`/${selectedRole}`);
-    setIsLoading(false);
+    try {
+      await signup({
+        name,
+        email,
+        password,
+        role: selectedRole,
+        organization: (selectedRole === 'donor' || selectedRole === 'ngo') ? organization : undefined
+      });
+      // Success toast is handled, navigation will be handled by useEffect
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.response?.data?.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (isAuthenticated && role) {
+      console.log('Redirecting authenticated user with role:', role);
+      navigate(`/${role}`, { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
 
   return (
     <div className="min-h-screen lg:h-screen w-full flex bg-background relative selection:bg-primary/30">
@@ -175,9 +195,9 @@ export default function LoginPage() {
                         <Label htmlFor="email">Email</Label>
                         <Input
                           id="email"
+                          name="email"
                           type="email"
                           placeholder="you@example.com"
-                          defaultValue="demo@surpluslink.com"
                           className="h-11 rounded-xl"
                         />
                       </div>
@@ -185,8 +205,8 @@ export default function LoginPage() {
                         <Label htmlFor="password">Password</Label>
                         <Input
                           id="password"
+                          name="password"
                           type="password"
-                          defaultValue="password123"
                           className="h-11 rounded-xl"
                         />
                       </div>
@@ -203,16 +223,20 @@ export default function LoginPage() {
                           <Label htmlFor="org-name">
                             {selectedRole === 'donor' ? 'Store / Business Name' : 'Organization Name'}
                           </Label>
-                          <Input id="org-name" placeholder={selectedRole === 'donor' ? 'e.g. Dominos' : 'e.g. Food Hub'} className="h-11 rounded-xl" />
+                          <Input id="org-name" name="org-name" placeholder={selectedRole === 'donor' ? 'e.g. Dominos' : 'e.g. Food Hub'} className="h-11 rounded-xl" required />
                         </div>
                       )}
                       <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input id="name" name="name" placeholder="John Doe" className="h-11 rounded-xl" required />
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="reg-email">Email</Label>
-                        <Input id="reg-email" type="email" placeholder="you@example.com" className="h-11 rounded-xl" />
+                        <Input id="reg-email" name="reg-email" type="email" placeholder="you@example.com" className="h-11 rounded-xl" required />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="reg-password">Password</Label>
-                        <Input id="reg-password" type="password" placeholder="Create a password" className="h-11 rounded-xl" />
+                        <Input id="reg-password" name="reg-password" type="password" placeholder="Create a password" className="h-11 rounded-xl" required />
                       </div>
                       <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider" variant="hero" disabled={isLoading}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
