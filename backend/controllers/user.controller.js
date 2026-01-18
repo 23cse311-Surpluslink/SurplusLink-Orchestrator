@@ -83,4 +83,42 @@ const updateUserProfile = async (req, res, next) => {
     }
 };
 
-export { getUserProfile, verifyUser, updateUserProfile };
+// @desc    Submit verification documents
+// @route   PUT /api/v1/users/verify-documents
+// @access  Private
+const submitVerification = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (user) {
+            user.taxId = req.body.taxId || user.taxId;
+            user.permitNumber = req.body.permitNumber || user.permitNumber;
+            user.address = req.body.address || user.address;
+            
+            if (req.file) {
+                user.documentUrl = req.file.path; 
+            }
+
+            user.status = 'pending'; 
+
+            const updatedUser = await user.save();
+
+            res.json({
+                success: true,
+                message: 'Verification documents submitted successfully',
+                user: {
+                    id: updatedUser.id,
+                    status: updatedUser.status,
+                    documentUrl: updatedUser.documentUrl
+                }
+            });
+        } else {
+            res.status(404);
+            throw new Error('User not found');
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getUserProfile, verifyUser, updateUserProfile, submitVerification };
