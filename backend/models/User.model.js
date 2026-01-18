@@ -11,7 +11,7 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true, 
+      lowercase: true,
     },
     password: {
       type: String,
@@ -19,18 +19,19 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['FOOD_DONOR', 'NGO_PARTNER', 'VOLUNTEER', 'ADMIN'],
+      enum: ['donor', 'ngo', 'volunteer', 'admin'],
       required: true,
     },
-    organizationName: {
+    organization: {
       type: String,
-      required: function() {
-        return this.role === 'NGO_PARTNER';
-      }
+      required: function () {
+        return this.role === 'ngo' || this.role === 'donor';
+      },
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ['active', 'pending', 'deactivated'],
+      default: 'active',
     },
   },
   {
@@ -49,6 +50,16 @@ userSchema.pre('save', async function (next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.password;
+  },
 });
 
 const User = mongoose.model('User', userSchema);
