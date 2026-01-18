@@ -2,9 +2,9 @@ import User from '../models/User.model.js';
 import generateToken from '../utils/generateToken.js';
 
 // @desc    Register a new user
-// @route   POST /api/auth/register
+// @route   POST /api/v1/auth/signup
 // @access  Public
-const registerUser = async (req, res, next) => {
+const signupUser = async (req, res, next) => {
     const { name, email, password, role, organization } = req.body;
 
     try {
@@ -31,7 +31,7 @@ const registerUser = async (req, res, next) => {
             email,
             password,
             role,
-            organization: role === 'ngo' ? organization : undefined,
+            organization: (role === 'ngo' || role === 'donor') ? organization : undefined,
         });
 
         if (user) {
@@ -54,7 +54,7 @@ const registerUser = async (req, res, next) => {
 };
 
 // @desc    Auth user & get token
-// @route   POST /api/auth/login
+// @route   POST /api/v1/auth/login
 // @access  Public
 const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
@@ -86,28 +86,4 @@ const loginUser = async (req, res, next) => {
     }
 };
 
-// @desc    Get user profile
-// @route   GET /api/auth/me
-// @access  Private
-const getMe = async (req, res, next) => {
-    try {
-        if (!req.user) {
-            res.status(404);
-            throw new Error('User not found');
-        }
-
-        res.json({
-            id: req.user.id,
-            name: req.user.name,
-            email: req.user.email,
-            role: req.user.role,
-            organization: req.user.organization,
-            status: req.user.status,
-            createdAt: req.user.createdAt,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-export { registerUser, loginUser, getMe };
+export { signupUser, loginUser };
