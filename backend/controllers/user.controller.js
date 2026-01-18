@@ -121,4 +121,34 @@ const submitVerification = async (req, res, next) => {
     }
 };
 
-export { getUserProfile, verifyUser, updateUserProfile, submitVerification };
+// @desc    Get all users
+// @route   GET /api/v1/users/admin/users
+// @access  Admin
+const getUsers = async (req, res, next) => {
+    try {
+        const users = await User.find({}).sort({ createdAt: -1 });
+        res.json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get pending verifications
+// @route   GET /api/v1/users/admin/pending
+// @access  Admin
+const getPendingVerifications = async (req, res, next) => {
+    try {
+        const users = await User.find({ 
+            status: 'pending',
+            $or: [
+                { taxId: { $exists: true } },
+                { documentUrl: { $exists: true } }
+            ]
+        }).sort({ createdAt: -1 });
+        res.json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getUserProfile, verifyUser, updateUserProfile, submitVerification, getUsers, getPendingVerifications };
