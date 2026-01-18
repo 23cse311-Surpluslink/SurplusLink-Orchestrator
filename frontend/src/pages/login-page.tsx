@@ -207,6 +207,14 @@ export default function LoginPage() {
                             </Button>
                           </div>
                         </div>
+                        <div className="flex justify-end pr-1">
+                          <Link
+                            to="/forgot-password"
+                            className="text-[11px] font-black uppercase tracking-tighter text-primary/70 hover:text-primary transition-colors"
+                          >
+                            Forgot Password?
+                          </Link>
+                        </div>
                         <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
                           {isLoading ? 'Signing in...' : 'Sign In'}
                         </Button>

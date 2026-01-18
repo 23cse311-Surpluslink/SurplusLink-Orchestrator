@@ -9,6 +9,8 @@ import { AuthProvider } from "./contexts/auth-context";
 
 import LandingPage from "./pages/landing-page";
 import LoginPage from "./pages/login-page";
+import ForgotPasswordPage from "./pages/forgot-password-page";
+import ResetPasswordPage from "./pages/reset-password-page";
 import UnauthorizedPage from "./pages/unauthorized-page";
 
 import { DashboardLayout } from "./components/layout/dashboard-layout";
@@ -36,6 +38,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
               <Route path="/donor" element={<DashboardLayout requiredRole="donor" />}>
