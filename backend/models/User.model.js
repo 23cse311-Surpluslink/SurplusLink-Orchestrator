@@ -33,6 +33,8 @@ const userSchema = mongoose.Schema(
       enum: ['active', 'pending', 'deactivated'],
       default: 'active',
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   {
     timestamps: true,
