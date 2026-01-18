@@ -20,6 +20,7 @@ import DonorNotifications from "./pages/donor/donor-notifications";
 import DonorImpact from "./pages/donor/donor-impact";
 import AdminDashboard from "./pages/admin/admin-dashboard";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
+import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
 
 const queryClient = new QueryClient();
 
@@ -64,7 +65,7 @@ const App = () => (
               </Route>
 
               <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
-                {/* Volunteer routes... */}
+                <Route index element={<VolunteerDashboard />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

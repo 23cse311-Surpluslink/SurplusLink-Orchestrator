@@ -1,7 +1,8 @@
 import { UserRole, User } from '@/types';
-import { getDemoUser } from '@/mockData/users';
+import api from '@/lib/api';
 
 const AUTH_KEY = 'surpluslink_auth';
+const TOKEN_KEY = 'surpluslink_token';
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -21,27 +22,28 @@ export const getAuthState = (): AuthState => {
   return { isAuthenticated: false, user: null, role: null };
 };
 
-export const login = (role: UserRole): AuthState => {
-  const user = getDemoUser(role);
-  if (!user) {
-    throw new Error('User not found');
-  }
-  
+export const setAuthData = (user: User, token: string) => {
   const authState: AuthState = {
     isAuthenticated: true,
     user,
-    role
+    role: user.role as UserRole,
   };
-  
   localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
+  localStorage.setItem(TOKEN_KEY, token);
   return authState;
 };
 
 export const logout = (): void => {
   localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 };
 
 export const isAuthorized = (requiredRole: UserRole): boolean => {
   const { isAuthenticated, role } = getAuthState();
   return isAuthenticated && role === requiredRole;
+};
+
+export const getProfile = async (): Promise<User> => {
+  const response = await api.get('/users/profile');
+  return response.data.data; 
 };
