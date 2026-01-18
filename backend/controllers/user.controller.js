@@ -52,4 +52,35 @@ const verifyUser = async (req, res, next) => {
     }
 };
 
-export { getUserProfile, verifyUser };
+// @desc    Update user profile
+// @route   PUT /api/v1/users/profile
+// @access  Private
+const updateUserProfile = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (user) {
+            user.name = req.body.name || user.name;
+            // email should not be updated per user request
+            
+            const updatedUser = await user.save();
+
+            res.json({
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                organization: updatedUser.organization,
+                status: updatedUser.status,
+                createdAt: updatedUser.createdAt,
+            });
+        } else {
+            res.status(404);
+            throw new Error('User not found');
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getUserProfile, verifyUser, updateUserProfile };
