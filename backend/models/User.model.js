@@ -37,6 +37,10 @@ const userSchema = mongoose.Schema(
     permitNumber: String,
     documentUrl: String,
     address: String,
+    coordinates: {
+      lat: Number,
+      lng: Number,
+    },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },
