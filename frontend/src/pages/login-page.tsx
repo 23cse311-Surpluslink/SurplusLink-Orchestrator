@@ -88,14 +88,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen lg:h-screen w-full flex bg-background relative selection:bg-primary/30">
-      {/* Background Grid */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
-      {/* Decorative Blobs */}
+
       <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Back Button - Floating Top Left */}
+
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -110,7 +109,6 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-4 lg:p-6 relative z-10 pt-20 lg:pt-0">
         <div className="w-full max-w-[1100px] flex flex-col lg:flex-row gap-16 items-center">
 
-          {/* Left Side: Brand Info (Matching the Uploaded Image) */}
           <div className="hidden lg:flex flex-col gap-10 flex-1">
             <Logo size="xl" showText={true} />
 
@@ -133,7 +131,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Right Side: Reverted Card UI */}
           <div className="w-full max-w-md animate-scale-in">
             <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 rounded-[2rem] overflow-hidden">
               <Tabs defaultValue="login" className="w-full">
@@ -145,7 +142,6 @@ export default function LoginPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-6 p-8">
-                  {/* Role Selection Grid */}
                   <div className="space-y-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">I am a...</Label>
                     <div className="grid grid-cols-2 gap-3">
@@ -202,10 +198,14 @@ export default function LoginPage() {
 
                   <TabsContent value="register" className="mt-0 space-y-4">
                     <form onSubmit={handleRegister} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="org-name">Organization Name</Label>
-                        <Input id="org-name" placeholder="Your organization" className="h-11 rounded-xl" />
-                      </div>
+                      {(selectedRole === 'donor' || selectedRole === 'ngo') && (
+                        <div className="space-y-2">
+                          <Label htmlFor="org-name">
+                            {selectedRole === 'donor' ? 'Store / Business Name' : 'Organization Name'}
+                          </Label>
+                          <Input id="org-name" placeholder={selectedRole === 'donor' ? 'e.g. Dominos' : 'e.g. Food Hub'} className="h-11 rounded-xl" />
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <Label htmlFor="reg-email">Email</Label>
                         <Input id="reg-email" type="email" placeholder="you@example.com" className="h-11 rounded-xl" />
@@ -220,9 +220,7 @@ export default function LoginPage() {
                     </form>
                   </TabsContent>
 
-                  <p className="text-[10px] text-center text-muted-foreground pt-4 border-t border-border font-bold uppercase tracking-widest">
-                    Demo mode: Access the {selectedRole} dashboard
-                  </p>
+
                 </CardContent>
               </Tabs>
             </Card>
