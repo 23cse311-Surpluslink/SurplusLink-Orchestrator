@@ -61,7 +61,8 @@ const updateUserProfile = async (req, res, next) => {
 
         if (user) {
             user.name = req.body.name || user.name;
-            // email should not be updated per user request
+            user.address = req.body.address || user.address;
+            user.coordinates = req.body.coordinates || user.coordinates;
             
             const updatedUser = await user.save();
 
@@ -72,6 +73,8 @@ const updateUserProfile = async (req, res, next) => {
                 role: updatedUser.role,
                 organization: updatedUser.organization,
                 status: updatedUser.status,
+                address: updatedUser.address,
+                coordinates: updatedUser.coordinates,
                 createdAt: updatedUser.createdAt,
             });
         } else {
