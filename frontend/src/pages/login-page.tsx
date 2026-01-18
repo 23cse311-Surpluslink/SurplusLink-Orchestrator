@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Building2, Heart, Shield, Zap, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Building2, Heart, Shield, Zap, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Logo } from '@/components/ui/logo';
 
@@ -44,6 +44,8 @@ const roles: { value: UserRole; label: string; icon: React.ElementType; descript
 export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('donor');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const { login, signup, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -87,7 +89,6 @@ export default function LoginPage() {
         role: selectedRole,
         organization: (selectedRole === 'donor' || selectedRole === 'ngo') ? organization : undefined
       });
-      // Success toast is handled, navigation will be handled by useEffect
     } catch (error: any) {
       toast({
         title: "Registration failed",
@@ -153,7 +154,7 @@ export default function LoginPage() {
 
           <div className="w-full max-w-md animate-scale-in">
             <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 rounded-[2rem] overflow-hidden">
-              <Tabs defaultValue="login" className="w-full">
+              <Tabs defaultValue="register" className="w-full">
                 <CardHeader className="pb-4 pt-8 px-8">
                   <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl">
                     <TabsTrigger value="login" className="rounded-lg font-bold">Sign In</TabsTrigger>
@@ -161,90 +162,136 @@ export default function LoginPage() {
                   </TabsList>
                 </CardHeader>
 
-                <CardContent className="space-y-6 p-8">
-                  <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">I am a...</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {roles.map((role) => (
-                        <button
-                          key={role.value}
-                          type="button"
-                          onClick={() => setSelectedRole(role.value)}
-                          className={`flex flex-col items-start gap-2 p-4 rounded-2xl border transition-all duration-200 text-left ${selectedRole === role.value
-                            ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
-                            : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                            }`}
-                        >
-                          <div className={`rounded-xl p-2 ${selectedRole === role.value
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
-                            }`}>
-                            <role.icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-xs uppercase tracking-tight">{role.label}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
+                <CardContent className="p-8">
                   <TabsContent value="login" className="mt-0 space-y-4">
-                    <form onSubmit={handleLogin} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          className="h-11 rounded-xl"
-                        />
+                    <div className="space-y-4 pt-2">
+                      <div className="text-center space-y-2 mb-6">
+                        <h3 className="text-2xl font-bold tracking-tight">Welcome Back</h3>
+                        <p className="text-sm text-muted-foreground">Sign in to your account to continue with your specific role</p>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          className="h-11 rounded-xl"
-                        />
-                      </div>
-                      <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider" variant="hero" disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In'}
-                      </Button>
-                    </form>
-                  </TabsContent>
-
-                  <TabsContent value="register" className="mt-0 space-y-4">
-                    <form onSubmit={handleRegister} className="space-y-4">
-                      {(selectedRole === 'donor' || selectedRole === 'ngo') && (
+                      <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="org-name">
-                            {selectedRole === 'donor' ? 'Store / Business Name' : 'Organization Name'}
-                          </Label>
-                          <Input id="org-name" name="org-name" placeholder={selectedRole === 'donor' ? 'e.g. Dominos' : 'e.g. Food Hub'} className="h-11 rounded-xl" required />
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            className="h-11 rounded-xl"
+                            required
+                          />
                         </div>
-                      )}
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" name="name" placeholder="John Doe" className="h-11 rounded-xl" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="reg-email">Email</Label>
-                        <Input id="reg-email" name="reg-email" type="email" placeholder="you@example.com" className="h-11 rounded-xl" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="reg-password">Password</Label>
-                        <Input id="reg-password" name="reg-password" type="password" placeholder="Create a password" className="h-11 rounded-xl" required />
-                      </div>
-                      <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider" variant="hero" disabled={isLoading}>
-                        {isLoading ? 'Creating account...' : 'Create Account'}
-                      </Button>
-                    </form>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Password</Label>
+                          <div className="relative group">
+                            <Input
+                              id="password"
+                              name="password"
+                              placeholder="Enter your password"
+                              type={showLoginPassword ? "text" : "password"}
+                              className="h-11 rounded-xl pr-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                              required
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1 h-9 w-9 p-0 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                            >
+                              {showLoginPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
+                          {isLoading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                      </form>
+                    </div>
                   </TabsContent>
 
+                  <TabsContent value="register" className="mt-0 space-y-6">
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-semibold uppercase text-muted-foreground ml-1">I am registering as a...</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {roles.map((role) => (
+                            <button
+                              key={role.value}
+                              type="button"
+                              onClick={() => setSelectedRole(role.value)}
+                              className={`flex flex-col items-start gap-2 p-4 rounded-2xl border transition-all duration-200 text-left ${selectedRole === role.value
+                                ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
+                                : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                                }`}
+                            >
+                              <div className={`rounded-xl p-2 ${selectedRole === role.value
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
+                                }`}>
+                                <role.icon className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-xs uppercase tracking-tight">{role.label}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
+                      <form onSubmit={handleRegister} className="space-y-4">
+                        {(selectedRole === 'donor' || selectedRole === 'ngo') && (
+                          <div className="space-y-2">
+                            <Label htmlFor="org-name">
+                              {selectedRole === 'donor' ? 'Store / Business Name' : 'Organization Name'}
+                            </Label>
+                            <Input id="org-name" name="org-name" placeholder={selectedRole === 'donor' ? 'e.g. Dominos' : 'e.g. Food Hub'} className="h-11 rounded-xl" required />
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input id="name" name="name" placeholder="John Doe" className="h-11 rounded-xl" required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="reg-email">Email</Label>
+                          <Input id="reg-email" name="reg-email" type="email" placeholder="you@example.com" className="h-11 rounded-xl" required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="reg-password">Password</Label>
+                          <div className="relative group">
+                            <Input
+                              id="reg-password"
+                              name="reg-password"
+                              type={showRegisterPassword ? "text" : "password"}
+                              placeholder="Create a password"
+                              className="h-11 rounded-xl pr-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                              required
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1 h-9 w-9 p-0 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+                              onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                            >
+                              {showRegisterPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
+                          {isLoading ? 'Creating account...' : 'Create Account'}
+                        </Button>
+                      </form>
+                    </div>
+                  </TabsContent>
                 </CardContent>
               </Tabs>
             </Card>

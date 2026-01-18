@@ -170,13 +170,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             </Button>
           ) : (
             <div className="hidden md:flex items-center gap-3">
-              <Button
-                variant="ghost"
-                className="rounded-full font-medium hover:bg-white/20"
-                onClick={() => navigate('/login')}
-              >
-                Sign In
-              </Button>
+
               <Button
                 className="rounded-full font-medium px-6 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
                 onClick={() => navigate('/login')}
