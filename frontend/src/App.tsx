@@ -21,6 +21,7 @@ import DonorDonations from "./pages/donor/donor-donations";
 import DonorNotifications from "./pages/donor/donor-notifications";
 import DonorImpact from "./pages/donor/donor-impact";
 import AdminDashboard from "./pages/admin/admin-dashboard";
+import UserManagement from "./pages/admin/user-management";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
 import AccountPage from "./pages/account-page";
@@ -62,7 +63,7 @@ const App = () => (
 
               <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
                 <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<AdminDashboard />} />
+                <Route path="users" element={<UserManagement />} />
                 <Route path="reports" element={<AdminDashboard />} />
                 <Route path="tracking" element={<AdminDashboard />} />
                 <Route path="notifications" element={<AdminDashboard />} />
