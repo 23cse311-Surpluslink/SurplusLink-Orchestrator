@@ -21,6 +21,7 @@ function getCookie(res, name) {
 describe('Auth Routes', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        process.env.JWT_SECRET = 'test_secret_key_123';
     });
 
     describe('POST /api/v1/auth/signup', () => {
