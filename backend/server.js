@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:5173', // Your frontend URL
+    origin: process.env.FRONTEND_URL||"http://localhost:5173", 
     credentials: true
 }));
 
@@ -57,8 +57,14 @@ process.on('unhandledRejection', (err, promise) => {
     process.exit(1);
 });
 
+import setupCronJobs from './utils/cron.js';
+
 if (process.env.NODE_ENV !== 'test') {
     startServer();
+    // Start Cron Jobs (Only in production/development, not test)
+    if (process.env.NODE_ENV === 'production') {
+        setupCronJobs();
+    }
 }
 
 export default app;
