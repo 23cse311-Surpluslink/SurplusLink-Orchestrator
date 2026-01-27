@@ -120,7 +120,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
           "mx-auto flex items-center justify-between transition-all duration-500 ease-in-out rounded-full",
           isScrolled
             ? "bg-background/80 backdrop-blur-md border border-border/40 shadow-sm max-w-5xl px-6 py-2.5"
-            : "bg-transparent container px-0 py-4 border border-transparent"
+            : "bg-transparent w-full max-w-7xl px-4 lg:px-0 py-4 border border-transparent"
         )}
       >
         <div className="flex items-center gap-8">
