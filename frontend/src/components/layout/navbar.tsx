@@ -66,6 +66,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
   };
 
   if (showMenu) {
+    // ... keep existing dashboard header logic ...
     return (
       <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-background border-b border-border/50 sticky top-0 z-40">
         <div className="flex items-center gap-4">
@@ -113,24 +114,19 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
   }
 
   return (
-    <header
-      className={cn(
-        "fixed left-0 right-0 z-50 transition-all duration-500 ease-in-out",
-        isScrolled
-          ? "top-4 mx-auto max-w-5xl w-[92%] rounded-full border border-border/40 bg-background/70 backdrop-blur-xl shadow-lg py-1.5"
-          : "top-2 lg:top-0 w-full bg-transparent py-4"
-      )}
-    >
-      <div className={cn(
-        "container mx-auto px-4 lg:px-6 flex items-center justify-between relative z-10 transition-all duration-500",
-        isScrolled ? "h-12" : "h-16"
-      )}>
+    <header className="fixed top-0 left-0 right-0 z-50 w-full px-4 pt-4">
+      <div
+        className={cn(
+          "mx-auto flex items-center justify-between transition-all duration-500 ease-in-out rounded-full",
+          isScrolled
+            ? "bg-background/80 backdrop-blur-md border border-border/40 shadow-sm max-w-5xl px-6 py-2.5"
+            : "bg-transparent container px-0 py-4 border border-transparent"
+        )}
+      >
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-4">
-            <Link to="/">
-              <Logo size={isScrolled ? "sm" : "md"} />
-            </Link>
-          </div>
+          <Link to="/" className="flex items-center gap-2">
+            <Logo size={isScrolled ? "sm" : "md"} />
+          </Link>
 
           {!isAuthenticated && (
             <nav className="hidden md:flex items-center gap-1">
