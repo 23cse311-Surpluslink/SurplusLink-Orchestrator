@@ -28,6 +28,10 @@ const signupUser = async (req, res, next) => {
             throw new Error('Invalid role');
         }
 
+        // Generate OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
         const user = await User.create({
             name,
             email,
@@ -35,27 +39,70 @@ const signupUser = async (req, res, next) => {
             role,
             status: (role === 'volunteer' || role === 'admin') ? 'active' : 'pending',
             organization: (role === 'ngo' || role === 'donor') ? organization : undefined,
+            otp,
+            otpExpires
         });
 
         if (user) {
-            const token = generateToken(user._id, user.role);
+            // Send OTP Email
+            const emailTemplate = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+                        .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; color: white; }
+                        .header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 1px; }
+                        .content { padding: 40px 30px; text-align: center; }
+                        .otp-box { background: #f0fdf4; border: 2px dashed #10b981; border-radius: 8px; padding: 20px; margin: 30px 0; display: inline-block; }
+                        .otp-code { font-size: 42px; font-weight: bold; color: #047857; letter-spacing: 5px; margin: 0; }
+                        .message { font-size: 16px; color: #4b5563; margin-bottom: 20px; }
+                        .expiry { color: #6b7280; font-size: 14px; margin-top: 15px; }
+                        .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>SurplusLink</h1>
+                        </div>
+                        <div class="content">
+                            <h2 style="color: #111827; margin-top: 0;">Welcome Aboard!</h2>
+                            <p class="message">Thank you for registering. Please verify your email address to continue:</p>
+                            
+                            <div class="otp-box">
+                                <p class="otp-code">${otp}</p>
+                            </div>
+                            
+                            <p class="expiry">This code is valid for <strong>10 minutes</strong>.</p>
+                        </div>
+                        <div class="footer">
+                            &copy; ${new Date().getFullYear()} SurplusLink. All rights reserved.
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
 
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: true, // Required for sameSite: 'none'
-                sameSite: 'none', // Required for cross-site cookie
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-            });
+            try {
+                await sendEmail({
+                    email: user.email,
+                    subject: 'Verify Your Email Address',
+                    message: `Your verification code is: ${otp}`,
+                    html: emailTemplate
+                });
+            } catch (err) {
+                console.error("Failed to send welcome OTP email:", err);
+                // We still proceed, user can request new OTP on login
+            }
 
             res.status(201).json({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                organization: user.organization,
-                status: user.status,
-                avatar: user.avatar,
-                createdAt: user.createdAt,
+                success: true,
+                message: 'Registration successful! Please verify your email.',
+                requiresOtp: true,
+                email: user.email
             });
         } else {
             res.status(400);
@@ -227,9 +274,13 @@ const verifyOTP = async (req, res, next) => {
             throw new Error('Invalid or expired OTP');
         }
 
-        // Clear OTP after successful use
         user.otp = undefined;
         user.otpExpires = undefined;
+
+        if (user.status === 'pending') {
+            user.status = 'active';
+        }
+
         await user.save();
 
         if (user.status === 'deactivated') {
