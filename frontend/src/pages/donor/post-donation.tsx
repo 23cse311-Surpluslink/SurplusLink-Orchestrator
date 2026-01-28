@@ -220,7 +220,7 @@ export default function PostDonation() {
         </div>
       )}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid lg:grid-cols-2 gap-8 items-start">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 items-start">
         <div className="space-y-6">
           <Card className="border-border/50 shadow-sm overflow-hidden border-l-4 border-l-primary">
             <CardHeader>
@@ -540,12 +540,12 @@ export default function PostDonation() {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4 pt-4">
+          <div className="grid grid-cols-2 gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               size="lg"
-              className="flex-1 h-14 rounded-2xl font-bold uppercase tracking-wider"
+              className="flex-1 h-14 rounded-2xl font-bold "
               onClick={() => navigate(-1)}
             >
               Cancel
@@ -554,7 +554,7 @@ export default function PostDonation() {
               type="submit"
               variant={isVerified ? "hero" : "secondary"}
               size="lg"
-              className="flex-[2] h-14 rounded-2xl text-lg font-black uppercase tracking-widest shadow-2xl shadow-primary/20"
+              className="flex-[2] h-14 rounded-2xl text-lg font-black  shadow-2xl shadow-primary/20"
               disabled={isSubmitting || !isVerified}
             >
               {isSubmitting ? (

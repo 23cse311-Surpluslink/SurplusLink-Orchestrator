@@ -10,9 +10,11 @@ import { motion } from 'framer-motion';
 
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Building2, Heart, Shield, Zap, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Building2, Heart, Shield, Zap, CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Logo } from '@/components/ui/logo';
+import { Mail } from 'lucide-react';
 
 const roles: { value: UserRole; label: string; icon: React.ElementType; description: string }[] = [
   {
@@ -46,7 +48,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const { login, signup, isAuthenticated, role } = useAuth();
+
+  // OTP Login State
+  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpTimer, setOtpTimer] = useState(0);
+
+  const { login, signup, sendOTP, verifyOTP, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -70,6 +80,61 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpEmail) {
+      toast({ title: "Email required", description: "Please enter your email address", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await sendOTP(otpEmail);
+      setOtpSent(true);
+      setOtpTimer(600); // 10 minutes
+    } catch (error: any) {
+      toast({
+        title: "Failed to send OTP",
+        description: error.response?.data?.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpValue.length !== 4) {
+      toast({ title: "Invalid OTP", description: "Please enter a valid 4-digit code", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyOTP(otpEmail, otpValue);
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.response?.data?.message || "Invalid or expired OTP",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpTimer]);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -167,58 +232,155 @@ export default function LoginPage() {
                     <div className="space-y-4 pt-2">
                       <div className="text-center space-y-2 mb-6">
                         <h3 className="text-2xl font-bold tracking-tight">Welcome Back</h3>
-                        <p className="text-sm text-muted-foreground">Sign in to your account to continue with your specific role</p>
+                        <p className="text-sm text-muted-foreground">Sign in to your account to continue</p>
                       </div>
-                      <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="you@example.com"
-                            className="h-11 rounded-xl"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="password">Password</Label>
-                          <div className="relative group">
+
+                      {/* Login Method Toggle */}
+                      <div className="flex p-1 bg-muted/30 rounded-lg mb-6">
+                        <button
+                          type="button"
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${loginMethod === 'password' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                          onClick={() => setLoginMethod('password')}
+                        >
+                          <KeyRound className="h-4 w-4" /> Password
+                        </button>
+                        <button
+                          type="button"
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${loginMethod === 'otp' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                          onClick={() => setLoginMethod('otp')}
+                        >
+                          <Mail className="h-4 w-4" /> OTP
+                        </button>
+                      </div>
+
+                      {loginMethod === 'password' ? (
+                        <form onSubmit={handleLogin} className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
                             <Input
-                              id="password"
-                              name="password"
-                              placeholder="Enter your password"
-                              type={showLoginPassword ? "text" : "password"}
-                              className="h-11 rounded-xl pr-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                              id="email"
+                              name="email"
+                              type="email"
+                              placeholder="you@example.com"
+                              className="h-11 rounded-xl"
                               required
                             />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-1 top-1 h-9 w-9 p-0 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
-                              onClick={() => setShowLoginPassword(!showLoginPassword)}
-                            >
-                              {showLoginPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
                           </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <div className="relative group">
+                              <Input
+                                id="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                type={showLoginPassword ? "text" : "password"}
+                                className="h-11 rounded-xl pr-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                required
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-1 top-1 h-9 w-9 p-0 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+                                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              >
+                                {showLoginPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="flex justify-end pr-1">
+                            <Link
+                              to="/forgot-password"
+                              className="text-[11px] font-black uppercase tracking-tighter text-primary/70 hover:text-primary transition-colors"
+                            >
+                              Forgot Password?
+                            </Link>
+                          </div>
+                          <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
+                            {isLoading ? 'Signing in...' : 'Sign In'}
+                          </Button>
+                        </form>
+                      ) : (
+                        /* OTP Login Form */
+                        <div className="space-y-4">
+                          {!otpSent ? (
+                            <form onSubmit={handleSendOTP} className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="otp-email">Email Address</Label>
+                                <Input
+                                  id="otp-email"
+                                  type="email"
+                                  placeholder="you@example.com"
+                                  className="h-11 rounded-xl"
+                                  value={otpEmail}
+                                  onChange={(e) => setOtpEmail(e.target.value)}
+                                  required
+                                />
+                                <p className="text-xs text-muted-foreground ml-1">
+                                  We'll send a one-time verification code to this email.
+                                </p>
+                              </div>
+                              <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading || !otpEmail}>
+                                {isLoading ? 'Sending OTP...' : 'Send Verification Code'}
+                              </Button>
+                            </form>
+                          ) : (
+                            <form onSubmit={handleVerifyOTP} className="space-y-6">
+                              <div className="space-y-2 flex flex-col items-center">
+                                <div className="text-center mb-6">
+                                  <p className="text-sm text-muted-foreground mb-2">Enter the verification code sent to</p>
+                                  <p className="text-base font-bold text-foreground">{otpEmail}</p>
+                                </div>
+                                <InputOTP
+                                  maxLength={4}
+                                  value={otpValue}
+                                  onChange={(value) => setOtpValue(value)}
+                                >
+                                  <InputOTPGroup className="gap-2">
+                                    <InputOTPSlot index={0} className="h-14 w-14 rounded-xl border-2 text-lg font-bold" />
+                                    <InputOTPSlot index={1} className="h-14 w-14 rounded-xl border-2 text-lg font-bold" />
+                                    <InputOTPSlot index={2} className="h-14 w-14 rounded-xl border-2 text-lg font-bold" />
+                                    <InputOTPSlot index={3} className="h-14 w-14 rounded-xl border-2 text-lg font-bold" />
+                                  </InputOTPGroup>
+                                </InputOTP>
+                                <div className="text-center mt-2">
+                                  {otpTimer > 0 ? (
+                                    <p className="text-xs text-muted-foreground">Code expires in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</p>
+                                  ) : (
+                                    <p className="text-xs text-destructive">Code expired</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider" variant="hero" disabled={isLoading || otpValue.length !== 4}>
+                                {isLoading ? 'Verifying...' : 'Verify & Login'}
+                              </Button>
+
+                              <div className="flex items-center justify-between mt-4">
+                                <button
+                                  type="button"
+                                  onClick={() => setOtpSent(false)}
+                                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                >
+                                  <ArrowLeft className="h-3 w-3" /> Change Email
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { setOtpValue(""); handleSendOTP(e); }}
+                                  className="text-xs font-semibold text-primary hover:underline"
+                                  disabled={otpTimer > 540} // Disable resend for first minute
+                                >
+                                  Resend Code
+                                </button>
+                              </div>
+                            </form>
+                          )}
                         </div>
-                        <div className="flex justify-end pr-1">
-                          <Link
-                            to="/forgot-password"
-                            className="text-[11px] font-black uppercase tracking-tighter text-primary/70 hover:text-primary transition-colors"
-                          >
-                            Forgot Password?
-                          </Link>
-                        </div>
-                        <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
-                          {isLoading ? 'Signing in...' : 'Sign In'}
-                        </Button>
-                      </form>
+                      )}
                     </div>
                   </TabsContent>
 
