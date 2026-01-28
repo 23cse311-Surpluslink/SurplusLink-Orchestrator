@@ -15,6 +15,7 @@ const getUserProfile = async (req, res, next) => {
                 role: user.role,
                 organization: user.organization,
                 status: user.status,
+                avatar: user.avatar,
                 createdAt: user.createdAt,
             });
         } else {
@@ -63,7 +64,14 @@ const updateUserProfile = async (req, res, next) => {
             user.name = req.body.name || user.name;
             user.address = req.body.address || user.address;
             user.coordinates = req.body.coordinates || user.coordinates;
-            
+
+            if (req.file) {
+                user.avatar = req.file.path;
+            } else if (req.body.avatar === '') {
+                // Allow clearing avatar if explicitly passed as empty string
+                user.avatar = undefined;
+            }
+
             const updatedUser = await user.save();
 
             res.json({
@@ -75,6 +83,7 @@ const updateUserProfile = async (req, res, next) => {
                 status: updatedUser.status,
                 address: updatedUser.address,
                 coordinates: updatedUser.coordinates,
+                avatar: updatedUser.avatar,
                 createdAt: updatedUser.createdAt,
             });
         } else {
@@ -97,12 +106,12 @@ const submitVerification = async (req, res, next) => {
             user.taxId = req.body.taxId || user.taxId;
             user.permitNumber = req.body.permitNumber || user.permitNumber;
             user.address = req.body.address || user.address;
-            
+
             if (req.file) {
-                user.documentUrl = req.file.path; 
+                user.documentUrl = req.file.path;
             }
 
-            user.status = 'pending'; 
+            user.status = 'pending';
 
             const updatedUser = await user.save();
 
@@ -141,7 +150,7 @@ const getUsers = async (req, res, next) => {
 // @access  Admin
 const getPendingVerifications = async (req, res, next) => {
     try {
-        const users = await User.find({ 
+        const users = await User.find({
             status: 'pending',
             $or: [
                 { taxId: { $exists: true } },

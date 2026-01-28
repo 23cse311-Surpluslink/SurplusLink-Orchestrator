@@ -89,6 +89,15 @@ const donationSchema = new mongoose.Schema(
     }
 );
 
+donationSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+    },
+});
+
 // Index for GeoJSON queries
 donationSchema.index({ coordinates: '2dsphere' });
 
