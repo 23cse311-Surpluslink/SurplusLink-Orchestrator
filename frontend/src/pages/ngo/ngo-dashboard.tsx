@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Package, Clock, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -26,11 +26,7 @@ export default function NgoDashboard() {
 
   const isVerified = user?.status === 'active';
 
-  useEffect(() => {
-    fetchFeed();
-  }, []);
-
-  const fetchFeed = async () => {
+  const fetchFeed = useCallback(async () => {
     try {
       const data = await DonationService.getSmartFeed();
       setDonations(data.donations);
@@ -45,7 +41,11 @@ export default function NgoDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
 
   const handleClaim = async (id: string) => {
     try {

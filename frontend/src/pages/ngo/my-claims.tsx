@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Donation } from '@/types';
 import DonationService from '@/services/donation.service';
 import { DonationCard } from '@/components/common/donation-card';
@@ -13,11 +13,7 @@ export function MyClaimsPage() {
     const [loading, setLoading] = useState(true);
     const [completingId, setCompletingId] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchClaims();
-    }, []);
-
-    const fetchClaims = async () => {
+    const fetchClaims = useCallback(async () => {
         try {
             const data = await DonationService.getMyDonations();
             // Filter for active claims (assigned)
@@ -36,7 +32,11 @@ export function MyClaimsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        fetchClaims();
+    }, [fetchClaims]);
 
     const handleCompleteClick = (id: string) => {
         setCompletingId(id);
