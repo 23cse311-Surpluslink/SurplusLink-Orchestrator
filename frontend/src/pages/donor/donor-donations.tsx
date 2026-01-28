@@ -1,39 +1,76 @@
-import { useState } from 'react';
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
-import { donations as allDonations } from '@/mockData/donations';
-
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { PageHeader } from '@/components/common/page-header';
 import { DonationCard } from '@/components/common/donation-card';
+import DonationService from '@/services/donation.service';
+import { format } from 'date-fns';
 
 export default function DonorDonations() {
     const { user } = useAuth();
     const { toast } = useToast();
-    const [donations, setDonations] = useState(
-        allDonations.filter(d => d.donorId === user?.id || d.donorId === 'donor-1')
-    );
+    const queryClient = useQueryClient();
 
-    const pendingDonations = donations.filter(d => d.status === 'pending');
-    const activeDonations = donations.filter(d => ['assigned', 'picked'].includes(d.status));
-    const completedDonations = donations.filter(d => ['delivered', 'expired', 'cancelled'].includes(d.status));
+    const { data: donations, isLoading } = useQuery({
+        queryKey: ['my-donations'],
+        queryFn: DonationService.getMyDonations,
+        enabled: !!user,
+        refetchInterval: 15000,
+    });
+
+    const cancelMutation = useMutation({
+        mutationFn: DonationService.cancelDonation,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-donations'] });
+            toast({
+                title: "Donation Cancelled",
+                description: "The donation has been successfully cancelled.",
+            });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to cancel donation.",
+            });
+        }
+    });
 
     const handleCancel = (id: string) => {
-        setDonations(prev =>
-            prev.map(d => d.id === id ? { ...d, status: 'cancelled' as const } : d)
-        );
-        toast({
-            title: "Donation Cancelled",
-            description: "The donation has been cancelled.",
-        });
+        if (confirm("Are you sure you want to cancel this donation?")) {
+            cancelMutation.mutate(id);
+        }
     };
 
+    const mappedDonations = donations?.map(d => ({
+        id: d._id,
+        donorId: d.donorId,
+        donorName: user?.name || 'You',
+        foodType: d.title,
+        quantity: d.quantity,
+        expiryTime: d.expiryDate,
+        pickupWindow: `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}`,
+        location: d.location.address,
+        address: d.location.address,
+        status: d.status as any,
+        createdAt: d.createdAt,
+        image: d.photos?.[0]
+    })) || [];
+
+    const pendingDonations = mappedDonations.filter(d => d.status === 'pending');
+    const activeDonations = mappedDonations.filter(d => ['accepted', 'in_transit'].includes(d.status));
+    const completedDonations = mappedDonations.filter(d => ['delivered', 'expired', 'cancelled'].includes(d.status));
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading donations...</div>;
+    }
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
             <PageHeader
                 title="My Donations"
                 description="Track and manage all your food donations."
@@ -46,34 +83,32 @@ export default function DonorDonations() {
                 </Button>
             </PageHeader>
 
-            <Tabs defaultValue="pending">
-                <TabsList>
-                    <TabsTrigger value="pending">
+            <Tabs defaultValue="pending" className="w-full">
+                <TabsList className="bg-muted/50 p-1 rounded-xl">
+                    <TabsTrigger value="pending" className="rounded-lg px-6">
                         Pending ({pendingDonations.length})
                     </TabsTrigger>
-                    <TabsTrigger value="active">
+                    <TabsTrigger value="active" className="rounded-lg px-6">
                         Active ({activeDonations.length})
                     </TabsTrigger>
-                    <TabsTrigger value="completed">
-                        Completed ({completedDonations.length})
+                    <TabsTrigger value="completed" className="rounded-lg px-6">
+                        History ({completedDonations.length})
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="pending" className="mt-6">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <TabsContent value="pending" className="mt-8">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {pendingDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={donation as any}
                                 showActions
-                                onCancel={handleCancel}
-                                onView={() => { }}
-                                onEdit={() => { }}
+                                onCancel={() => handleCancel(donation.id)}
                             />
                         ))}
                         {pendingDonations.length === 0 && (
-                            <div className="col-span-full text-center py-12">
-                                <p className="text-muted-foreground mb-4">No pending donations</p>
+                            <div className="col-span-full text-center py-20 bg-muted/20 border-2 border-dashed border-muted rounded-[2rem]">
+                                <p className="text-muted-foreground mb-4">No pending donations at the moment.</p>
                                 <Button variant="hero" asChild>
                                     <Link to="/donor/post">Post a Donation</Link>
                                 </Button>
@@ -82,37 +117,37 @@ export default function DonorDonations() {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="active" className="mt-6">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <TabsContent value="active" className="mt-8">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {activeDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={donation as any}
                                 showActions
                                 onView={() => { }}
                             />
                         ))}
                         {activeDonations.length === 0 && (
-                            <div className="col-span-full text-center py-12 text-muted-foreground">
-                                No active donations
+                            <div className="col-span-full text-center py-20 text-muted-foreground bg-muted/10 rounded-[2rem]">
+                                No active pickups in progress.
                             </div>
                         )}
                     </div>
                 </TabsContent>
 
-                <TabsContent value="completed" className="mt-6">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <TabsContent value="completed" className="mt-8">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {completedDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={donation as any}
                                 showActions
                                 onView={() => { }}
                             />
                         ))}
                         {completedDonations.length === 0 && (
-                            <div className="col-span-full text-center py-12 text-muted-foreground">
-                                No completed donations yet
+                            <div className="col-span-full text-center py-20 text-muted-foreground bg-muted/10 rounded-[2rem]">
+                                No donation history yet.
                             </div>
                         )}
                     </div>
