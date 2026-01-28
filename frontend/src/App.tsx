@@ -26,6 +26,8 @@ import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
 import AccountPage from "./pages/account-page";
 import { SettingsPage } from "./pages/settings-page";
+import { NgoSettingsPage } from "./pages/ngo/settings-page";
+import { MyClaimsPage } from "./pages/ngo/my-claims";
 
 const queryClient = new QueryClient();
 
@@ -55,7 +57,8 @@ const App = () => (
               <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
                 <Route index element={<NgoDashboard />} />
                 <Route path="nearby" element={<NgoDashboard />} />
-                <Route path="accepted" element={<NgoDashboard />} />
+                <Route path="claims" element={<MyClaimsPage />} />
+                <Route path="settings" element={<NgoSettingsPage />} />
                 <Route path="volunteers" element={<NgoDashboard />} />
                 <Route path="notifications" element={<DonorNotifications />} />
                 <Route path="feedback" element={<NgoDashboard />} />

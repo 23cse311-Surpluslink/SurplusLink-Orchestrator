@@ -32,6 +32,8 @@ export interface Donation {
   createdAt: string;
   image?: string;
   coordinates?: { lat: number; lng: number };
+  foodCategory?: 'Cooked' | 'Raw' | 'Packaged';
+  storageReq?: 'Cold' | 'Dry' | 'Frozen';
 }
 
 export interface Notification {
@@ -76,4 +78,10 @@ export interface Metrics {
     meals: number;
     co2: number;
   }[];
+}
+
+export interface DonationStats {
+  totalDonations: number;
+  completedDonations: number;
+  acceptanceRate: number;
 }
