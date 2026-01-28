@@ -41,6 +41,7 @@ describe('Donation Integration Tests', () => {
             organization: 'Test Org',
             status: 'active'
         });
+        token = `Bearer ${jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' })}`;
     });
 
     const validDonation = {
