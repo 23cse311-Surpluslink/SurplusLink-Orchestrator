@@ -110,10 +110,13 @@ export default function AccountPage() {
                                     </AvatarFallback>
                                 </Avatar>
 
-                                <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-20">
+                                <label className={`absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full transition-all duration-200 cursor-pointer z-20 ${isUploading ? 'opacity-100 backdrop-blur-sm' : 'opacity-0 group-hover:opacity-100'}`}>
                                     <div className="flex flex-col items-center gap-2">
                                         {isUploading ? (
-                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                            <>
+                                                <Loader2 className="h-8 w-8 animate-spin text-white" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/90">Uploading...</span>
+                                            </>
                                         ) : (
                                             <>
                                                 <Camera className="h-8 w-8" />

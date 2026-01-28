@@ -24,6 +24,8 @@ interface AuthContextType extends AuthState {
     signup: (data: Record<string, any>) => Promise<void>;
     logout: () => Promise<void>;
     updateProfile: (data: Partial<User> | FormData) => Promise<void>;
+    sendOTP: (email: string) => Promise<any>;
+    verifyOTP: (email: string, otp: string) => Promise<User>;
     isLoading: boolean;
 }
 
@@ -103,8 +105,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     }, [toast]);
 
+    const sendOTP = useCallback(async (email: string) => {
+        const response = await api.post('/auth/send-otp', { email });
+        toast({
+            title: "OTP Sent",
+            description: response.data.message || "Please check your email for the verification code.",
+        });
+        return response.data;
+    }, [toast]);
+
+    const verifyOTP = useCallback(async (email: string, otp: string) => {
+        const response = await api.post('/auth/verify-otp', { email, otp });
+        const user = response.data;
+        const newState = setAuthData(user as User);
+        setAuthState(newState);
+        toast({
+            variant: "success",
+            title: "Verified!",
+            description: `Successfully signed in as ${user.role}`,
+        });
+        return user;
+    }, [toast]);
+
     return (
-        <AuthContext.Provider value={{ ...authState, login, signup, logout, updateProfile, isLoading }}>
+        <AuthContext.Provider value={{ ...authState, login, signup, logout, updateProfile, sendOTP, verifyOTP, isLoading }}>
             {children}
         </AuthContext.Provider>
     );

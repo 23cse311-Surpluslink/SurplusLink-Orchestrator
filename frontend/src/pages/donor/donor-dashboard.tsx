@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/common/page-header';
 import { StatCard } from '@/components/common/stat-card';
@@ -102,10 +102,7 @@ export default function DonorDashboard() {
                 description="Manage your food donations and track your impact."
             >
                 <div className="flex gap-3">
-                    <Button variant="outline" size="icon" className="rounded-full relative">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute top-0 right-0 h-2 w-2 bg-primary rounded-full animate-pulse" />
-                    </Button>
+
                     <Button variant={isVerified ? "hero" : "secondary"} asChild disabled={!isVerified}>
                         {isVerified ? (
                             <Link to="/donor/post">
@@ -113,7 +110,7 @@ export default function DonorDashboard() {
                                 Post Donation
                             </Link>
                         ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2" >
                                 <Lock className="h-4 w-4" />
                                 Post Donation
                             </div>

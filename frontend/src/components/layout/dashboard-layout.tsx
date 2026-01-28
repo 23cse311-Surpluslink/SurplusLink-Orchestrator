@@ -50,7 +50,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
                             <h1 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{requiredRole} workspace</h1>
                         </div>
                     </header>
-                    <main className="flex-1 overflow-auto p-6 lg:p-8">
+                    <main className="flex-1 overflow-auto p-4 lg:p-8">
                         <div className="max-w-7xl mx-auto w-full">
                             <Outlet />
                         </div>
