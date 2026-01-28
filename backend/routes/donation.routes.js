@@ -9,6 +9,7 @@ import {
     getSmartFeed,
     claimDonation,
     rejectDonation,
+    getClaimedDonations,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -20,6 +21,7 @@ router.use(protect);
 
 // NGO specific routes
 router.get('/feed', roleBasedAccess(['ngo']), getSmartFeed);
+router.get('/claimed', roleBasedAccess(['ngo']), getClaimedDonations);
 router.patch('/:id/claim', roleBasedAccess(['ngo']), claimDonation);
 router.patch('/:id/reject', roleBasedAccess(['ngo']), rejectDonation);
 

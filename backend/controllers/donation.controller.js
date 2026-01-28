@@ -349,3 +349,17 @@ export const rejectDonation = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get donations claimed by NGO
+// @route   GET /api/donations/claimed
+// @access  Private (NGO)
+export const getClaimedDonations = async (req, res, next) => {
+    try {
+        const donations = await Donation.find({ claimedBy: req.user._id })
+            .sort({ updatedAt: -1 })
+            .populate('donor', 'name organization');
+        res.json(donations);
+    } catch (error) {
+        next(error);
+    }
+};
