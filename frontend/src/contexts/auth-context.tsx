@@ -21,7 +21,7 @@ interface LoginResponse {
 
 interface AuthContextType extends AuthState {
     login: (email: string, password: string) => Promise<void>;
-    signup: (data: Record<string, any>) => Promise<void>;
+    signup: (data: Record<string, any>) => Promise<any>;
     logout: () => Promise<void>;
     updateProfile: (data: Partial<User> | FormData) => Promise<void>;
     sendOTP: (email: string) => Promise<any>;
@@ -67,6 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const signup = useCallback(async (signupData: Record<string, any>) => {
         const response = await api.post<any>('/auth/signup', signupData);
+
+        if (response.data.requiresOtp) {
+            toast({
+                title: "Verification Sent",
+                description: "Please check your email for the verification code.",
+            });
+            return response.data;
+        }
+
+        // Fallback for immediate login if backend decides to (e.g. for dev/test)
         const user = response.data;
         const newState = setAuthData(user as User);
         setAuthState(newState);
