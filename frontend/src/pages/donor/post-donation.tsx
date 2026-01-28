@@ -96,7 +96,7 @@ export default function PostDonation() {
         }
       );
     }
-  }, []);
+  }, [toast]);
 
   const watchExpiryDate = form.watch('expiryDate');
   const watchExpiryTime = form.watch('expiryTime');
