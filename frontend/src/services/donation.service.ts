@@ -65,6 +65,11 @@ const DonationService = {
         };
     },
 
+    getClaimedDonations: async (): Promise<Donation[]> => {
+        const response = await api.get('/donations/claimed');
+        return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
+    },
+
     claimDonation: async (id: string) => {
         const response = await api.patch(`/donations/${id}/claim`);
         return response.data;

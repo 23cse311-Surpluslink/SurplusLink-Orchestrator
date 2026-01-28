@@ -20,6 +20,7 @@ export interface Donation {
   id: string;
   donorId: string;
   donorName: string;
+  title: string;
   foodType: string;
   quantity: string;
   expiryTime: string;
@@ -32,8 +33,8 @@ export interface Donation {
   createdAt: string;
   image?: string;
   coordinates?: { lat: number; lng: number };
-  foodCategory?: 'Cooked' | 'Raw' | 'Packaged';
-  storageReq?: 'Cold' | 'Dry' | 'Frozen';
+  foodCategory?: 'cooked' | 'raw' | 'packaged';
+  storageReq?: 'cold' | 'dry' | 'frozen';
 }
 
 export interface Notification {

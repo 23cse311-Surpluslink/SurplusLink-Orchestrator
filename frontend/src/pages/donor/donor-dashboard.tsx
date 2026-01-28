@@ -10,7 +10,8 @@ import { PlusCircle, Package, Leaf, Clock, TrendingUp, Lock, Bell } from 'lucide
 import { useAuth } from '@/contexts/auth-context';
 import { VerificationBanner } from '@/components/layout/verification-banner';
 import { useToast } from '@/hooks/use-toast';
-import DonationService, { Donation as RawDonation } from '@/services/donation.service';
+import DonationService from '@/services/donation.service';
+import { Donation } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
@@ -43,7 +44,7 @@ export default function DonorDashboard() {
             if (acceptedDonation) {
                 toast({
                     title: "Donation Confirmed!",
-                    description: `Your donation "${acceptedDonation.title}" has been accepted by an NGO.`,
+                    description: `Your donation "${acceptedDonation.foodType}" has been accepted by an NGO.`,
                     variant: "default",
                 });
             }
@@ -77,22 +78,7 @@ export default function DonorDashboard() {
     };
 
     // Mapping backend data to DonationCard props
-    const mappedDonations = donations?.map((d: RawDonation) => ({
-        id: d.id || d._id,
-        donorId: d.donorId,
-        donorName: user?.name || 'You',
-        foodType: d.title,
-        quantity: d.quantity,
-        expiryTime: d.expiryDate,
-        pickupWindow: d.pickupWindow ? `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}` : 'N/A',
-        location: d.pickupAddress,
-        address: d.pickupAddress,
-        status: d.status,
-        createdAt: d.createdAt,
-        image: d.photos?.[0]
-    })) || [];
-
-    const recentDonations = mappedDonations.slice(0, 3);
+    const recentDonations = donations?.slice(0, 3) || [];
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">

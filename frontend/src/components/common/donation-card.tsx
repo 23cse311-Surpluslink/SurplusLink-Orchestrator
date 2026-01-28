@@ -49,7 +49,7 @@ export function DonationCard({
             <p className="text-sm text-muted-foreground">{donation.donorName}</p>
           </div>
           <Badge className={cn("capitalize border", statusColors[donation.status])}>
-            {donation.status}
+            {donation.status === 'active' ? 'Pending' : donation.status}
           </Badge>
         </div>
       </CardHeader>
@@ -85,10 +85,10 @@ export function DonationCard({
           )}
           {donation.storageReq && (
             <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
-              {donation.storageReq === 'Cold' && '❄️ '}
-              {donation.storageReq === 'Frozen' && '🧊 '}
-              {donation.storageReq === 'Dry' && '🍞 '}
-              {donation.storageReq}
+              {donation.storageReq.toLowerCase() === 'cold' && '❄️ '}
+              {donation.storageReq.toLowerCase() === 'frozen' && '🧊 '}
+              {donation.storageReq.toLowerCase() === 'dry' && '🍞 '}
+              <span className="capitalize">{donation.storageReq}</span>
             </Badge>
           )}
         </div>
@@ -155,9 +155,8 @@ export function DonationCard({
           )}
           {onCancel && donation.status === 'active' && (
             <Button
-              variant="ghost"
+              variant="destructive"
               size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => onCancel(donation.id)}
               disabled={disabled}
             >

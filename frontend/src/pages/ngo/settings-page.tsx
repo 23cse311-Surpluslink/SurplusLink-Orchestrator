@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +17,27 @@ export function NgoSettingsPage() {
     const [facilities, setFacilities] = useState<string[]>([]);
     const [isUrgent, setIsUrgent] = useState(false);
 
-    // In a real app, we should fetch the current profile on mount.
-    // For now we start with defaults.
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                // Fetch fresh profile data
+                const { data } = await api.get('/users/profile');
+                if (data.ngoProfile) {
+                    setCapacity(data.ngoProfile.dailyCapacity || 50);
+                    setFacilities(data.ngoProfile.storageFacilities || []);
+                    setIsUrgent(data.ngoProfile.isUrgentNeed || false);
+                }
+            } catch (error) {
+                console.error("Failed to fetch NGO profile", error);
+                toast({
+                    title: "Error",
+                    description: "Could not load your current settings.",
+                    variant: "destructive",
+                });
+            }
+        };
+        fetchSettings();
+    }, [toast]);
 
     const handleFacilityChange = (facility: string, checked: boolean) => {
         if (checked) {
@@ -39,7 +59,7 @@ export function NgoSettingsPage() {
             toast({
                 title: "Settings Saved",
                 description: "Your NGO profile has been updated successfully.",
-                variant: "default", 
+                variant: "default",
             });
         } catch (error) {
             console.error(error);

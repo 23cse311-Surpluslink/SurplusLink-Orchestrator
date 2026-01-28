@@ -60,9 +60,7 @@ export default function NgoDashboard() {
           <Button asChild variant="hero" size="sm">
             <Link to="/ngo/nearby">Find Food</Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/ngo/settings">Settings</Link>
-          </Button>
+
         </div>
       </div>
 
