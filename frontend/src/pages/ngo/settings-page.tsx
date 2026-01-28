@@ -12,7 +12,7 @@ import { Loader2, Save } from 'lucide-react';
 export function NgoSettingsPage() {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [capacity, setCapacity] = useState<number>(50); // Default
+    const [capacity, setCapacity] = useState<number>(50);
     const [facilities, setFacilities] = useState<string[]>([]);
     const [isUrgent, setIsUrgent] = useState(false);
 
@@ -39,7 +39,7 @@ export function NgoSettingsPage() {
             toast({
                 title: "Settings Saved",
                 description: "Your NGO profile has been updated successfully.",
-                variant: "default", // or "success" if configured
+                variant: "default", 
             });
         } catch (error) {
             console.error(error);

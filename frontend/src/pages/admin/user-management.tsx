@@ -41,6 +41,7 @@ export default function UserManagement() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterRole, setFilterRole] = useState<string>('all');
+    const [activeTab, setActiveTab] = useState('all');
     const { toast } = useToast();
 
     const fetchUsers = async () => {
@@ -123,7 +124,7 @@ export default function UserManagement() {
                 </div>
             </PageHeader>
 
-            <Tabs defaultValue="all" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <div className="flex items-center justify-between bg-card/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm sticky top-0 z-10">
                     <TabsList className="bg-transparent gap-2 h-auto p-0">
                         <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground h-10 px-6 rounded-xl font-bold transition-all uppercase tracking-wider text-[10px]">
@@ -153,7 +154,12 @@ export default function UserManagement() {
                             <div className="grid xl:grid-cols-2 gap-4">
                                 <AnimatePresence mode="popLayout">
                                     {filteredUsers.map((user) => (
-                                        <UserCard key={user.id} user={user} onVerify={handleVerify} />
+                                        <UserCard
+                                            key={user.id}
+                                            user={user}
+                                            onVerify={handleVerify}
+                                            onReview={() => setActiveTab('pending')}
+                                        />
                                     ))}
                                 </AnimatePresence>
                             </div>
@@ -187,7 +193,7 @@ export default function UserManagement() {
     );
 }
 
-function UserCard({ user, onVerify }: { user: User, onVerify: (id: string, s: string) => void }) {
+function UserCard({ user, onVerify, onReview }: { user: User, onVerify: (id: string, s: string) => void, onReview: () => void }) {
     return (
         <motion.div
             layout
@@ -230,24 +236,42 @@ function UserCard({ user, onVerify }: { user: User, onVerify: (id: string, s: st
                     Joined {new Date(user.createdAt).toLocaleDateString()}
                 </div>
                 <div className="flex gap-2">
-                    {user.status !== 'active' && (
-                        <Button
-                            variant="hero"
-                            size="sm"
-                            className="h-8 rounded-lg text-[14px] font-semibold  "
-                            onClick={() => onVerify(user.id, 'active')}
-                        >
-                            Approve
-                        </Button>
+                    {user.status === 'pending' ? (
+                        user.documentUrl || user.taxId ? (
+                            <Button
+                                variant="hero"
+                                size="sm"
+                                className="h-8 rounded-lg text-[12px] font-bold tracking-wide uppercase px-4 shadow-lg shadow-primary/20 bg-orange-500 hover:bg-orange-600 border-orange-600"
+                                onClick={onReview}
+                            >
+                                Review KYC
+                            </Button>
+                        ) : (
+                            <Badge variant="outline" className="h-8 rounded-lg text-[10px] uppercase font-black px-3 text-muted-foreground border-dashed">
+                                Warning: No Docs
+                            </Badge>
+                        )
+                    ) : (
+                        user.status !== 'active' && (
+                            <Button
+                                variant="hero"
+                                size="sm"
+                                className="h-8 rounded-lg text-[14px] font-semibold"
+                                onClick={() => onVerify(user.id, 'active')}
+                            >
+                                Reactivate
+                            </Button>
+                        )
                     )}
+
                     {user.status === 'active' && (
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 rounded-lg text-[14px] font-semibold text-destructive hover:bg-destructive/5"
+                            className="h-8 rounded-lg text-[12px] font-bold uppercase tracking-wide text-destructive border-destructive/20 hover:bg-destructive/10"
                             onClick={() => onVerify(user.id, 'deactivated')}
                         >
-                            Deny
+                            Deactivate
                         </Button>
                     )}
                 </div>
@@ -325,7 +349,7 @@ function VerificationReviewCard({ user, onVerify }: { user: User, onVerify: (id:
                                     Review Document
                                     <ExternalLink className="h-4 w-4" />
                                 </span>
-                                <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter mt-1">Stored on Cloudinary Private</span>
+
                             </a>
                         ) : (
                             <div className="flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-border/50 bg-muted/20 opacity-50">
