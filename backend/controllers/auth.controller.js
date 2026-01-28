@@ -277,9 +277,7 @@ const verifyOTP = async (req, res, next) => {
         user.otp = undefined;
         user.otpExpires = undefined;
 
-        if (user.status === 'pending') {
-            user.status = 'active';
-        }
+
 
         await user.save();
 
