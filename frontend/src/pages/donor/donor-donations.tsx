@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { PageHeader } from '@/components/common/page-header';
 import { DonationCard } from '@/components/common/donation-card';
-import DonationService, { Donation as RawDonation } from '@/services/donation.service';
+import DonationService from '@/services/donation.service';
 import { format } from 'date-fns';
 
 export default function DonorDonations() {
@@ -47,20 +47,7 @@ export default function DonorDonations() {
         }
     };
 
-    const mappedDonations = donations?.map((d: RawDonation) => ({
-        id: d.id || d._id,
-        donorId: d.donorId,
-        donorName: user?.name || 'You',
-        foodType: d.title,
-        quantity: d.quantity,
-        expiryTime: d.expiryDate,
-        pickupWindow: d.pickupWindow ? `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}` : 'N/A',
-        location: d.pickupAddress,
-        address: d.pickupAddress,
-        status: d.status,
-        createdAt: d.createdAt,
-        image: d.photos?.[0]
-    })) || [];
+    const mappedDonations = donations || [];
 
     const pendingDonations = mappedDonations.filter(d => d.status === 'active');
     const activeDonations = mappedDonations.filter(d => ['assigned', 'picked_up'].includes(d.status));
@@ -102,7 +89,7 @@ export default function DonorDonations() {
                         {pendingDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={{ ...donation, donorName: user?.name || 'Me' }}
                                 showActions
                                 onCancel={() => handleCancel(donation.id)}
                             />
@@ -123,7 +110,7 @@ export default function DonorDonations() {
                         {activeDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={{ ...donation, donorName: user?.name || 'Me' }}
                                 showActions
                                 onView={() => { }}
                             />
@@ -141,7 +128,7 @@ export default function DonorDonations() {
                         {completedDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation}
+                                donation={{ ...donation, donorName: user?.name || 'Me' }}
                                 showActions
                                 onView={() => { }}
                             />

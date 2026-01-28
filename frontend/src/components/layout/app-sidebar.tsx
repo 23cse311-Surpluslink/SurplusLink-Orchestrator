@@ -76,6 +76,7 @@ const navItemsByRole = {
         { label: "Notifications", href: "/ngo/notifications", icon: Bell },
         { label: "Feedback", href: "/ngo/feedback", icon: MessageSquare },
         { label: "Impact Metrics", href: "/ngo/impact", icon: BarChart3 },
+        { label: "Settings", href: "/ngo/settings", icon: Settings },
     ],
     admin: [
         { label: "Dashboard", href: "/admin", icon: Home },

@@ -1,34 +1,51 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PageHeader } from '@/components/common/page-header';
-import { DonationCard } from '@/components/common/donation-card';
-import { MapPlaceholder } from '@/components/common/map-placeholder';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';
 import { Donation } from '@/types';
-import { RejectionModal } from '@/components/ngo/rejection-modal';
-import { Loader2, MapPin, List } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/auth-context';
+import { PageHeader } from '@/components/common/page-header';
+import { DonationCard } from '@/components/common/donation-card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, MapPin, Filter, AlertCircle } from 'lucide-react';
+import { getTimeUntil } from '@/utils/formatters';
 
 export function NearbyDonationsPage() {
     const { toast } = useToast();
-    const { user } = useAuth();
     const [donations, setDonations] = useState<Donation[]>([]);
     const [loading, setLoading] = useState(true);
-    const [rejectingId, setRejectingId] = useState<string | null>(null);
+    // Filters
+    const [foodType, setFoodType] = useState('all');
+    const [onlyExpiring, setOnlyExpiring] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const isVerified = user?.status === 'active';
+    // Rejection State
+    const [rejectId, setRejectId] = useState<string | null>(null);
+    const [rejectReason, setRejectReason] = useState('');
+    const [isRejecting, setIsRejecting] = useState(false);
 
-    const fetchFeed = useCallback(async () => {
+    const loadFeed = useCallback(async () => {
+        setLoading(true);
         try {
             const data = await DonationService.getSmartFeed();
             setDonations(data.donations);
         } catch (error) {
             console.error(error);
             toast({
-                title: "Error",
-                description: "Failed to load nearby donations.",
-                variant: "destructive",
+                title: "Failed to load feed",
+                description: "Could not fetch nearby donations. Please try again.",
+                variant: 'destructive'
             });
         } finally {
             setLoading(false);
@@ -36,107 +53,192 @@ export function NearbyDonationsPage() {
     }, [toast]);
 
     useEffect(() => {
-        fetchFeed();
-    }, [fetchFeed]);
+        loadFeed();
+    }, [loadFeed]);
 
     const handleClaim = async (id: string) => {
         try {
-            setDonations(prev => prev.filter(d => d.id !== id));
-            toast({ title: "Donation Claimed!", description: "Check 'Accepted Donations' for next steps." });
             await DonationService.claimDonation(id);
+            toast({
+                title: "Donation Claimed!",
+                description: "This item has been moved to your 'Accepted' list. Please arrange pickup.",
+                className: "bg-green-50 border-green-200 text-green-800"
+            });
+            loadFeed();
         } catch (error) {
             console.error(error);
-            toast({ title: "Error", description: "Failed to claim donation.", variant: "destructive" });
-            fetchFeed();
+            toast({
+                title: "Claim Failed",
+                description: "Could not claim this donation. It might have been taken.",
+                variant: 'destructive'
+            });
         }
     };
 
-    const handleRejectConfirm = async (reason: string) => {
-        if (!rejectingId) return;
+    const handleConfirmReject = async () => {
+        if (!rejectId) return;
+        setIsRejecting(true);
         try {
-            const id = rejectingId;
-            setRejectingId(null);
-            setDonations(prev => prev.filter(d => d.id !== id));
-            await DonationService.rejectDonation(id, reason);
-            toast({ title: "Donation Rejected", description: "Preference saved." });
+            await DonationService.rejectDonation(rejectId, rejectReason);
+            toast({
+                title: "Donation Hidden",
+                description: "We won't show this donation to you again.",
+            });
+            setRejectId(null);
+            setRejectReason('');
+            loadFeed();
         } catch (error) {
-            console.error(error);
-            toast({ title: "Error", description: "Failed to reject donation.", variant: "destructive" });
-            fetchFeed();
+            toast({
+                title: "Error",
+                description: "Failed to reject donation.",
+                variant: 'destructive'
+            });
+        } finally {
+            setIsRejecting(false);
         }
     };
+
+    const filteredDonations = donations.filter(d => {
+        // Search
+        if (searchQuery && !(d.title || d.foodType).toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        // Food Category
+        if (foodType !== 'all' && d.foodCategory?.toLowerCase() !== foodType.toLowerCase()) return false;
+        // Expiry (<24h)
+        if (onlyExpiring) {
+            const timeLeft = getTimeUntil(d.expiryTime);
+            if (timeLeft.includes('d')) return false;
+        }
+        return true;
+    });
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            <PageHeader
-                title="Nearby Donations"
-                description="Find available food items in your vicinity."
-            />
+        <div className="h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-6 animate-fade-in -mx-4 md:mx-0">
+            {/* Left: List & Filters */}
+            <div className="flex-1 flex flex-col h-full overflow-hidden md:rounded-xl md:border bg-background">
+                {/* Header & Filters */}
+                <div className="p-4 border-b space-y-4 bg-muted/10">
+                    <PageHeader
+                        title="Nearby Donations"
+                        description="Live feed of food available for rescue in your area."
+                        className="mb-0"
+                    />
 
-            <Tabs defaultValue="list" className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                    <TabsList>
-                        <TabsTrigger value="list" className="flex items-center gap-2">
-                            <List className="h-4 w-4" />
-                            List View
-                        </TabsTrigger>
-                        <TabsTrigger value="map" className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            Map View
-                        </TabsTrigger>
-                    </TabsList>
-                    <span className="text-sm text-muted-foreground">{donations.length} items found</span>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <Input
+                                placeholder="Search food items..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
+                            <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <Select value={foodType} onValueChange={setFoodType}>
+                            <SelectTrigger className="w-full sm:w-[150px]">
+                                <SelectValue placeholder="Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Types</SelectItem>
+                                <SelectItem value="cooked">Cooked</SelectItem>
+                                <SelectItem value="raw">Raw</SelectItem>
+                                <SelectItem value="packaged">Packaged</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="expiring"
+                            checked={onlyExpiring}
+                            onCheckedChange={(c) => setOnlyExpiring(c as boolean)}
+                        />
+                        <Label htmlFor="expiring" className="text-sm cursor-pointer">
+                            Expiring Soon (within 24h)
+                        </Label>
+                    </div>
                 </div>
 
-                <TabsContent value="list" className="space-y-4">
+                {/* List Content */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {loading ? (
-                        <div className="flex justify-center py-12">
+                        <div className="flex items-center justify-center h-40">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    ) : donations.length === 0 ? (
-                        <div className="text-center py-20 border-2 border-dashed rounded-xl bg-muted/30">
-                            <p className="text-muted-foreground">No donations available nearby at this moment.</p>
+                    ) : filteredDonations.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-60 text-center text-muted-foreground p-8">
+                            <AlertCircle className="h-12 w-12 mb-4 opacity-20" />
+                            <h3 className="font-bold text-lg">No donations found</h3>
+                            <p className="text-sm max-w-xs mt-1">
+                                Try adjusting your filters or expanding your search radius in settings.
+                            </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {donations.map(d => (
-                                <DonationCard
-                                    key={d.id}
-                                    donation={d}
-                                    showActions
-                                    onAccept={handleClaim}
-                                    onReject={setRejectingId}
-                                    disabled={!isVerified}
-                                />
-                            ))}
-                        </div>
+                        filteredDonations.map(donation => (
+                            <DonationCard
+                                key={donation.id}
+                                donation={donation}
+                                showActions
+                                onAccept={handleClaim}
+                                onReject={(id) => setRejectId(id)}
+                                disabled={donation.status !== 'active'}
+                            />
+                        ))
                     )}
-                </TabsContent>
+                </div>
+            </div>
 
-                <TabsContent value="map">
-                    <MapPlaceholder className="h-[600px]">
-                        {/* In a real implementation, we would map over donations and place markers here */}
-                        <div className="absolute top-4 right-4 bg-background/90 backdrop-blur p-4 rounded-lg shadow-lg border text-left">
-                            <h4 className="font-semibold text-sm mb-2">Live Pickups</h4>
-                            <div className="space-y-2">
-                                {donations.slice(0, 3).map(d => (
-                                    <div key={d.id} className="text-xs flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full bg-primary" />
-                                        <span className="font-medium">{d.foodType}</span>
-                                        <span className="text-muted-foreground">- {d.location}</span>
-                                    </div>
-                                ))}
-                            </div>
+            {/* Right: Map Placeholder */}
+            <div className="hidden md:flex w-[400px] xl:w-[500px] flex-col rounded-xl border overflow-hidden bg-slate-50 relative">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                    <div className="text-center space-y-4 p-8">
+                        <div className="relative mx-auto h-32 w-32 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
+                            <MapPin className="h-16 w-16 text-blue-500" />
+                            <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full animate-ping" />
                         </div>
-                    </MapPlaceholder>
-                </TabsContent>
-            </Tabs>
+                        <h3 className="font-bold text-slate-700">Live Map</h3>
+                        <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                            Visualizing {filteredDonations.length} active donations within your operational radius.
+                        </p>
+                    </div>
+                </div>
+                {/* Overlay Stats */}
+                <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur p-4 rounded-lg shadow-sm border text-xs space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Range:</span>
+                        <span className="font-bold">10 km</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Closest:</span>
+                        <span className="font-bold">1.2 km</span>
+                    </div>
+                </div>
+            </div>
 
-            <RejectionModal
-                isOpen={!!rejectingId}
-                onClose={() => setRejectingId(null)}
-                onConfirm={handleRejectConfirm}
-            />
+            {/* Rejection Dialog */}
+            <Dialog open={!!rejectId} onOpenChange={(o) => !o && setRejectId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Reject Donation</DialogTitle>
+                        <DialogDescription>
+                            Let us know why you are rejecting this donation. This helps improve future matches.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-2">
+                        <Label className="mb-2 block">Reason (Optional)</Label>
+                        <Textarea
+                            placeholder="e.g., Too far, Insufficient storage, Not needed..."
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRejectId(null)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleConfirmReject} disabled={isRejecting}>
+                            {isRejecting ? 'Rejecting...' : 'Reject Donation'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
