@@ -13,7 +13,7 @@ import upload from '../config/cloudinary.js';
 const userRouter = express.Router();
 
 userRouter.get('/profile', protect, getUserProfile);
-userRouter.put('/profile', protect, updateUserProfile);
+userRouter.put('/profile', protect, upload.single('avatar'), updateUserProfile);
 userRouter.put('/verify-documents', protect, upload.single('verificationDoc'), submitVerification);
 userRouter.patch('/verify', protect, roleBasedAccess(['admin']), verifyUser);
 userRouter.get('/admin/users', protect, roleBasedAccess(['admin']), getUsers);

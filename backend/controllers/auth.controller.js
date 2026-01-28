@@ -38,7 +38,7 @@ const signupUser = async (req, res, next) => {
 
         if (user) {
             const token = generateToken(user._id, user.role);
-            
+
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true, // Required for sameSite: 'none'
@@ -53,6 +53,7 @@ const signupUser = async (req, res, next) => {
                 role: user.role,
                 organization: user.organization,
                 status: user.status,
+                avatar: user.avatar,
                 createdAt: user.createdAt,
             });
         } else {
@@ -95,6 +96,7 @@ const loginUser = async (req, res, next) => {
                 role: user.role,
                 organization: user.organization,
                 status: user.status,
+                avatar: user.avatar,
                 createdAt: user.createdAt,
             });
         } else {
