@@ -6,20 +6,26 @@ export interface Donation {
     description?: string;
     foodType: string;
     quantity: string;
+    perishability: 'high' | 'medium' | 'low';
     expiryDate: string;
     pickupWindow: {
         start: string;
         end: string;
     };
     photos: string[];
-    location: {
+    pickupAddress: string;
+    location?: {
         type: string;
         coordinates: [number, number];
         address: string;
     };
+    coordinates: {
+        type: 'Point';
+        coordinates: [number, number];
+    };
     allergens: string[];
     dietaryTags: string[];
-    status: 'pending' | 'accepted' | 'in_transit' | 'delivered' | 'cancelled';
+    status: 'active' | 'assigned' | 'picked_up' | 'completed' | 'cancelled' | 'expired' | 'rejected';
     donorId: string;
     createdAt: string;
 }

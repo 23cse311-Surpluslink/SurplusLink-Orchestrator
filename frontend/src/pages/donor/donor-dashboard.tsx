@@ -37,10 +37,9 @@ export default function DonorDashboard() {
     // Notification Logic: Watch for status changes
     useEffect(() => {
         if (donations) {
-            const acceptedDonation = donations.find(d => d.status === 'accepted');
+            const acceptedDonation = donations.find(d => d.status === 'assigned');
             // In a real app, you'd track which ones you've already notified about
-            // For now, we'll just show a toast if any is 'accepted' and it's 'fresh'
-            // (this is a simplified logic for the task)
+            // For now, we'll just show a toast if any is 'assigned' (which means accepted by NGO)
             if (acceptedDonation) {
                 toast({
                     title: "Donation Confirmed!",
@@ -84,9 +83,9 @@ export default function DonorDashboard() {
         foodType: d.title,
         quantity: d.quantity,
         expiryTime: d.expiryDate,
-        pickupWindow: `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}`,
-        location: d.location.address,
-        address: d.location.address,
+        pickupWindow: d.pickupWindow ? `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}` : 'N/A',
+        location: d.pickupAddress,
+        address: d.pickupAddress,
         status: d.status as any,
         createdAt: d.createdAt,
         image: d.photos?.[0]
