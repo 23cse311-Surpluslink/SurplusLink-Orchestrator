@@ -1,17 +1,31 @@
 import api from '@/lib/api';
 import { Donation, DonationStats } from '@/types';
 
+interface BackendDonation {
+    _id?: string;
+    id?: string;
+    expiryDate?: string;
+    expiryTime?: string;
+    pickupWindow?: string | { start: string; end: string };
+    pickupAddress?: string;
+    location?: { address: string };
+    donorName?: string;
+    status: Donation['status'];
+    foodCategory?: Donation['foodCategory'];
+    storageReq?: Donation['storageReq'];
+}
+
 // Helper to map backend donation structure to frontend interface
-const mapDonation = (d: any): Donation => ({
-    ...d,
-    id: d._id || d.id,
-    expiryTime: d.expiryDate || d.expiryTime,
+const mapDonation = (d: BackendDonation): Donation => ({
+    ...(d as unknown as Donation),
+    id: d._id || d.id || "",
+    expiryTime: d.expiryDate || d.expiryTime || "",
     pickupWindow: typeof d.pickupWindow === 'object'
         ? `${new Date(d.pickupWindow.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(d.pickupWindow.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        : d.pickupWindow,
+        : d.pickupWindow || "",
     location: d.location?.address || d.pickupAddress || "Unknown Location",
     address: d.location?.address || d.pickupAddress || "",
-    donorName: d.donorName || "Unknown Donor", // Ensure backend populates this or we handle it
+    donorName: d.donorName || "Unknown Donor",
     status: d.status,
     foodCategory: d.foodCategory,
     storageReq: d.storageReq
