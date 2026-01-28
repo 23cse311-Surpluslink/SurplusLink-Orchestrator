@@ -6,6 +6,7 @@ import {
     submitVerification,
     getUsers,
     getPendingVerifications,
+    updateNGOSettings,
 } from '../controllers/user.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -18,5 +19,6 @@ userRouter.put('/verify-documents', protect, upload.single('verificationDoc'), s
 userRouter.patch('/verify', protect, roleBasedAccess(['admin']), verifyUser);
 userRouter.get('/admin/users', protect, roleBasedAccess(['admin']), getUsers);
 userRouter.get('/admin/pending', protect, roleBasedAccess(['admin']), getPendingVerifications);
+userRouter.put('/profile/ngo', protect, roleBasedAccess(['ngo']), updateNGOSettings);
 
 export default userRouter;

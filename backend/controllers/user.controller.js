@@ -163,4 +163,34 @@ const getPendingVerifications = async (req, res, next) => {
     }
 };
 
-export { getUserProfile, verifyUser, updateUserProfile, submitVerification, getUsers, getPendingVerifications };
+// @desc    Update NGO profile settings
+// @route   PUT /api/v1/users/profile/ngo
+// @access  Private (NGO)
+const updateNGOSettings = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (user && user.role === 'ngo') {
+            const { dailyCapacity, storageFacilities, isUrgentNeed } = req.body;
+
+            user.ngoProfile = {
+                dailyCapacity: dailyCapacity !== undefined ? dailyCapacity : user.ngoProfile.dailyCapacity,
+                storageFacilities: storageFacilities || user.ngoProfile.storageFacilities,
+                isUrgentNeed: isUrgentNeed !== undefined ? isUrgentNeed : user.ngoProfile.isUrgentNeed,
+            };
+
+            const updatedUser = await user.save();
+            res.json({
+                message: 'NGO profile updated successfully',
+                ngoProfile: updatedUser.ngoProfile
+            });
+        } else {
+            res.status(404);
+            throw new Error('NGO profile not found or user is not an NGO');
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getUserProfile, verifyUser, updateUserProfile, submitVerification, getUsers, getPendingVerifications, updateNGOSettings };
