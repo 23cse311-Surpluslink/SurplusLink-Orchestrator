@@ -6,7 +6,7 @@ import { createNotification } from '../utils/notification.js';
 // @access  Private (Donor)
 export const createDonation = async (req, res) => {
     try {
-        const {
+        let {
             title,
             description,
             foodType,
@@ -20,8 +20,35 @@ export const createDonation = async (req, res) => {
             dietaryTags,
         } = req.body;
 
+        // Helper to parse JSON fields from multipart/form-data
+        const parseJsonField = (val) => {
+            if (!val) return null;
+            if (typeof val === 'object') return val;
+            try {
+                return JSON.parse(val);
+            } catch (e) {
+                console.error(`Failed to parse field:`, val);
+                return null;
+            }
+        };
+
+        pickupWindow = parseJsonField(pickupWindow);
+        coordinates = parseJsonField(coordinates);
+        allergens = parseJsonField(allergens) || [];
+        dietaryTags = parseJsonField(dietaryTags) || [];
+
+        if (!pickupWindow || !pickupWindow.start || !pickupWindow.end) {
+            return res.status(400).json({ message: 'Invalid pickup window format.' });
+        }
+
         const expiry = new Date(expiryDate);
+        const windowStart = new Date(pickupWindow.start);
+        const windowEnd = new Date(pickupWindow.end);
         const now = new Date();
+
+        if (isNaN(expiry.getTime())) return res.status(400).json({ message: 'Invalid expiry date.' });
+        if (isNaN(windowStart.getTime())) return res.status(400).json({ message: 'Invalid pickup window start date.' });
+        if (isNaN(windowEnd.getTime())) return res.status(400).json({ message: 'Invalid pickup window end date.' });
 
         // Safety Rule: Validate that (expiryDate - Date.now()) > 2 hours
         const hoursToExpiry = (expiry - now) / (1000 * 60 * 60);
@@ -32,8 +59,7 @@ export const createDonation = async (req, res) => {
         }
 
         // Scheduling Rule: Ensure pickupWindow.end < expiryDate
-        const pickupEnd = new Date(pickupWindow.end);
-        if (pickupEnd >= expiry) {
+        if (windowEnd >= expiry) {
             return res.status(400).json({
                 message: 'Pickup window must end before the food expires.',
             });
@@ -42,7 +68,7 @@ export const createDonation = async (req, res) => {
         // Handle photos if uploaded via Multer
         const photos = req.files ? req.files.map((file) => file.path) : [];
 
-        const donation = await Donation.create({
+        const donationData = {
             title,
             description,
             foodType,
@@ -51,22 +77,32 @@ export const createDonation = async (req, res) => {
             perishability,
             photos,
             pickupWindow: {
-                start: new Date(pickupWindow.start),
-                end: pickupEnd,
+                start: windowStart,
+                end: windowEnd,
             },
             pickupAddress,
             coordinates: {
                 type: 'Point',
-                coordinates: JSON.parse(coordinates), // Expecting "[lng, lat]" string or array
+                coordinates: Array.isArray(coordinates) ? coordinates : (coordinates?.coordinates || coordinates),
             },
-            allergens: allergens ? (Array.isArray(allergens) ? allergens : JSON.parse(allergens)) : [],
-            dietaryTags: dietaryTags ? (Array.isArray(dietaryTags) ? dietaryTags : JSON.parse(dietaryTags)) : [],
+            allergens,
+            dietaryTags,
             donor: req.user._id,
-        });
+        };
 
-        // Notify NGOs (Placeholder log)
+        // Ensure coordinates are just the [lng, lat] array
+        if (donationData.coordinates.coordinates && Array.isArray(donationData.coordinates.coordinates)) {
+            // Already in the right shape if it was a nested object
+        } else if (Array.isArray(donationData.coordinates)) {
+            const coordsArray = donationData.coordinates;
+            donationData.coordinates = { type: 'Point', coordinates: coordsArray };
+        }
+
+        const donation = await Donation.create(donationData);
+
+        // Notify NGOs
         await createNotification(
-            'NGO_BROADCAST_GROUP', // Placeholder for all relevant NGOs
+            'NGO_BROADCAST_GROUP',
             `New donation available: ${title}`,
             'donation_created',
             donation._id
@@ -74,6 +110,7 @@ export const createDonation = async (req, res) => {
 
         res.status(201).json(donation);
     } catch (error) {
+        console.error('Donation Creation Error:', error);
         res.status(400).json({ message: error.message });
     }
 };
