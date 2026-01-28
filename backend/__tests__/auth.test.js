@@ -29,25 +29,18 @@ describe('Auth Routes', () => {
             // Mock User.findOne to return null (user doesn't exist)
             User.findOne.mockResolvedValue(null);
             
-            // Mock User.create to return a new user
+            // Mock User.create to return a new user with OTP fields
             User.create.mockResolvedValue({
                 _id: '123',
                 name: 'Test User',
                 email: 'test@example.com',
                 password: 'hashedpassword',
                 role: 'donor',
-                organization: 'Food Bank'
+                organization: 'Food Bank',
+                otp: '1234',
+                otpExpires: Date.now() + 600000,
+                status: 'pending'
             });
-
-            // Mock bcrypt and jwt directly or via controller?
-            // Controller uses them.
-            // But we didn't mock bcryptjs in the test file via vi.mock('bcryptjs')
-            // Real bcrypt is flaky in mocks sometimes, let's see if it runs.
-            
-            // Since we use User.create, the pre-save hook might run if we used a real DB.
-            // But here we mock User.create, so no hooks run.
-            // The controller calls generatedToken logic which uses jwt.
-            // We should check if the response has token and user.
 
             const res = await request(app)
                 .post('/api/v1/auth/signup')
@@ -60,10 +53,12 @@ describe('Auth Routes', () => {
                 });
 
             expect(res.statusCode).toBe(201);
-            // expect(res.body).toHaveProperty('token'); // Token is in cookie now
+            expect(res.body.success).toBe(true);
+            expect(res.body.requiresOtp).toBe(true);
+            expect(res.body.email).toBe('test@example.com');
+            // Token is NOT set on signup anymore, only after verification
             const token = getCookie(res, 'token');
-            expect(token).toBeDefined();
-            expect(res.body.role).toBe('donor');
+            expect(token).toBeNull(); 
         });
 
         it('should return 400 if user already exists', async () => {
