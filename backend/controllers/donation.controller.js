@@ -1,4 +1,5 @@
 import Donation from '../models/Donation.model.js';
+import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
 
 // @desc    Create new donation
@@ -148,7 +149,7 @@ export const getDonorStats = async (req, res) => {
             totalDonations,
             completedDonations,
             acceptanceRate: acceptanceRate.toFixed(2),
-            totalMealsSaved: completedDonations, 
+            totalMealsSaved: completedDonations,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -211,11 +212,12 @@ export const getDonationById = async (req, res) => {
     }
 };
 
-// @desc    Mark donation as completed
+// @desc    Mark donation as completed and provide feedback
 // @route   PATCH /api/donations/:id/complete
-// @access  Private (Usually volunteer/NGO, but we need the status update logic here)
-export const completeDonation = async (req, res) => {
+// @access  Private (NGO/Volunteer)
+export const completeDonation = async (req, res, next) => {
     try {
+        const { rating, comment } = req.body;
         const donation = await Donation.findById(req.params.id);
 
         if (!donation) {
@@ -223,12 +225,13 @@ export const completeDonation = async (req, res) => {
         }
 
         donation.status = 'completed';
+        donation.feedback = { rating, comment };
         await donation.save();
 
         // Notify donor
         await createNotification(
             donation.donor,
-            `Your donation "${donation.title}" has been successfully completed!`,
+            `Your donation "${donation.title}" has been successfully completed and rated ${rating}/5!`,
             'donation_completed',
             donation._id
         );
@@ -236,5 +239,113 @@ export const completeDonation = async (req, res) => {
         res.json(donation);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get smart feed for NGOs
+// @route   GET /api/donations/feed
+// @access  Private (NGO)
+export const getSmartFeed = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user || user.role !== 'ngo') {
+            return res.status(403).json({ message: 'Only NGOs can access the feed' });
+        }
+
+        const { storageFacilities, dailyCapacity, isUrgentNeed } = user.ngoProfile;
+
+        let query = {
+            status: 'active',
+        };
+
+        // Storage Match: If the NGO has storageFacilities, only return matching donations
+        if (storageFacilities && storageFacilities.length > 0) {
+            query.storageReq = { $in: storageFacilities };
+        }
+
+        let donations;
+
+        // Sorting and Geospatial logic
+        if (user.coordinates && user.coordinates.lat && user.coordinates.lng) {
+            const userCoords = [user.coordinates.lng, user.coordinates.lat];
+
+            donations = await Donation.find({
+                ...query,
+                coordinates: {
+                    $near: {
+                        $geometry: {
+                            type: "Point",
+                            coordinates: userCoords
+                        }
+                    }
+                }
+            });
+        } else {
+            donations = await Donation.find(query).sort({ createdAt: -1 });
+        }
+
+        // Capacity Warning logic (Simplified: based on dailyCapacity vs available donations count)
+        const capacityWarning = dailyCapacity > 0 && donations.length > dailyCapacity;
+
+        res.json({
+            donations,
+            capacityWarning,
+            count: donations.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Claim a donation
+// @route   PATCH /api/donations/:id/claim
+// @access  Private (NGO)
+export const claimDonation = async (req, res, next) => {
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) return res.status(404).json({ message: 'Donation not found' });
+        if (donation.status !== 'active') return res.status(400).json({ message: 'Donation is no longer active' });
+
+        donation.status = 'assigned';
+        donation.claimedBy = req.user.id;
+        donation.claimedAt = Date.now();
+        await donation.save();
+
+        await createNotification(
+            donation.donor,
+            `Your donation "${donation.title}" has been claimed by ${req.user.organization}`,
+            'donation_assigned',
+            donation._id
+        );
+
+        res.json(donation);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Reject a donation (for safety reasons)
+// @route   PATCH /api/donations/:id/reject
+// @access  Private (NGO)
+export const rejectDonation = async (req, res, next) => {
+    try {
+        const { rejectionReason } = req.body;
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) return res.status(404).json({ message: 'Donation not found' });
+
+        donation.status = 'rejected';
+        donation.rejectionReason = rejectionReason;
+        await donation.save();
+
+        await createNotification(
+            donation.donor,
+            `Your donation "${donation.title}" was rejected for safety reasons. Reason: ${rejectionReason}`,
+            'donation_rejected',
+            donation._id
+        );
+
+        res.json(donation);
+    } catch (error) {
+        next(error);
     }
 };

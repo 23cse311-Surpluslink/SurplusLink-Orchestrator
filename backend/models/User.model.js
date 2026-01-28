@@ -46,6 +46,11 @@ const userSchema = mongoose.Schema(
     avatar: String,
     otp: String,
     otpExpires: Date,
+    ngoProfile: {
+      dailyCapacity: { type: Number, default: 0 },
+      storageFacilities: [{ type: String, enum: ['cold', 'dry', 'frozen'] }],
+      isUrgentNeed: { type: Boolean, default: false },
+    },
   },
   {
     timestamps: true,

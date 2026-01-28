@@ -83,6 +83,28 @@ const donationSchema = new mongoose.Schema(
             enum: ['pending', 'verified', 'failed'],
             default: 'pending',
         },
+        foodCategory: {
+            type: String,
+            enum: ['cooked', 'raw', 'packaged'],
+        },
+        storageReq: {
+            type: String,
+            enum: ['cold', 'dry', 'frozen'],
+        },
+        claimedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+        claimedAt: {
+            type: Date,
+        },
+        rejectionReason: {
+            type: String,
+        },
+        feedback: {
+            rating: { type: Number, min: 1, max: 5 },
+            comment: { type: String },
+        },
     },
     {
         timestamps: true,
