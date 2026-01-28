@@ -17,6 +17,7 @@ const getUserProfile = async (req, res, next) => {
                 status: user.status,
                 avatar: user.avatar,
                 createdAt: user.createdAt,
+                ngoProfile: user.ngoProfile,
             });
         } else {
             res.status(404);
