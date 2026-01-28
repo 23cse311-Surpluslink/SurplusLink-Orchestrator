@@ -53,17 +53,17 @@ export default function DonorDonations() {
         foodType: d.title,
         quantity: d.quantity,
         expiryTime: d.expiryDate,
-        pickupWindow: `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}`,
-        location: d.location.address,
-        address: d.location.address,
+        pickupWindow: d.pickupWindow ? `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}` : 'N/A',
+        location: d.pickupAddress,
+        address: d.pickupAddress,
         status: d.status as any,
         createdAt: d.createdAt,
         image: d.photos?.[0]
     })) || [];
 
-    const pendingDonations = mappedDonations.filter(d => d.status === 'pending');
-    const activeDonations = mappedDonations.filter(d => ['accepted', 'in_transit'].includes(d.status));
-    const completedDonations = mappedDonations.filter(d => ['delivered', 'expired', 'cancelled'].includes(d.status));
+    const pendingDonations = mappedDonations.filter(d => d.status === 'active');
+    const activeDonations = mappedDonations.filter(d => ['assigned', 'picked_up'].includes(d.status));
+    const completedDonations = mappedDonations.filter(d => ['completed', 'expired', 'cancelled', 'rejected'].includes(d.status));
 
     if (isLoading) {
         return <div className="p-8 text-center">Loading donations...</div>;
@@ -108,7 +108,7 @@ export default function DonorDonations() {
                         ))}
                         {pendingDonations.length === 0 && (
                             <div className="col-span-full text-center py-20 bg-muted/20 border-2 border-dashed border-muted rounded-[2rem]">
-                                <p className="text-muted-foreground mb-4">No pending donations at the moment.</p>
+                                <p className="text-muted-foreground mb-4">No active donations at the moment.</p>
                                 <Button variant="hero" asChild>
                                     <Link to="/donor/post">Post a Donation</Link>
                                 </Button>
