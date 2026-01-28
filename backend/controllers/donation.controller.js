@@ -148,7 +148,7 @@ export const getDonorStats = async (req, res) => {
             totalDonations,
             completedDonations,
             acceptanceRate: acceptanceRate.toFixed(2),
-            totalMealsSaved: completedDonations, // Placeholder logic
+            totalMealsSaved: completedDonations, 
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
