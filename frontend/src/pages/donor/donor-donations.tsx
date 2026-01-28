@@ -31,11 +31,12 @@ export default function DonorDonations() {
                 description: "The donation has been successfully cancelled.",
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const apiError = error as { response?: { data?: { message?: string } } };
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: error.response?.data?.message || "Failed to cancel donation.",
+                description: apiError.response?.data?.message || (error instanceof Error ? error.message : "Failed to cancel donation."),
             });
         }
     });
@@ -56,7 +57,7 @@ export default function DonorDonations() {
         pickupWindow: d.pickupWindow ? `${format(new Date(d.pickupWindow.start), 'p')} - ${format(new Date(d.pickupWindow.end), 'p')}` : 'N/A',
         location: d.pickupAddress,
         address: d.pickupAddress,
-        status: d.status as any,
+        status: d.status,
         createdAt: d.createdAt,
         image: d.photos?.[0]
     })) || [];
@@ -101,7 +102,7 @@ export default function DonorDonations() {
                         {pendingDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation as any}
+                                donation={donation}
                                 showActions
                                 onCancel={() => handleCancel(donation.id)}
                             />

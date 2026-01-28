@@ -26,7 +26,7 @@ export interface Donation {
   pickupWindow: string;
   location: string;
   address: string;
-  status: 'pending' | 'assigned' | 'picked' | 'delivered' | 'expired' | 'cancelled';
+  status: 'active' | 'assigned' | 'picked_up' | 'completed' | 'cancelled' | 'expired' | 'rejected';
   assignedNgo?: string;
   assignedVolunteer?: string;
   createdAt: string;
