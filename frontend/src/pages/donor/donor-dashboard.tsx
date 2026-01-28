@@ -77,8 +77,8 @@ export default function DonorDashboard() {
     };
 
     // Mapping backend data to DonationCard props
-    const mappedDonations = donations?.map(d => ({
-        id: d._id,
+    const mappedDonations = donations?.map((d: any) => ({
+        id: d.id || d._id,
         donorId: d.donorId,
         donorName: user?.name || 'You',
         foodType: d.title,
