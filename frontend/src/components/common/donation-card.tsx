@@ -18,12 +18,13 @@ interface DonationCardProps {
 }
 
 const statusColors: Record<Donation['status'], string> = {
-  pending: 'bg-warning/10 text-warning border-warning/30',
+  active: 'bg-warning/10 text-warning border-warning/30',
   assigned: 'bg-info/10 text-info border-info/30',
-  picked: 'bg-primary/10 text-primary border-primary/30',
-  delivered: 'bg-success/10 text-success border-success/30',
+  picked_up: 'bg-primary/10 text-primary border-primary/30',
+  completed: 'bg-success/10 text-success border-success/30',
   expired: 'bg-destructive/10 text-destructive border-destructive/30',
   cancelled: 'bg-muted text-muted-foreground border-muted',
+  rejected: 'bg-destructive/20 text-destructive border-destructive/40',
 };
 
 export function DonationCard({
@@ -94,7 +95,7 @@ export function DonationCard({
 
       {showActions && (
         <CardFooter className="gap-2 pt-0">
-          {onAccept && donation.status === 'pending' && (
+          {onAccept && donation.status === 'active' && (
             <Button
               variant={disabled ? "secondary" : "hero"}
               size="sm"
@@ -105,7 +106,7 @@ export function DonationCard({
               Accept
             </Button>
           )}
-          {onReject && donation.status === 'pending' && (
+          {onReject && donation.status === 'active' && (
             <Button
               variant="outline"
               size="sm"
@@ -126,7 +127,7 @@ export function DonationCard({
               View
             </Button>
           )}
-          {onEdit && donation.status === 'pending' && (
+          {onEdit && donation.status === 'active' && (
             <Button
               variant="outline"
               size="sm"
@@ -136,7 +137,7 @@ export function DonationCard({
               Edit
             </Button>
           )}
-          {onCancel && donation.status === 'pending' && (
+          {onCancel && donation.status === 'active' && (
             <Button
               variant="ghost"
               size="sm"

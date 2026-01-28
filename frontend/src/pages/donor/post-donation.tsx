@@ -17,6 +17,7 @@ import { VerificationBanner } from '@/components/layout/verification-banner';
 import { cn } from '@/lib/utils';
 import DonationService from '@/services/donation.service';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const foodTypes = [
   'Prepared Meals',
@@ -59,6 +60,7 @@ export default function PostDonation() {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [expiryWarning, setExpiryWarning] = useState(false);
+  const [customAllergen, setCustomAllergen] = useState('');
 
   const isVerified = user?.status === 'active';
 
@@ -110,7 +112,7 @@ export default function PostDonation() {
         setExpiryWarning(false);
       }
     }
-  }, [watchExpiryDate, watchExpiryTime]);
+  }, [watchExpiryDate, watchExpiryTime, toast]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -190,12 +192,13 @@ export default function PostDonation() {
         description: "Your surplus food is now available for NGOs.",
       });
       navigate('/donor');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Submission error:', error);
+      const apiError = error as { response?: { data?: { message?: string } } };
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: error.response?.data?.message || "Failed to post donation. Check all fields.",
+        description: apiError.response?.data?.message || "Failed to post donation. Check all fields.",
       });
     } finally {
       setIsSubmitting(false);
@@ -284,7 +287,7 @@ export default function PostDonation() {
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Perishability</Label>
                 <Select
-                  onValueChange={(val) => form.setValue('perishability', val as any)}
+                  onValueChange={(val: 'high' | 'medium' | 'low') => form.setValue('perishability', val)}
                   defaultValue="medium"
                   disabled={!isVerified}
                 >
@@ -318,6 +321,58 @@ export default function PostDonation() {
                       </label>
                     </div>
                   ))}
+
+                  {/* Display added custom allergens */}
+                  {selectedAllergens.filter(a => !allergensList.includes(a)).map(custom => (
+                    <Badge key={custom} variant="secondary" className="h-9 px-3 flex gap-2 rounded-lg bg-primary/10 text-primary border-primary/20">
+                      {custom}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAllergens(selectedAllergens.filter(a => a !== custom))}
+                        className="hover:text-destructive transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Custom Allergen Input */}
+                <div className="flex gap-2 mt-4">
+                  <Input
+                    placeholder="Other allergen (e.g., Sesame)"
+                    value={customAllergen}
+                    onChange={(e) => setCustomAllergen(e.target.value)}
+                    disabled={!isVerified}
+                    className="h-10 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (customAllergen.trim()) {
+                          if (!selectedAllergens.includes(customAllergen.trim())) {
+                            setSelectedAllergens([...selectedAllergens, customAllergen.trim()]);
+                          }
+                          setCustomAllergen('');
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10"
+                    onClick={() => {
+                      if (customAllergen.trim()) {
+                        if (!selectedAllergens.includes(customAllergen.trim())) {
+                          setSelectedAllergens([...selectedAllergens, customAllergen.trim()]);
+                        }
+                        setCustomAllergen('');
+                      }
+                    }}
+                    disabled={!isVerified || !customAllergen.trim()}
+                  >
+                    Add
+                  </Button>
                 </div>
               </div>
 
