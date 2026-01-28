@@ -51,7 +51,7 @@ export function NgoFeedbackPage() {
 
                 <TabsContent value="all" className="space-y-4">
                     {mockFeedbacks.map((f) => (
-                        <Card key={f.id} className="hover:shadow-md transition-shadow transition-all duration-300">
+                        <Card key={f.id} className="hover:shadow-md transition-shadow duration-300">
                             <CardContent className="p-6">
                                 <div className="flex flex-col md:flex-row justify-between gap-4">
                                     <div className="space-y-3 flex-1">

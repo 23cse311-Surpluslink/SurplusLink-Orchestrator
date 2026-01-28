@@ -76,7 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return response.data;
         }
 
-        // Fallback for immediate login if backend decides to (e.g. for dev/test)
         const user = response.data;
         const newState = setAuthData(user as User);
         setAuthState(newState);
