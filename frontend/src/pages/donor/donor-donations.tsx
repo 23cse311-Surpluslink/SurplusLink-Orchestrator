@@ -123,7 +123,7 @@ export default function DonorDonations() {
                         {activeDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation as any}
+                                donation={donation}
                                 showActions
                                 onView={() => { }}
                             />
@@ -141,7 +141,7 @@ export default function DonorDonations() {
                         {completedDonations.map(donation => (
                             <DonationCard
                                 key={donation.id}
-                                donation={donation as any}
+                                donation={donation}
                                 showActions
                                 onView={() => { }}
                             />
