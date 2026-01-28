@@ -16,6 +16,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'surplus-link-verifications',
     allowed_formats: ['jpg', 'png', 'pdf'],
+    resource_type: 'auto',
   },
 });
 
