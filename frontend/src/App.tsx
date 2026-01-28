@@ -28,6 +28,10 @@ import AccountPage from "./pages/account-page";
 import { SettingsPage } from "./pages/settings-page";
 import { NgoSettingsPage } from "./pages/ngo/settings-page";
 import { MyClaimsPage } from "./pages/ngo/my-claims";
+import { NearbyDonationsPage } from "./pages/ngo/nearby-donations";
+import { NgoVolunteersPage } from "./pages/ngo/volunteers-page";
+import { NgoFeedbackPage } from "./pages/ngo/feedback-page";
+import { NgoImpactPage } from "./pages/ngo/impact-page";
 
 const queryClient = new QueryClient();
 
@@ -56,13 +60,13 @@ const App = () => (
 
               <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
                 <Route index element={<NgoDashboard />} />
-                <Route path="nearby" element={<NgoDashboard />} />
-                <Route path="claims" element={<MyClaimsPage />} />
-                <Route path="settings" element={<NgoSettingsPage />} />
-                <Route path="volunteers" element={<NgoDashboard />} />
+                <Route path="nearby" element={<NearbyDonationsPage />} />
+                <Route path="accepted" element={<MyClaimsPage />} />
+                <Route path="volunteers" element={<NgoVolunteersPage />} />
                 <Route path="notifications" element={<DonorNotifications />} />
-                <Route path="feedback" element={<NgoDashboard />} />
-                <Route path="impact" element={<DonorImpact />} />
+                <Route path="feedback" element={<NgoFeedbackPage />} />
+                <Route path="impact" element={<NgoImpactPage />} />
+                <Route path="settings" element={<NgoSettingsPage />} />
               </Route>
 
               <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
