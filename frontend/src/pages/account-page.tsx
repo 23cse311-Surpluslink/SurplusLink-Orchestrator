@@ -18,7 +18,8 @@ import {
     Check,
     X,
     Settings as SettingsIcon,
-    ArrowLeft
+    ArrowLeft,
+    Loader2
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ export default function AccountPage() {
     const [isEditingName, setIsEditingName] = useState(false);
     const [editName, setEditName] = useState(user?.name || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -60,6 +62,23 @@ export default function AccountPage() {
         }
     };
 
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        setIsUploading(true);
+        try {
+            await updateProfile(formData);
+        } catch (error) {
+            console.error('Failed to upload avatar:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <motion.div
             variants={containerVariants}
@@ -83,14 +102,27 @@ export default function AccountPage() {
                         <div className="h-40 w-full rounded-t-[2.5rem] bg-gradient-to-br from-primary via-emerald-500 to-emerald-800 opacity-90" />
 
                         <div className="px-8 pb-8 -mt-20 flex flex-col md:flex-row items-center md:items-end gap-6 relative z-10">
-                            <div className="relative group">
-                                <Avatar className="h-40 w-40   shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                            <div className="relative group p-1 bg-card rounded-full shadow-2xl">
+                                <Avatar className="h-40 w-40 rounded-full  shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
                                     <AvatarImage src={user.avatar} alt={user.name} />
                                     <AvatarFallback className="text-4xl font-black bg-muted">
                                         {user.name.substring(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
 
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-20">
+                                    <div className="flex flex-col items-center gap-2">
+                                        {isUploading ? (
+                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Camera className="h-8 w-8" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Update Photo</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} disabled={isUploading} />
+                                </label>
                             </div>
 
                             <div className="flex-1 text-center md:text-left pt-2 pb-4">
