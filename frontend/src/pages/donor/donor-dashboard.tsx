@@ -10,7 +10,7 @@ import { PlusCircle, Package, Leaf, Clock, TrendingUp, Lock, Bell } from 'lucide
 import { useAuth } from '@/contexts/auth-context';
 import { VerificationBanner } from '@/components/layout/verification-banner';
 import { useToast } from '@/hooks/use-toast';
-import DonationService from '@/services/donation.service';
+import DonationService, { Donation as RawDonation } from '@/services/donation.service';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
@@ -77,7 +77,7 @@ export default function DonorDashboard() {
     };
 
     // Mapping backend data to DonationCard props
-    const mappedDonations = donations?.map((d: any) => ({
+    const mappedDonations = donations?.map((d: RawDonation) => ({
         id: d.id || d._id,
         donorId: d.donorId,
         donorName: user?.name || 'You',
