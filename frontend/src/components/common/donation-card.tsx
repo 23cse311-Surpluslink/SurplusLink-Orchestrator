@@ -77,6 +77,22 @@ export function DonationCard({
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-2 mt-2">
+          {donation.foodCategory && (
+            <Badge variant="secondary" className="text-xs">
+              {donation.foodCategory}
+            </Badge>
+          )}
+          {donation.storageReq && (
+            <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
+              {donation.storageReq === 'Cold' && '❄️ '}
+              {donation.storageReq === 'Frozen' && '🧊 '}
+              {donation.storageReq === 'Dry' && '🍞 '}
+              {donation.storageReq}
+            </Badge>
+          )}
+        </div>
+
         {donation.assignedNgo && (
           <div className="pt-2 border-t border-border">
             <p className="text-sm">
@@ -103,7 +119,7 @@ export function DonationCard({
               onClick={() => onAccept(donation.id)}
               disabled={disabled}
             >
-              Accept
+              Claim
             </Button>
           )}
           {onReject && donation.status === 'active' && (
