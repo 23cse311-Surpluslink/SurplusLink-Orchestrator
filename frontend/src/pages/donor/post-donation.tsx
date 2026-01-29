@@ -36,6 +36,8 @@ const donationSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(1, 'Description is required'),
   foodType: z.string().min(1, 'Please select a food type'),
+  foodCategory: z.enum(['cooked', 'raw', 'packaged'], { required_error: 'Please select a category' }),
+  storageReq: z.enum(['dry', 'cold', 'frozen'], { required_error: 'Please select storage requirement' }),
   quantity: z.string().min(1, 'Quantity is required'),
   perishability: z.enum(['high', 'medium', 'low'], {
     required_error: 'Please select perishability level',
@@ -70,6 +72,8 @@ export default function PostDonation() {
       title: '',
       description: '',
       foodType: '',
+      foodCategory: undefined,
+      storageReq: undefined,
       quantity: '',
       perishability: 'medium',
       expiryDate: '',
@@ -157,6 +161,8 @@ export default function PostDonation() {
       formData.append('title', values.title);
       formData.append('description', values.description);
       formData.append('foodType', values.foodType);
+      formData.append('foodCategory', values.foodCategory);
+      formData.append('storageReq', values.storageReq);
       formData.append('quantity', values.quantity);
       formData.append('perishability', values.perishability);
       const combineDateTime = (d: string, t: string) => {
@@ -269,6 +275,33 @@ export default function PostDonation() {
                     disabled={!isVerified}
                   />
                   {form.formState.errors.quantity && <p className="text-xs text-destructive">{form.formState.errors.quantity.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</Label>
+                  <Select onValueChange={(val) => form.setValue('foodCategory', val as any)} disabled={!isVerified}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cooked">Cooked Meal (Ready to eat)</SelectItem>
+                      <SelectItem value="raw">Raw Ingredients (Needs cooking)</SelectItem>
+                      <SelectItem value="packaged">Packaged / Canned</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.foodCategory && <p className="text-xs text-destructive">{form.formState.errors.foodCategory.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Storage</Label>
+                  <Select onValueChange={(val) => form.setValue('storageReq', val as any)} disabled={!isVerified}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Storage needs" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dry">Dry / Room Temp</SelectItem>
+                      <SelectItem value="cold">Refrigerated (Cold)</SelectItem>
+                      <SelectItem value="frozen">Frozen</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.storageReq && <p className="text-xs text-destructive">{form.formState.errors.storageReq.message}</p>}
                 </div>
               </div>
 
