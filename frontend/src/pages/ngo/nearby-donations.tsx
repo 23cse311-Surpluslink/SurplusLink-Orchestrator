@@ -45,7 +45,7 @@ export function NearbyDonationsPage() {
     const [isRejecting, setIsRejecting] = useState(false);
     const [viewDonation, setViewDonation] = useState<Donation | null>(null);
 
-    const MAP_API_KEY = "AIzaSyDI-76auV12TGmg3I3nb58tePpgZ01rIGQ"; // Provided by user
+    const MAP_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
     const loadFeed = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
