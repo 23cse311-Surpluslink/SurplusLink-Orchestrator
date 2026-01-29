@@ -51,6 +51,11 @@ const userSchema = mongoose.Schema(
       storageFacilities: [{ type: String, enum: ['cold', 'dry', 'frozen'] }],
       isUrgentNeed: { type: Boolean, default: false },
     },
+    stats: {
+      trustScore: { type: Number, default: 5.0 },
+      totalRatings: { type: Number, default: 0 },
+      completedDonations: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,
