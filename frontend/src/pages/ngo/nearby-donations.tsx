@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';
@@ -18,8 +19,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, MapPin, Filter, AlertCircle, Search } from 'lucide-react';
-import { getTimeUntil } from '@/utils/formatters';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Loader2, MapPin, Filter, AlertCircle, Search, Calendar, Clock, Package, User, Image as ImageIcon } from 'lucide-react';
+import { getTimeUntil, formatTime } from '@/utils/formatters';
+import { NgoMap } from '@/components/common/ngo-map';
+import { Badge } from '@/components/ui/badge';
 
 export function NearbyDonationsPage() {
     const { toast } = useToast();
@@ -33,6 +43,9 @@ export function NearbyDonationsPage() {
     const [rejectCategory, setRejectCategory] = useState<string>('');
     const [rejectReason, setRejectReason] = useState('');
     const [isRejecting, setIsRejecting] = useState(false);
+    const [viewDonation, setViewDonation] = useState<Donation | null>(null);
+
+    const MAP_API_KEY = "AIzaSyDI-76auV12TGmg3I3nb58tePpgZ01rIGQ"; // Provided by user
 
     const loadFeed = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
@@ -63,9 +76,10 @@ export function NearbyDonationsPage() {
         try {
             await DonationService.claimDonation(id);
             toast({
-                title: "Donation Claimed!",
-                description: "This item has been moved to your 'Accepted' list. Please arrange pickup.",
-                className: "bg-green-50 border-green-200 text-green-800"
+                title: "Donation Secured Successfully 🍎",
+                description: "This item is now in your 'Accepted' list. Please arrange pickup soon.",
+                className: "bg-emerald-600 dark:bg-emerald-600 text-white border-none shadow-xl",
+                duration: 4000
             });
             loadFeed();
         } catch (error) {
@@ -192,6 +206,7 @@ export function NearbyDonationsPage() {
                                 showActions
                                 onAccept={handleClaim}
                                 onReject={(id) => setRejectId(id)}
+                                onView={() => setViewDonation(donation)}
                                 disabled={donation.status !== 'active'}
                             />
                         ))
@@ -200,32 +215,14 @@ export function NearbyDonationsPage() {
             </div>
 
             <div className="flex w-full md:w-[400px] xl:w-[500px] h-[350px] md:h-auto shrink-0 flex-col rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative shadow-xl transition-all duration-500 hover:shadow-2xl mt-4 md:mt-0">
-                <div className="absolute inset-0 flex items-center justify-center bg-white/50">
-                    <div className="absolute inset-0 opacity-[0.4]"
-                        style={{ backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
-                    </div>
-
-                    <div className="text-center space-y-6 p-8 relative z-10">
-                        <div className="relative mx-auto h-32 w-32 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100">
-                            <MapPin className="h-12 w-12 text-blue-500 animate-bounce drop-shadow-md" />
-                            <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full animate-ping duration-[3000ms]" />
-                            <div className="absolute inset-0 border border-blue-500/20 rounded-full animate-[ping_4s_ease-out_infinite]" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="font-bold text-slate-800 text-xl tracking-tight">Live Donation Map</h3>
-                            <p className="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed">
-                                Monitoring <span className="text-blue-600 font-bold">{filteredDonations.length}</span> active sources in your network.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div className="absolute bottom-6 left-6 right-6 bg-white/80 backdrop-blur-md p-4 rounded-xl border border-white/50 shadow-sm">
-                    <div className="flex justify-between items-center text-xs">
+                <NgoMap donations={filteredDonations} apiKey={MAP_API_KEY} />
+                <div className="absolute bottom-6 left-6 right-6 pointer-events-none">
+                    <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl border border-white/50 shadow-sm flex justify-between items-center text-xs">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                             <span className="text-slate-600 font-medium">System Online</span>
                         </div>
-                        <span className="text-slate-400 font-mono tracking-wider">RADAR: ACTIVE</span>
+                        <span className="text-slate-400 font-mono tracking-wider">LIVE FEED</span>
                     </div>
                 </div>
             </div>
@@ -288,6 +285,101 @@ export function NearbyDonationsPage() {
                             {isRejecting ? 'Submitting...' : 'Flag & Reject'}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+
+            <Dialog open={!!viewDonation} onOpenChange={(o) => !o && setViewDonation(null)}>
+                <DialogContent className="max-w-2xl overflow-hidden p-0 gap-0">
+                    <div className="relative w-full bg-slate-100 aspect-video group">
+                        {(() => {
+
+                            const photos = (viewDonation as any)?.photos || (viewDonation?.image ? [viewDonation.image] : []);
+
+                            if (photos.length > 1) {
+                                return (
+                                    <Carousel className="w-full h-full">
+                                        <CarouselContent>
+                                            {photos.map((url: string, index: number) => (
+                                                <CarouselItem key={index} className="h-full">
+                                                    <div className="h-full w-full flex items-center justify-center bg-black">
+                                                        <img src={url} alt={`Photo ${index + 1}`} className="object-contain w-full h-full max-h-[400px]" />
+                                                    </div>
+                                                </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                        <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </Carousel>
+                                );
+                            } else if (photos.length === 1) {
+                                return <img src={photos[0]} alt={viewDonation?.title} className="object-cover w-full h-full" />;
+                            } else {
+                                return (
+                                    <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground p-6">
+                                        <ImageIcon className="h-16 w-16 opacity-20 mb-2" />
+                                        <span className="text-sm">No image provided</span>
+                                    </div>
+                                );
+                            }
+                        })()}
+
+                        <div className="absolute top-4 left-4 z-10">
+                            <Badge className="bg-black/50 text-white backdrop-blur-md border-transparent hover:bg-black/60 capitalize">
+                                {viewDonation?.foodType}
+                            </Badge>
+                        </div>
+                    </div>
+
+                    <div className="p-6">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold">{viewDonation?.title}</DialogTitle>
+                            <DialogDescription className="text-base">
+                                Posted by {viewDonation?.donorName}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="grid grid-cols-2 gap-6 mt-6">
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Quantity</Label>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <Package className="h-4 w-4 text-primary" />
+                                        {viewDonation?.quantity}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Expiry</Label>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <Clock className="h-4 w-4 text-primary" />
+                                        {viewDonation?.expiryTime ? formatTime(viewDonation.expiryTime) : 'N/A'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Location</Label>
+                                    <div className="flex items-start gap-2 font-medium">
+                                        <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                                        <span>{viewDonation?.address || viewDonation?.location}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Pickup Window</Label>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <Calendar className="h-4 w-4 text-primary" />
+                                        {viewDonation?.pickupWindow}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end gap-3 pt-6 border-t">
+                            <Button variant="outline" onClick={() => setViewDonation(null)}>Close</Button>
+
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

@@ -56,9 +56,9 @@ export function MyClaimsPage() {
         try {
             await DonationService.completeDonation(selectedDonation.id, parseInt(rating), comment);
             toast({
-                title: "Delivery Completed!",
-                description: "Thank you for confirming receipt and providing feedback.",
-                className: "bg-green-50 border-green-200 text-green-800"
+                title: "Delivery Completed Successfully! 🎉",
+                description: "Thank you for confirming receipt. The loop is closed.",
+                className: "bg-emerald-600 text-white border-none shadow-xl"
             });
             setSelectedDonation(null);
             setComment('');
@@ -100,17 +100,20 @@ export function MyClaimsPage() {
                 ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {activeClaims.map(claim => (
-                            <div key={claim.id} className="relative group">
+                            <div key={claim.id} className="relative group flex flex-col h-full">
                                 <DonationCard donation={claim} />
-                                <div className="mt-4">
+                                <div className="mt-4 space-y-2">
                                     <Button
                                         className="w-full gap-2"
                                         onClick={() => setSelectedDonation(claim)}
                                         variant="hero"
                                     >
                                         <CheckCircle className="h-4 w-4" />
-                                        Confirm Receipt
+                                        Verify Receipt
                                     </Button>
+                                    <p className="text-xs text-center text-muted-foreground">
+                                        Click after you or your volunteer has picked up the food.
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -133,9 +136,9 @@ export function MyClaimsPage() {
             <Dialog open={!!selectedDonation} onOpenChange={(o) => !o && setSelectedDonation(null)}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Confirm Receipt</DialogTitle>
+                        <DialogTitle>Verify & Complete Pickup</DialogTitle>
                         <DialogDescription>
-                            Please rate the quality of the donation and the donor ensuring trust.
+                            Confirm that you have physically received the items from the donor.
                         </DialogDescription>
                     </DialogHeader>
 
