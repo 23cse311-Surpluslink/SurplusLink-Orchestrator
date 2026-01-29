@@ -225,21 +225,49 @@ export const completeDonation = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
+        if (donation.status === 'completed') {
+             return res.status(400).json({ message: 'Donation is already completed' });
+        }
+
         donation.status = 'completed';
         donation.feedback = { rating, comment };
         await donation.save();
 
+        // Update Donor Trust Metrics
+        const donor = await User.findById(donation.donor);
+        if (donor) {
+            // Initialize stats if missing (migration safety)
+            if (!donor.stats) {
+                donor.stats = { trustScore: 5.0, totalRatings: 0, completedDonations: 0 };
+            }
+
+            const currentScore = donor.stats.trustScore || 5.0;
+            const currentCount = donor.stats.totalRatings || 0;
+            
+            // Calculate new Weighted Average
+            // If it's the first real rating, maybe start fresh or blend? 
+            // We use standard cumulative average.
+            const newCount = currentCount + 1;
+            const newScore = ((currentScore * currentCount) + Number(rating)) / newCount;
+            
+            donor.stats.trustScore = parseFloat(newScore.toFixed(2));
+            donor.stats.totalRatings = newCount;
+            donor.stats.completedDonations = (donor.stats.completedDonations || 0) + 1;
+            
+            await donor.save();
+        }
+
         // Notify donor
         await createNotification(
             donation.donor,
-            `Your donation "${donation.title}" has been successfully completed and rated ${rating}/5!`,
+            `Your donation "${donation.title}" was completed! You received a ${rating}/5 rating.`,
             'donation_completed',
             donation._id
         );
 
         res.json(donation);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
