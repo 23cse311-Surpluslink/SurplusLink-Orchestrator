@@ -13,17 +13,7 @@ export function Footer() {
 
 
 
-                    <div className="flex gap-5 mb-8">
-                        {[Github, Twitter, Linkedin, Mail].map((Icon, i) => (
-                            <a
-                                key={i}
-                                href="#"
-                                className="text-muted-foreground hover:text-primary transition-all"
-                            >
-                                <Icon className="h-5 w-5" />
-                            </a>
-                        ))}
-                    </div>
+                 
 
                     <div className="w-full pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4 text-[13px] text-muted-foreground">
                         <p>© 2026 SurplusLink Inc.</p>
