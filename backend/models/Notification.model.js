@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['donation_created', 'donation_cancelled', 'donation_completed', 'general'],
+            enum: ['donation_created', 'donation_cancelled', 'donation_completed', 'donation_assigned', 'donation_rejected', 'general'],
             required: true,
         },
         relatedDonation: {

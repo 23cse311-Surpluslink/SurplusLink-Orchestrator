@@ -8,6 +8,7 @@ import { notFound, errorHandler } from './middleware/error.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import donationRoutes from './routes/donation.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 dotenv.config({ path: './.env' });
 
@@ -40,6 +41,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Error Handling
 app.use(notFound);
