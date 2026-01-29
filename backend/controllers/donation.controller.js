@@ -279,9 +279,9 @@ export const getSmartFeed = async (req, res, next) => {
                         }
                     }
                 }
-            });
+            }).populate('donor', 'name');
         } else {
-            donations = await Donation.find(query).sort({ createdAt: -1 });
+            donations = await Donation.find(query).sort({ createdAt: -1 }).populate('donor', 'name');
         }
 
         // Capacity Warning logic (Simplified: based on dailyCapacity vs available donations count)
