@@ -79,12 +79,19 @@ export function DonationCard({
 
         <div className="flex flex-wrap gap-2 mt-2">
           {donation.foodCategory && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge className={cn("text-xs border capitalize",
+              donation.foodCategory === 'cooked' && "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
+              donation.foodCategory === 'raw' && "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+              donation.foodCategory === 'packaged' && "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+            )}>
+              {donation.foodCategory === 'cooked' && '🍲 '}
+              {donation.foodCategory === 'raw' && '🥬 '}
+              {donation.foodCategory === 'packaged' && '📦 '}
               {donation.foodCategory}
             </Badge>
           )}
           {donation.storageReq && (
-            <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
+            <Badge variant="outline" className="text-xs border-slate-200 text-slate-600 bg-slate-50">
               {donation.storageReq.toLowerCase() === 'cold' && '❄️ '}
               {donation.storageReq.toLowerCase() === 'frozen' && '🧊 '}
               {donation.storageReq.toLowerCase() === 'dry' && '🍞 '}

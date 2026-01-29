@@ -18,7 +18,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, MapPin, Filter, AlertCircle } from 'lucide-react';
+import { Loader2, MapPin, Filter, AlertCircle, Search } from 'lucide-react';
 import { getTimeUntil } from '@/utils/formatters';
 
 export function NearbyDonationsPage() {
@@ -112,7 +112,7 @@ export function NearbyDonationsPage() {
     });
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-6 animate-fade-in -mx-4 md:mx-0">
+        <div className="flex flex-col md:flex-row gap-0 md:gap-6 animate-fade-in -mx-4 md:mx-0 md:h-[calc(100vh-4rem)]">
             {/* Left: List & Filters */}
             <div className="flex-1 flex flex-col h-full overflow-hidden md:rounded-xl md:border bg-background">
                 {/* Header & Filters */}
@@ -120,7 +120,6 @@ export function NearbyDonationsPage() {
                     <PageHeader
                         title="Nearby Donations"
                         description="Live feed of food available for rescue in your area."
-                        className="mb-0"
                     />
 
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -131,7 +130,7 @@ export function NearbyDonationsPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9"
                             />
-                            <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         </div>
                         <Select value={foodType} onValueChange={setFoodType}>
                             <SelectTrigger className="w-full sm:w-[150px]">
@@ -165,12 +164,20 @@ export function NearbyDonationsPage() {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : filteredDonations.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-60 text-center text-muted-foreground p-8">
-                            <AlertCircle className="h-12 w-12 mb-4 opacity-20" />
-                            <h3 className="font-bold text-lg">No donations found</h3>
-                            <p className="text-sm max-w-xs mt-1">
-                                Try adjusting your filters or expanding your search radius in settings.
+                        <div className="flex flex-col items-center justify-center h-[50vh] text-center p-8 animate-in fade-in duration-500">
+                            <div className="relative mb-6">
+                                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                <div className="bg-background relative p-4 rounded-full border shadow-sm">
+                                    <AlertCircle className="h-8 w-8 text-muted-foreground" />
+                                </div>
+                            </div>
+                            <h3 className="font-bold text-lg text-foreground mb-2">No donations found</h3>
+                            <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+                                We couldn't find any donations matching your current filters. Try expanding your search radius or clearing filters.
                             </p>
+                            <Button variant="outline" onClick={() => { setSearchQuery(''); setFoodType('all'); setOnlyExpiring(false); }} className="rounded-full px-6">
+                                Clear Filters
+                            </Button>
                         </div>
                     ) : (
                         filteredDonations.map(donation => (
@@ -187,29 +194,36 @@ export function NearbyDonationsPage() {
                 </div>
             </div>
 
-            {/* Right: Map Placeholder */}
-            <div className="hidden md:flex w-[400px] xl:w-[500px] flex-col rounded-xl border overflow-hidden bg-slate-50 relative">
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                    <div className="text-center space-y-4 p-8">
-                        <div className="relative mx-auto h-32 w-32 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
-                            <MapPin className="h-16 w-16 text-blue-500" />
-                            <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full animate-ping" />
+            {/* Right: Map Placeholder: Mobile (Bottom, Fixed Height), Desktop (Right, Full Height) */}
+            <div className="flex w-full md:w-[400px] xl:w-[500px] h-[350px] md:h-auto shrink-0 flex-col rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative shadow-xl transition-all duration-500 hover:shadow-2xl mt-4 md:mt-0">
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+                    {/* Grid Pattern */}
+                    <div className="absolute inset-0 opacity-[0.4]"
+                        style={{ backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+                    </div>
+
+                    <div className="text-center space-y-6 p-8 relative z-10">
+                        <div className="relative mx-auto h-32 w-32 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100">
+                            <MapPin className="h-12 w-12 text-blue-500 animate-bounce drop-shadow-md" />
+                            <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full animate-ping duration-[3000ms]" />
+                            <div className="absolute inset-0 border border-blue-500/20 rounded-full animate-[ping_4s_ease-out_infinite]" />
                         </div>
-                        <h3 className="font-bold text-slate-700">Live Map</h3>
-                        <p className="text-sm text-slate-500 max-w-xs mx-auto">
-                            Visualizing {filteredDonations.length} active donations within your operational radius.
-                        </p>
+                        <div className="space-y-2">
+                            <h3 className="font-bold text-slate-800 text-xl tracking-tight">Live Donation Map</h3>
+                            <p className="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed">
+                                Monitoring <span className="text-blue-600 font-bold">{filteredDonations.length}</span> active sources in your network.
+                            </p>
+                        </div>
                     </div>
                 </div>
                 {/* Overlay Stats */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur p-4 rounded-lg shadow-sm border text-xs space-y-2">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Range:</span>
-                        <span className="font-bold">10 km</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Closest:</span>
-                        <span className="font-bold">1.2 km</span>
+                <div className="absolute bottom-6 left-6 right-6 bg-white/80 backdrop-blur-md p-4 rounded-xl border border-white/50 shadow-sm">
+                    <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-slate-600 font-medium">System Online</span>
+                        </div>
+                        <span className="text-slate-400 font-mono tracking-wider">RADAR: ACTIVE</span>
                     </div>
                 </div>
             </div>

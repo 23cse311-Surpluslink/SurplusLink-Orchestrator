@@ -101,7 +101,7 @@ export default function NgoDashboard() {
             <Card className="border-dashed border-2">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Package className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                <h4 className="font-semibold text-slate-900">No active deliveries</h4>
+                <h4 className="font-semibold text-white">No active deliveries</h4>
                 <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
                   Claim donations from the nearby feed to start distributions.
                 </p>
