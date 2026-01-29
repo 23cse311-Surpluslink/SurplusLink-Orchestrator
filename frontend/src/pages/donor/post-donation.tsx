@@ -281,7 +281,7 @@ export default function PostDonation() {
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</Label>
-                  <Select onValueChange={(val) => form.setValue('foodCategory', val as any)} disabled={!isVerified}>
+                  <Select onValueChange={(val) => form.setValue('foodCategory', val as "cooked" | "raw" | "packaged")} disabled={!isVerified}>
                     <SelectTrigger className="h-11"><SelectValue placeholder="Select category" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cooked">Cooked Meal (Ready to eat)</SelectItem>
@@ -293,7 +293,7 @@ export default function PostDonation() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Storage</Label>
-                  <Select onValueChange={(val) => form.setValue('storageReq', val as any)} disabled={!isVerified}>
+                  <Select onValueChange={(val) => form.setValue('storageReq', val as "dry" | "cold" | "frozen")} disabled={!isVerified}>
                     <SelectTrigger className="h-11"><SelectValue placeholder="Storage needs" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="dry">Dry / Room Temp</SelectItem>
