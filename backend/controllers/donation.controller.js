@@ -1,6 +1,7 @@
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
+import sendEmail from '../utils/email.js';
 
 // @desc    Create new donation
 // @route   POST /api/donations
@@ -330,19 +331,94 @@ export const claimDonation = async (req, res, next) => {
 export const rejectDonation = async (req, res, next) => {
     try {
         const { rejectionReason } = req.body;
-        const donation = await Donation.findById(req.params.id);
-        if (!donation) return res.status(404).json({ message: 'Donation not found' });
+        
+        if (!rejectionReason) {
+            return res.status(400).json({ message: 'A rejection reason is required for safety auditing.' });
+        }
+
+        const donation = await Donation.findById(req.params.id).populate('donor', 'name email');
+        
+        if (!donation) {
+            return res.status(404).json({ message: 'Donation not found' });
+        }
+
+        // Allow rejection if active or assigned (to cancel assignment)
+        if (!['active', 'assigned'].includes(donation.status)) {
+             return res.status(400).json({ message: 'This donation is already closed or completed.' });
+        }
 
         donation.status = 'rejected';
         donation.rejectionReason = rejectionReason;
         await donation.save();
 
+        // Parse Reason for better display
+        let formattedReason = rejectionReason;
+        const reasonMatch = rejectionReason.match(/^\[(.*?)\]\s*(.*)$/);
+        if (reasonMatch) {
+            formattedReason = `${reasonMatch[1]}`;
+            if (reasonMatch[2]) formattedReason += ` - ${reasonMatch[2]}`;
+        }
+
+        // 1. App Notification
         await createNotification(
-            donation.donor,
-            `Your donation "${donation.title}" was rejected for safety reasons. Reason: ${rejectionReason}`,
+            donation.donor._id,
+            `Your donation "${donation.title}" was rejected: ${formattedReason}`,
             'donation_rejected',
             donation._id
         );
+
+        // 2. Email Notification (Professional HTML)
+        try {
+            const emailHtml = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 1px;">SurplusLink</h1>
+                </div>
+                
+                <div style="padding: 32px; background-color: #ffffff;">
+                    <h2 style="color: #1e293b; margin-top: 0; font-size: 20px;">Update on your Donation</h2>
+                    
+                    <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">Hello <strong>${donation.donor.name}</strong>,</p>
+                    
+                    <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">
+                        Use of our platform helps reduce waste, and we appreciate your effort. However, an NGO has flagged your donation <strong>"${donation.title}"</strong> as unable to be distributed.
+                    </p>
+
+                    <div style="background-color: #fef2f2; border: 1px solid #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 24px; border-radius: 6px;">
+                        <p style="margin: 0; color: #991b1b; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Reason for Rejection</p>
+                        <p style="margin: 8px 0 0 0; color: #7f1d1d; font-size: 16px;">${formattedReason}</p>
+                    </div>
+
+                    <p style="color: #475569; line-height: 1.6; font-size: 14px;">
+                        Please ensure future donations meet our <strong>Safety & Hygiene Standards</strong> to avoid account restrictions. We prioritize the health of all recipients.
+                    </p>
+
+                    <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                        <p style="color: #64748b; line-height: 1.5; font-size: 14px; margin: 0;">
+                            Best regards,<br>
+                            <span style="color: #0f172a; font-weight: 600;">The SurplusLink Safety Team</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                        &copy; ${new Date().getFullYear()} SurplusLink. All rights reserved.
+                    </p>
+                </div>
+            </div>
+            `;
+
+            await sendEmail({
+                email: donation.donor.email,
+                subject: 'Action Required: Donation Update',
+                message: `Your donation was rejected. Reason: ${formattedReason}`,
+                html: emailHtml
+            });
+        } catch (emailError) {
+            console.error('Failed to send rejection email:', emailError);
+            // Don't fail the request, just log it
+        }
 
         res.json(donation);
     } catch (error) {
