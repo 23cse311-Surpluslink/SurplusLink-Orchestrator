@@ -1,8 +1,20 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, AlertCircle, Clock, MapPin, Package } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { PageHeader } from '@/components/common/page-header';
@@ -14,6 +26,8 @@ export default function DonorDonations() {
     const { user } = useAuth();
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [selectedDonation, setSelectedDonation] = useState<any>(null);
 
     const { data: donations, isLoading } = useQuery({
         queryKey: ['my-donations'],
@@ -112,7 +126,7 @@ export default function DonorDonations() {
                                 key={donation.id}
                                 donation={{ ...donation, donorName: user?.name || 'Me' }}
                                 showActions
-                                onView={() => { }}
+                                onView={() => setSelectedDonation(donation)}
                             />
                         ))}
                         {activeDonations.length === 0 && (
@@ -130,7 +144,7 @@ export default function DonorDonations() {
                                 key={donation.id}
                                 donation={{ ...donation, donorName: user?.name || 'Me' }}
                                 showActions
-                                onView={() => { }}
+                                onView={() => setSelectedDonation(donation)}
                             />
                         ))}
                         {completedDonations.length === 0 && (
@@ -141,6 +155,66 @@ export default function DonorDonations() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <Dialog open={!!selectedDonation} onOpenChange={(o) => !o && setSelectedDonation(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Donation Details</DialogTitle>
+                        <DialogDescription>ID: {selectedDonation?.id}</DialogDescription>
+                    </DialogHeader>
+                    {selectedDonation && (
+                        <div className="space-y-4">
+                            {/* Status Badge */}
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-lg">{selectedDonation.title}</h3>
+                                <Badge variant={selectedDonation.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                                    {selectedDonation.status.replace('_', ' ')}
+                                </Badge>
+                            </div>
+
+                            {/* Rejection Alert */}
+                            {selectedDonation.status === 'rejected' && (
+                                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex gap-3 text-destructive animate-in slide-in-from-top-2">
+                                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h4 className="font-bold text-sm">Rejected by NGO</h4>
+                                        <p className="text-sm mt-1 text-destructive/90 leading-relaxed">
+                                            {selectedDonation.rejectionReason || "This donation was flagged for safety or logistics reasons."}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="space-y-1">
+                                    <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" /> Quantity</span>
+                                    <p className="font-medium">{selectedDonation.quantity}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Expiry</span>
+                                    <p className="font-medium">{format(new Date(selectedDonation.expiryDate), 'MMM d, h:mm a')}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-muted/30 p-3 rounded-lg text-sm">
+                                <p className="text-muted-foreground mb-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> Pickup Address</p>
+                                <p className="font-medium">{selectedDonation.pickupAddress}</p>
+                            </div>
+
+                            {/* Claimed Info */}
+                            {selectedDonation.claimedBy && (
+                                <div className="bg-blue-50/50 p-3 rounded-lg text-sm border border-blue-100">
+                                    <p className="text-blue-800 font-medium mb-1">Claimed By</p>
+                                    <p className="text-blue-600">{selectedDonation.claimedBy?.organization || "NGO"}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button onClick={() => setSelectedDonation(null)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
