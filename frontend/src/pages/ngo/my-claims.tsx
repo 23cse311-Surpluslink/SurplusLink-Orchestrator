@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';
 import { Donation } from '@/types';
@@ -29,11 +29,7 @@ export function MyClaimsPage() {
     const [comment, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadClaims();
-    }, []);
-
-    const loadClaims = async () => {
+    const loadClaims = useCallback(async () => {
         setLoading(true);
         try {
             const data = await DonationService.getClaimedDonations();
@@ -48,7 +44,11 @@ export function MyClaimsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        loadClaims();
+    }, [loadClaims]);
 
     const handleComplete = async () => {
         if (!selectedDonation) return;
