@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from '@/lib/api';
 import { Donation, DonationStats } from '@/types';
 
@@ -15,9 +16,8 @@ interface BackendDonation {
     storageReq?: Donation['storageReq'];
 }
 
-// Helper to map backend donation structure to frontend interface
-const mapDonation = (d: BackendDonation): Donation => ({
-    ...(d as unknown as Donation),
+const mapDonation = (d: any): Donation => ({
+    ...d,
     id: d._id || d.id || "",
     expiryTime: d.expiryDate || d.expiryTime || "",
     pickupWindow: typeof d.pickupWindow === 'object'
@@ -25,10 +25,19 @@ const mapDonation = (d: BackendDonation): Donation => ({
         : d.pickupWindow || "",
     location: d.location?.address || d.pickupAddress || "Unknown Location",
     address: d.location?.address || d.pickupAddress || "",
-    donorName: d.donorName || "Unknown Donor",
+    // Fix: Handle populated donor object or direct name
+    donorName: d.donor?.name || d.donor?.organization || d.donorName || "Unknown Donor",
+    // Fix: Map photos array to image (first one) and keep photos
+    image: d.photos?.[0] || d.image || "",
+    photos: d.photos || [],
     status: d.status,
     foodCategory: d.foodCategory,
-    storageReq: d.storageReq
+    storageReq: d.storageReq,
+    // Fix: Map GeoJSON coordinates [lng, lat] to { lat, lng }
+    coordinates: d.coordinates?.coordinates ? {
+        lat: d.coordinates.coordinates[1],
+        lng: d.coordinates.coordinates[0]
+    } : undefined
 });
 
 const DonationService = {
