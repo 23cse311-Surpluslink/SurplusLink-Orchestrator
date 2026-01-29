@@ -83,7 +83,6 @@ const navItemsByRole = {
         { label: "User Management", href: "/admin/users", icon: Users },
         { label: "System Reports", href: "/admin/reports", icon: FileText },
         { label: "Live Tracking", href: "/admin/tracking", icon: Truck },
-        { label: "Notifications", href: "/admin/notifications", icon: Bell },
         { label: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
     ],
     volunteer: [
