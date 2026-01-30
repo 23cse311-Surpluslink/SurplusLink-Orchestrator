@@ -70,10 +70,8 @@ import setupCronJobs from './utils/cron.js';
 
 if (process.env.NODE_ENV !== 'test') {
     startServer();
-    // Start Cron Jobs (Only in production/development, not test)
-    if (process.env.NODE_ENV === 'production') {
-        setupCronJobs();
-    }
+    // Start Cron Jobs
+    setupCronJobs();
 }
 
 export default app;

@@ -105,6 +105,27 @@ const donationSchema = new mongoose.Schema(
             rating: { type: Number, min: 1, max: 5 },
             comment: { type: String },
         },
+        volunteer: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+        deliveryStatus: {
+            type: String,
+            enum: ['idle', 'pending_pickup', 'heading_to_pickup', 'at_pickup', 'picked_up', 'in_transit', 'arrived_at_delivery', 'delivered'],
+            default: 'idle',
+        },
+        proofOfPickup: {
+            type: String, // URL for image
+        },
+        proofOfDelivery: {
+            type: String, // URL for image
+        },
+        pickedUpAt: {
+            type: Date,
+        },
+        deliveredAt: {
+            type: Date,
+        },
     },
     {
         timestamps: true,

@@ -7,6 +7,10 @@ import {
     getUsers,
     getPendingVerifications,
     updateNGOSettings,
+    toggleVolunteerStatus,
+    updateVolunteerProfile,
+    updateVolunteerLocation,
+    getVolunteerStats,
 } from '../controllers/user.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -20,5 +24,9 @@ userRouter.patch('/verify', protect, roleBasedAccess(['admin']), verifyUser);
 userRouter.get('/admin/users', protect, roleBasedAccess(['admin']), getUsers);
 userRouter.get('/admin/pending', protect, roleBasedAccess(['admin']), getPendingVerifications);
 userRouter.put('/profile/ngo', protect, roleBasedAccess(['ngo']), updateNGOSettings);
+userRouter.patch('/volunteer/status', protect, roleBasedAccess(['volunteer']), toggleVolunteerStatus);
+userRouter.patch('/volunteer/profile', protect, roleBasedAccess(['volunteer']), updateVolunteerProfile); // Updates static details
+userRouter.patch('/volunteer/location', protect, roleBasedAccess(['volunteer']), updateVolunteerLocation); // Updates dynamic location
+userRouter.get('/volunteer/stats', protect, roleBasedAccess(['volunteer']), getVolunteerStats);
 
 export default userRouter;
