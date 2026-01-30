@@ -77,7 +77,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
@@ -88,7 +88,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             ) : (
               <Sun className="h-[1.2rem] w-[1.2rem]" />
             )}
-          </Button>
+          </Button> */}
 
           {isAuthenticated && user && (
             <div className="flex items-center gap-3">
