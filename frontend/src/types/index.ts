@@ -32,6 +32,9 @@ export interface Donation {
   assignedVolunteer?: string;
   createdAt: string;
   image?: string;
+  photos?: string[];
+  expiryDate?: string;
+  pickupAddress?: string;
   coordinates?: { lat: number; lng: number };
   foodCategory?: 'cooked' | 'raw' | 'packaged';
   storageReq?: 'cold' | 'dry' | 'frozen';

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import NotificationService from '@/services/notification.service';
 import { useAuth } from './auth-context';
