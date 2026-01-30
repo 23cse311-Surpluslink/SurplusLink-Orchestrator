@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from '@/lib/api';
 import { Donation, DonationStats } from '@/types';
 
@@ -11,14 +10,30 @@ interface BackendDonation {
     pickupAddress?: string;
     location?: { address: string };
     donorName?: string;
+    donorId?: string;
+    donor?: { _id?: string; id?: string; name?: string; organization?: string };
+    photos?: string[];
+    image?: string;
+    title?: string;
+    foodType?: string;
+    quantity?: string;
+    createdAt?: string;
     status: Donation['status'];
     foodCategory?: Donation['foodCategory'];
     storageReq?: Donation['storageReq'];
+    coordinates?: {
+        type?: 'Point';
+        coordinates?: [number, number];
+    };
 }
 
-const mapDonation = (d: any): Donation => ({
-    ...d,
+const mapDonation = (d: BackendDonation): Donation => ({
+    title: d.title || "",
+    foodType: d.foodType || "",
+    quantity: d.quantity || "",
+    createdAt: d.createdAt || new Date().toISOString(),
     id: d._id || d.id || "",
+    donorId: d.donorId || d.donor?._id || d.donor?.id || "",
     expiryTime: d.expiryDate || d.expiryTime || "",
     pickupWindow: typeof d.pickupWindow === 'object'
         ? `${new Date(d.pickupWindow.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(d.pickupWindow.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';
@@ -294,7 +293,7 @@ export function NearbyDonationsPage() {
                     <div className="relative w-full bg-slate-100 aspect-video group">
                         {(() => {
 
-                            const photos = (viewDonation as any)?.photos || (viewDonation?.image ? [viewDonation.image] : []);
+                            const photos = viewDonation?.photos || (viewDonation?.image ? [viewDonation.image] : []);
 
                             if (photos.length > 1) {
                                 return (
