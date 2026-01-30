@@ -14,7 +14,6 @@ test.describe('Donation Lifecycle', () => {
         await page.getByLabel('Title').fill('Fresh Apples');
         await page.getByLabel('Category').selectOption('raw');
         await page.getByLabel('Quantity').fill('10kg');
-        // ... fill other fields (dates, etc) - simplified for example
         await page.getByRole('button', { name: 'Post Donation' }).click();
 
         await expect(page.getByText('Donation created successfully')).toBeVisible();
