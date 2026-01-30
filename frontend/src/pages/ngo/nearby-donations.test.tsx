@@ -17,9 +17,10 @@ vi.mock('@/components/common/ngo-map', () => ({
     NgoMap: () => <div data-testid="ngo-map">Map Placeholder</div>
 }));
 
+const mockToast = vi.fn();
 vi.mock('@/hooks/use-toast', () => ({
     useToast: () => ({
-        toast: vi.fn()
+        toast: mockToast
     })
 }));
 
@@ -56,6 +57,8 @@ const mockDonations: Donation[] = [
     }
 ];
 
+import { BrowserRouter } from 'react-router-dom';
+
 describe('NearbyDonationsPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -63,40 +66,36 @@ describe('NearbyDonationsPage', () => {
     });
 
     it('renders the feed and loads donations', async () => {
-        render(<NearbyDonationsPage />);
+        render(
+            <BrowserRouter>
+                <NearbyDonationsPage />
+            </BrowserRouter>
+        );
 
         // Initial Loading State or direct render if fast
         // We wait for donations to appear
-        await waitFor(() => {
-            expect(screen.getByText('Cooked Rice')).toBeInTheDocument();
-            expect(screen.getByText('Raw Veggies')).toBeInTheDocument();
-        });
+        expect(await screen.findByText('Cooked Rice')).toBeInTheDocument();
+        expect(await screen.findByText('Raw Veggies')).toBeInTheDocument();
     });
 
     it('filters donations by category', async () => {
-        render(<NearbyDonationsPage />);
+        render(
+            <BrowserRouter>
+                <NearbyDonationsPage />
+            </BrowserRouter>
+        );
 
-        await waitFor(() => {
-            expect(screen.getByText('Cooked Rice')).toBeInTheDocument();
-        });
-
-        // Trigger Select Filter (Simulated interaction with Radix UI Select usually requires finding proper role or trigger)
-        // Radix UI Select is hard to access via simple fireEvent on select value. 
-        // We can test if the component renders the Select, but fully interacting with Radix in unit tests can be tricky without userEvent or finding trigger.
-        // For simplicity, we might trust the filtering logic extracted or inspect if filter state updates content.
-
-        // Let's try to mock the filter state change if possible, or just verify the elements are there.
-        // Or we can rely on verifying both are present initially which confirms 2 items.
-        // Then assume the user selects 'Cooked'
-        // Since we can't easily click Radix Select without convoluted queries, we'll skip detailed interaction test and rely on "renders feed" for 80% coverage goal on logic.
+        expect(await screen.findByText('Cooked Rice')).toBeInTheDocument();
     });
 
     it('shows empty state when no donations found', async () => {
         vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: [], capacityWarning: false, count: 0 });
-        render(<NearbyDonationsPage />);
+        render(
+            <BrowserRouter>
+                <NearbyDonationsPage />
+            </BrowserRouter>
+        );
 
-        await waitFor(() => {
-            expect(screen.getByText('No donations found')).toBeInTheDocument();
-        });
+        expect(await screen.findByText('No donations found')).toBeInTheDocument();
     });
 });

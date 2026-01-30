@@ -45,7 +45,7 @@ export function DonationCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="font-semibold text-lg">{donation.foodType}</h3>
+            <h3 className="font-semibold text-lg">{donation.title}</h3>
             <p className="text-sm text-muted-foreground">{donation.donorName}</p>
           </div>
           <Badge className={cn("capitalize border", statusColors[donation.status])}>
