@@ -17,7 +17,11 @@ import {
     User as UserIcon,
     Settings,
     Sparkles,
+    Circle,
 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { motion, AnimatePresence } from "framer-motion"
 import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 
@@ -86,10 +90,12 @@ const navItemsByRole = {
         { label: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
     ],
     volunteer: [
-        { label: "My Tasks", href: "/volunteer", icon: Truck },
+        { label: "Dashboard", href: "/volunteer", icon: Home },
+        { label: "Active Mission", href: "/volunteer/active", icon: Truck },
         { label: "Available Jobs", href: "/volunteer/available", icon: MapPin },
         { label: "Mission History", href: "/volunteer/history", icon: List },
         { label: "Notifications", href: "/volunteer/notifications", icon: Bell },
+        { label: "Vehicle Settings", href: "/volunteer/settings", icon: Settings },
     ],
 }
 
@@ -100,6 +106,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
     const navigate = useNavigate()
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
     const [pendingCount, setPendingCount] = React.useState(0)
+    const [isOnline, setIsOnline] = React.useState(true)
     const navItems = navItemsByRole[role] || []
 
     const fetchPending = async () => {
@@ -140,6 +147,32 @@ export function AppSidebar({ role }: { role: UserRole }) {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup className="pt-4">
+                    {role === 'volunteer' && !isCollapsed && (
+                        <div className="px-4 mb-6">
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={cn(
+                                    "flex items-center justify-between p-3 rounded-xl border transition-all duration-300",
+                                    "bg-background/50 backdrop-blur-sm",
+                                    isOnline ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" : "border-slate-800"
+                                )}
+                            >
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Status</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className={cn("h-2 w-2 rounded-full", isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-500")} />
+                                        <span className="text-sm font-bold">{isOnline ? "Online" : "Offline"}</span>
+                                    </div>
+                                </div>
+                                <Switch
+                                    checked={isOnline}
+                                    onCheckedChange={setIsOnline}
+                                    className="data-[state=checked]:bg-emerald-500"
+                                />
+                            </motion.div>
+                        </div>
+                    )}
                     <SidebarGroupLabel>Platform</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
