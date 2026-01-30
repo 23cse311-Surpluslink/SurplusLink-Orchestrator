@@ -20,14 +20,14 @@ import { DonationCard } from '@/components/common/donation-card';
 import { VolunteerTrackerModal } from '@/components/common/volunteer-tracker-modal';
 import DonationService from '@/services/donation.service';
 import { format } from 'date-fns';
+import { Donation } from '@/types';
 
 export default function DonorDonations() {
     const { user } = useAuth();
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [selectedDonation, setSelectedDonation] = useState<any>(null);
-    const [trackingDonation, setTrackingDonation] = useState<any>(null);
+    const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
+    const [trackingDonation, setTrackingDonation] = useState<Donation | null>(null);
 
     const { data: donations, isLoading } = useQuery({
         queryKey: ['my-donations'],

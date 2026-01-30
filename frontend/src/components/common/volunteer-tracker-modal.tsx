@@ -20,11 +20,12 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Donation } from "@/types";
 
 interface VolunteerTrackerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    donation: any;
+    donation: Donation | null;
 }
 
 export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTrackerModalProps) {

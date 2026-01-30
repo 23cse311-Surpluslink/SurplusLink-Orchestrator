@@ -26,7 +26,7 @@ export default function VolunteerSettings() {
     const { user, updateVolunteerVehicle } = useAuth();
     const [capacity, setCapacity] = React.useState([user?.volunteerProfile?.maxWeight || 50]);
     const [vehicle, setVehicle] = React.useState<'bicycle' | 'scooter' | 'car' | 'van'>(
-        (user?.volunteerProfile?.vehicleType as any) || "bicycle"
+        (user?.volunteerProfile?.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle"
     );
 
     const handleSave = async () => {
@@ -61,7 +61,7 @@ export default function VolunteerSettings() {
                                 <ToggleGroup
                                     type="single"
                                     value={vehicle}
-                                    onValueChange={(v) => v && setVehicle(v as any)}
+                                    onValueChange={(v) => v && setVehicle(v as 'bicycle' | 'scooter' | 'car' | 'van')}
                                     className="grid grid-cols-2 gap-4"
                                 >
                                     <ToggleGroupItem
