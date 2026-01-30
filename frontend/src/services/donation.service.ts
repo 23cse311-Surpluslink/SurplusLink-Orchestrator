@@ -11,7 +11,7 @@ interface BackendDonation {
     location?: { address: string };
     donorName?: string;
     donorId?: string;
-    donor?: { _id?: string; id?: string; name?: string; organization?: string };
+    donor?: { _id?: string; id?: string; name?: string; organization?: string; email?: string; coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] } };
     photos?: string[];
     image?: string;
     title?: string;
@@ -21,12 +21,22 @@ interface BackendDonation {
     status: Donation['status'];
     foodCategory?: Donation['foodCategory'];
     storageReq?: Donation['storageReq'];
-    claimedBy?: { _id?: string; id?: string; name?: string; organization?: string; address?: string };
+    claimedBy?: {
+        _id?: string;
+        id?: string;
+        name?: string;
+        organization?: string;
+        address?: string;
+        email?: string;
+        coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] }
+    };
     volunteer?: { _id?: string; id?: string; name?: string };
     pickupPhoto?: string;
     deliveryPhoto?: string;
     pickupNotes?: string;
     deliveryNotes?: string;
+    deliveryStatus?: Donation['deliveryStatus'];
+    rejectionReason?: string;
     coordinates?: {
         type?: 'Point';
         coordinates?: [number, number];
@@ -55,16 +65,63 @@ const mapDonation = (d: BackendDonation): Donation => ({
     deliveryPhoto: d.deliveryPhoto,
     pickupNotes: d.pickupNotes,
     deliveryNotes: d.deliveryNotes,
-    status: d.status,
+    status: (function() {
+        if (d.status === 'assigned' || d.status === 'picked_up') {
+            if (d.deliveryStatus === 'pending_pickup' || d.deliveryStatus === 'heading_to_pickup') return 'accepted';
+            if (d.deliveryStatus === 'at_pickup') return 'at_pickup';
+            if (d.deliveryStatus === 'picked_up' || d.deliveryStatus === 'in_transit') return 'picked_up';
+            if (d.deliveryStatus === 'arrived_at_delivery') return 'at_delivery';
+            if (d.deliveryStatus === 'delivered') return 'delivered';
+        }
+        return d.status;
+    })(),
     foodCategory: d.foodCategory,
-    storageReq: d.storageReq,
+    deliveryStatus: d.deliveryStatus,
+    assignedVolunteer: typeof d.volunteer === 'object' ? d.volunteer?.id || d.volunteer?._id : d.volunteer,
+    donorEmail: d.donor?.email,
+    ngoEmail: d.claimedBy?.email,
+    ngoCoordinates: (function() {
+        const coords = d.claimedBy?.coordinates;
+        if (!coords) return undefined;
+        if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+            return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+        }
+        if ('lat' in coords && 'lng' in coords) {
+            return { lat: coords.lat, lng: coords.lng };
+        }
+        return undefined;
+    })(),
+    claimedBy: d.claimedBy ? {
+        id: d.claimedBy._id || d.claimedBy.id || "",
+        organization: d.claimedBy.organization || d.claimedBy.name || "",
+        email: d.claimedBy.email,
+        coordinates: (function() {
+            const coords = d.claimedBy?.coordinates;
+            if (!coords) return undefined;
+            if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+                return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+            }
+            if ('lat' in coords && 'lng' in coords) {
+                return { lat: coords.lat, lng: coords.lng };
+            }
+            return undefined;
+        })()
+    } : undefined,
     coordinates: d.coordinates?.coordinates ? {
         lat: d.coordinates.coordinates[1],
         lng: d.coordinates.coordinates[0]
-    } : undefined
+    } : undefined,
+    rejectionReason: d.rejectionReason,
+    expiryDate: d.expiryDate || d.expiryTime,
+    pickupAddress: d.pickupAddress,
+    storageReq: d.storageReq,
 });
 
 const DonationService = {
+    getActiveMission: async (): Promise<Donation | null> => {
+        const response = await api.get('/donations/active-mission');
+        return response.data ? mapDonation(response.data) : null;
+    },
     createDonation: async (formData: FormData) => {
         const response = await api.post('/donations', formData, {
             headers: {
@@ -153,6 +210,5 @@ const DonationService = {
         return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
     }
 };
-;
 
 export default DonationService;

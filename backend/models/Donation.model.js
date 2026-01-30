@@ -114,11 +114,17 @@ const donationSchema = new mongoose.Schema(
             enum: ['idle', 'pending_pickup', 'heading_to_pickup', 'at_pickup', 'picked_up', 'in_transit', 'arrived_at_delivery', 'delivered'],
             default: 'idle',
         },
-        proofOfPickup: {
+        pickupPhoto: {
             type: String, // URL for image
         },
-        proofOfDelivery: {
+        deliveryPhoto: {
             type: String, // URL for image
+        },
+        pickupNotes: {
+            type: String,
+        },
+        deliveryNotes: {
+            type: String,
         },
         pickedUpAt: {
             type: Date,

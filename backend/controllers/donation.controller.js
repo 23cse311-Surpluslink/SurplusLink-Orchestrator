@@ -631,10 +631,10 @@ export const updateDeliveryStatus = async (req, res, next) => {
 // @access  Private (Volunteer)
 export const confirmPickup = async (req, res, next) => {
     try {
-        const { proofOfPickup } = req.body;
+        const pickupPhoto = req.file ? req.file.path : null;
 
-        if (!proofOfPickup) {
-            return res.status(400).json({ message: 'Proof of pickup (image URL) is required' });
+        if (!pickupPhoto) {
+            return res.status(400).json({ message: 'Proof of pickup (photo) is required' });
         }
 
         const donation = await Donation.findById(req.params.id).populate('claimedBy', 'organization');
@@ -648,7 +648,7 @@ export const confirmPickup = async (req, res, next) => {
         }
 
         donation.deliveryStatus = 'picked_up';
-        donation.proofOfPickup = proofOfPickup;
+        donation.pickupPhoto = pickupPhoto;
         donation.pickedUpAt = Date.now();
         await donation.save();
 
@@ -673,10 +673,11 @@ export const confirmPickup = async (req, res, next) => {
 // @access  Private (Volunteer)
 export const confirmDelivery = async (req, res, next) => {
     try {
-        const { proofOfDelivery } = req.body;
+        const deliveryPhoto = req.file ? req.file.path : null;
+        const { notes } = req.body;
 
-        if (!proofOfDelivery) {
-            return res.status(400).json({ message: 'Proof of delivery (image URL) is required' });
+        if (!deliveryPhoto) {
+            return res.status(400).json({ message: 'Proof of delivery (photo) is required' });
         }
 
         const donation = await Donation.findById(req.params.id).populate('claimedBy', 'organization');
@@ -696,7 +697,8 @@ export const confirmDelivery = async (req, res, next) => {
         }
 
         donation.deliveryStatus = 'delivered';
-        donation.proofOfDelivery = proofOfDelivery;
+        donation.deliveryPhoto = deliveryPhoto;
+        donation.deliveryNotes = notes;
         donation.deliveredAt = Date.now();
         await donation.save();
 
@@ -787,6 +789,24 @@ export const failMission = async (req, res, next) => {
         }
 
         res.json({ message: 'Mission failed and reset successfully', donation });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get current active mission for volunteer
+// @route   GET /api/donations/active-mission
+// @access  Private (Volunteer)
+export const getVolunteerActiveMission = async (req, res, next) => {
+    try {
+        const activeMission = await Donation.findOne({
+            volunteer: req.user.id,
+            deliveryStatus: { $in: ['pending_pickup', 'heading_to_pickup', 'at_pickup', 'picked_up', 'in_transit', 'arrived_at_delivery'] }
+        })
+            .populate('donor', 'name address email organization coordinates')
+            .populate('claimedBy', 'organization address email coordinates');
+
+        res.json(activeMission);
     } catch (error) {
         next(error);
     }

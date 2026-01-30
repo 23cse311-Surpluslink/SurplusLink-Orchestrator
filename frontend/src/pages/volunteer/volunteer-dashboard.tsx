@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Truck, Zap, Leaf, ShieldCheck, MapPin, Clock, ArrowRight, Search, Loader2 } from "lucide-react";
+import { Truck, Zap, Leaf, ShieldCheck, MapPin, Clock, ArrowRight, Search, Loader2, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
@@ -26,9 +26,8 @@ export default function VolunteerDashboard() {
 
     const fetchActiveMission = useCallback(async () => {
         try {
-            // Find an assigned or in-progress donation for this volunteer
-            // const allDonations = await DonationService.getAvailableMissions();
-            // Logic to find active mission here
+            const active = await DonationService.getActiveMission();
+            setActiveDonation(active);
         } catch (error) {
             console.error(error);
         } finally {
@@ -113,29 +112,74 @@ export default function VolunteerDashboard() {
             <div className="grid lg:grid-cols-3 gap-8">
                 <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-black tracking-tight">Available Nearby</h2>
-                        <Button variant="link" className="text-primary font-bold p-0" onClick={() => window.location.href = '/volunteer/available'}>
-                            Browse All <ArrowRight className="ml-1 size-4" />
-                        </Button>
+                        <h2 className="text-2xl font-black tracking-tight">
+                            {activeDonation ? "Active Mission" : "Available Nearby"}
+                        </h2>
+                        {!activeDonation && (
+                            <Button variant="link" className="text-primary font-bold p-0" onClick={() => window.location.href = '/volunteer/available'}>
+                                Browse All <ArrowRight className="ml-1 size-4" />
+                            </Button>
+                        )}
                     </div>
 
-                    <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-glow p-12 text-center group cursor-pointer" onClick={() => window.location.href = '/volunteer/available'}>
-                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                            <Search className="size-32 text-primary" />
-                        </div>
-                        <div className="relative z-10 flex flex-col items-center">
-                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <Search className="size-8 text-primary" />
+                    {activeDonation ? (
+                        <Card className="relative overflow-hidden border-2 border-primary shadow-glow shadow-primary/10 bg-card group cursor-pointer" onClick={() => window.location.href = '/volunteer/active'}>
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <Navigation className="size-24 text-primary animate-pulse" />
                             </div>
-                            <h3 className="text-2xl font-black mb-2">Find Your Next Mission</h3>
-                            <p className="text-muted-foreground font-medium max-w-sm mx-auto mb-8">
-                                There are local donors waiting for volunteers to rescue food and deliver it to nearby NGOs.
-                            </p>
-                            <Button className="rounded-full px-8 h-12 font-black text-lg shadow-xl shadow-primary/20" variant="hero">
-                                Start Browsing Missions
-                            </Button>
-                        </div>
-                    </Card>
+                            <CardContent className="p-0 flex flex-col md:flex-row h-full items-stretch">
+                                <div className="w-full md:w-64 h-48 md:h-auto bg-muted shrink-0 relative">
+                                    <img src={activeDonation.image} alt={activeDonation.title} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4 md:hidden">
+                                        <Badge className="bg-primary text-white border-none uppercase tracking-widest font-black text-[10px]">Active Now</Badge>
+                                    </div>
+                                </div>
+                                <div className="flex-1 p-6 flex flex-col justify-between">
+                                    <div>
+                                        <div className="hidden md:flex items-center gap-2 mb-2">
+                                            <Badge className="bg-primary text-white border-none uppercase tracking-widest font-black text-[10px]">Active Now</Badge>
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">#{activeDonation.id.slice(0, 8)}</span>
+                                        </div>
+                                        <h3 className="text-2xl font-black tracking-tight mb-1">{activeDonation.title}</h3>
+                                        <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium mb-4">
+                                            <span className="flex items-center gap-1.5"><MapPin className="size-3.5 text-primary" /> {activeDonation.address}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 h-full">
+                                            <div className="p-3 rounded-xl bg-accent/50 border border-border/50">
+                                                <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Status</p>
+                                                <p className="text-xs font-bold text-primary capitalize">{activeDonation.deliveryStatus?.replace('_', ' ')}</p>
+                                            </div>
+                                            <div className="p-3 rounded-xl bg-accent/50 border border-border/50">
+                                                <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Destination</p>
+                                                <p className="text-xs font-bold truncate">{activeDonation.ngoAddress || activeDonation.ngoName || "NGO Center"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button className="mt-6 w-full h-12 rounded-xl font-black text-lg group-hover:bg-primary/90 transition-colors">
+                                        Continue Mission <ArrowRight className="ml-2 size-5 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-glow p-12 text-center group cursor-pointer" onClick={() => window.location.href = '/volunteer/available'}>
+                            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                <Search className="size-32 text-primary" />
+                            </div>
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                    <Search className="size-8 text-primary" />
+                                </div>
+                                <h3 className="text-2xl font-black mb-2">Find Your Next Mission</h3>
+                                <p className="text-muted-foreground font-medium max-w-sm mx-auto mb-8">
+                                    There are local donors waiting for volunteers to rescue food and deliver it to nearby NGOs.
+                                </p>
+                                <Button className="rounded-full px-8 h-12 font-black text-lg shadow-xl shadow-primary/20" variant="hero">
+                                    Start Browsing Missions
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="space-y-6">

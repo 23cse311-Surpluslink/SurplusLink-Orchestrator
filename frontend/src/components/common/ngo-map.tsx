@@ -18,98 +18,16 @@ const defaultCenter = {
     lng: 77.2090
 };
 
-// Custom Map Styles for "SurplusLink" Aesthetic (Dark/Clean)
 const mapStyles = [
-    {
-        "featureType": "all",
-        "elementType": "geometry.fill",
-        "stylers": [{ "weight": "2.00" }]
-    },
-    {
-        "featureType": "all",
-        "elementType": "geometry.stroke",
-        "stylers": [{ "color": "#9c9c9c" }]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.text",
-        "stylers": [{ "visibility": "on" }]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "all",
-        "stylers": [{ "color": "#f2f2f2" }]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry.fill",
-        "stylers": [{ "color": "#ffffff" }]
-    },
-    {
-        "featureType": "landscape.man_made",
-        "elementType": "geometry.fill",
-        "stylers": [{ "color": "#ffffff" }]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "all",
-        "stylers": [{ "visibility": "off" }]
-    },
-    {
-        "featureType": "road",
-        "elementType": "all",
-        "stylers": [{ "saturation": -100 }, { "lightness": 45 }]
-    },
-    {
-        "featureType": "road",
-        "elementType": "geometry.fill",
-        "stylers": [{ "color": "#eeeeee" }]
-    },
-    {
-        "featureType": "road",
-        "elementType": "labels.text.fill",
-        "stylers": [{ "color": "#7b7b7b" }]
-    },
-    {
-        "featureType": "road",
-        "elementType": "labels.text.stroke",
-        "stylers": [{ "color": "#ffffff" }]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "all",
-        "stylers": [{ "visibility": "simplified" }]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "labels.icon",
-        "stylers": [{ "visibility": "off" }]
-    },
-    {
-        "featureType": "transit",
-        "elementType": "all",
-        "stylers": [{ "visibility": "off" }]
-    },
-    {
-        "featureType": "water",
-        "elementType": "all",
-        "stylers": [{ "color": "#46bcec" }, { "visibility": "on" }]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry.fill",
-        "stylers": [{ "color": "#c8d7d4" }]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.text.fill",
-        "stylers": [{ "color": "#070707" }]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.text.stroke",
-        "stylers": [{ "color": "#ffffff" }]
-    }
+    { "elementType": "geometry", "stylers": [{ "color": "#12191b" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#51696a" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#12191b" }] },
+    { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "color": "#2c393d" }] },
+    { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#12191b" }] },
+    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#2c393d" }] },
+    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#2c393d" }] },
+    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#1e4d58" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0d1112" }] }
 ];
 
 function NgoMapComponent({ donations, apiKey }: NgoMapProps) {
@@ -120,40 +38,59 @@ function NgoMapComponent({ donations, apiKey }: NgoMapProps) {
 
     const activeDonationsWithCoords = donations.filter(d => d.coordinates);
 
-    // Default to first donation or Delhi
-    const center = activeDonationsWithCoords.length > 0 && activeDonationsWithCoords[0].coordinates
-        ? activeDonationsWithCoords[0].coordinates
-        : defaultCenter;
+    const onMapLoad = (map: google.maps.Map) => {
+        if (activeDonationsWithCoords.length > 0) {
+            const bounds = new google.maps.LatLngBounds();
+            activeDonationsWithCoords.forEach(d => {
+                if (d.coordinates) bounds.extend(d.coordinates);
+            });
+            map.fitBounds(bounds);
+            // Don't zoom in too far if there's only one marker
+            if (activeDonationsWithCoords.length === 1) {
+                map.setZoom(14);
+            }
+        }
+    };
 
     if (!isLoaded) return (
-        <div className="w-full h-full flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl">
+        <div className="w-full h-full flex items-center justify-center bg-[#12191b] border border-border/10 rounded-2xl overflow-hidden">
             <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                <p className="text-sm text-slate-500">Loading Map...</p>
+                <p className="text-sm text-muted-foreground font-black uppercase tracking-widest">Initalizing Satellite Feed...</p>
             </div>
         </div>
     );
 
     return (
-        <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={13}
-            options={{
-                disableDefaultUI: true,
-                zoomControl: true,
-                styles: mapStyles
-            }}
-        >
-            {activeDonationsWithCoords.map(d => (
-                <Marker
-                    key={d.id}
-                    position={d.coordinates!}
-                    title={d.title}
-                    animation={typeof google !== 'undefined' ? google.maps.Animation.DROP : undefined}
-                />
-            ))}
-        </GoogleMap>
+        <div className="w-full h-full rounded-2xl overflow-hidden border border-border/10 shadow-2xl">
+            <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={defaultCenter}
+                zoom={12}
+                onLoad={onMapLoad}
+                options={{
+                    disableDefaultUI: true,
+                    zoomControl: true,
+                    styles: mapStyles
+                }}
+            >
+                {activeDonationsWithCoords.map(d => (
+                    <Marker
+                        key={d.id}
+                        position={d.coordinates!}
+                        title={d.title}
+                        icon={{
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: "#22c55e",
+                            fillOpacity: 1,
+                            strokeWeight: 2,
+                            strokeColor: "#ffffff",
+                        }}
+                    />
+                ))}
+            </GoogleMap>
+        </div>
     );
 }
 
