@@ -187,7 +187,7 @@ export default function LoginPage() {
   }, [isAuthenticated, role, navigate]);
 
   return (
-    <div className="min-h-screen lg:h-screen w-full flex bg-background relative selection:bg-primary/30">
+    <div className="min-h-screen w-full flex bg-background relative selection:bg-primary/30 overflow-x-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
 
@@ -206,15 +206,15 @@ export default function LoginPage() {
         </Link>
       </motion.div>
 
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-6 relative z-10 pt-20 lg:pt-0">
-        <div className="w-full max-w-[1100px] flex flex-col lg:flex-row gap-16 items-center">
+      <div className="flex-1 flex items-center justify-center p-4 lg:p-12 relative z-10 pt-24 lg:pt-12">
+        <div className="w-full max-w-[1100px] flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
 
           <div className="hidden lg:flex flex-col gap-10 flex-1">
             <Logo size="xl" showText={true} />
 
-            <div className="space-y-8">
-              <h2 className="text-6xl font-black leading-tight tracking-tighter">
-                Empowering <span className="text-primary italic">Global</span> <br />Sustainability.
+            <div className="space-y-6 lg:space-y-8">
+              <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black leading-[1.1] tracking-tighter">
+                Empowering <span className="text-primary italic">Global</span> <br className="hidden xl:block" />Sustainability.
               </h2>
               <div className="space-y-5">
                 {[
@@ -231,18 +231,18 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="w-full max-w-md animate-scale-in">
-            <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 rounded-[2rem] overflow-hidden min-h-[500px]">
+          <div className="w-full max-w-md animate-scale-in py-8">
+            <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 rounded-[2rem] overflow-hidden">
               {authView === 'tabs' ? (
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <CardHeader className="pb-4 pt-8 px-8">
-                    <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl">
+                    <TabsList className="grid w-full grid-cols-2 h-11 p-1 bg-muted/50 rounded-xl">
                       <TabsTrigger value="login" className="rounded-lg font-bold">Sign In</TabsTrigger>
                       <TabsTrigger value="register" className="rounded-lg font-bold">Register</TabsTrigger>
                     </TabsList>
                   </CardHeader>
 
-                  <CardContent className="p-8">
+                  <CardContent className="p-6 lg:p-8 pt-4 lg:pt-6">
                     <TabsContent value="login" className="mt-0 space-y-4">
                       <div className="space-y-4 pt-2">
                         <div className="text-center space-y-2 mb-6">
@@ -409,12 +409,12 @@ export default function LoginPage() {
                                 key={role.value}
                                 type="button"
                                 onClick={() => setSelectedRole(role.value)}
-                                className={`flex flex-col items-start gap-2 p-4 rounded-2xl border transition-all duration-200 text-left ${selectedRole === role.value
+                                className={`flex flex-col items-start gap-1.5 p-3 rounded-xl border transition-all duration-200 text-left ${selectedRole === role.value
                                   ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
                                   : 'border-border hover:border-primary/50 hover:bg-muted/50'
                                   }`}
                               >
-                                <div className={`rounded-xl p-2 ${selectedRole === role.value
+                                <div className={`rounded-lg p-1.5 ${selectedRole === role.value
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted text-muted-foreground'
                                   }`}>
@@ -471,7 +471,7 @@ export default function LoginPage() {
                               </Button>
                             </div>
                           </div>
-                          <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-wider mt-2" variant="hero" disabled={isLoading}>
+                          <Button type="submit" className="w-full h-11 rounded-xl font-bold uppercase tracking-wider mt-1" variant="hero" disabled={isLoading}>
                             {isLoading ? 'Creating account...' : 'Create Account'}
                           </Button>
                         </form>

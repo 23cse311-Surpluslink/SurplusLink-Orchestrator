@@ -49,7 +49,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
   const navLinks = [
     { name: 'Features', href: '#features' },
     { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Impact', href: '#impact' },
+    // { name: 'Impact', href: '#impact' },
     { name: 'FAQ', href: '#faq' },
   ];
 
