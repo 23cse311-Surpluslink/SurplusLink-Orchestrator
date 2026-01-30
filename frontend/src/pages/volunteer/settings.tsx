@@ -6,6 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { Truck, Bike, Car, HardHat, MapPin, Save, Navigation } from "lucide-react";
 import * as React from "react";
+import { useAuth } from "@/contexts/auth-context";
 
 const containerVariants = {
     hidden: { opacity: 0, x: 20 },
@@ -22,8 +23,15 @@ const itemVariants = {
 };
 
 export default function VolunteerSettings() {
-    const [capacity, setCapacity] = React.useState([50]);
-    const [vehicle, setVehicle] = React.useState("bicycle");
+    const { user, updateVolunteerVehicle } = useAuth();
+    const [capacity, setCapacity] = React.useState([user?.volunteerProfile?.maxWeight || 50]);
+    const [vehicle, setVehicle] = React.useState<'bicycle' | 'scooter' | 'car' | 'van'>(
+        (user?.volunteerProfile?.vehicleType as any) || "bicycle"
+    );
+
+    const handleSave = async () => {
+        await updateVolunteerVehicle(vehicle, capacity[0]);
+    };
 
     return (
         <motion.div
@@ -53,7 +61,7 @@ export default function VolunteerSettings() {
                                 <ToggleGroup
                                     type="single"
                                     value={vehicle}
-                                    onValueChange={(v) => v && setVehicle(v)}
+                                    onValueChange={(v) => v && setVehicle(v as any)}
                                     className="grid grid-cols-2 gap-4"
                                 >
                                     <ToggleGroupItem
@@ -151,7 +159,7 @@ export default function VolunteerSettings() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full font-bold group">
+                                <Button className="w-full font-bold group" onClick={handleSave}>
                                     <Save className="mr-2 h-4 w-4" />
                                     Save Configuration
                                 </Button>

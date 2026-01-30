@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { PlusCircle, AlertCircle, Clock, MapPin, Package } from 'lucide-react';
+import { PlusCircle, AlertCircle, Clock, MapPin, Package, Navigation } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -13,12 +13,11 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { PageHeader } from '@/components/common/page-header';
 import { DonationCard } from '@/components/common/donation-card';
+import { VolunteerTrackerModal } from '@/components/common/volunteer-tracker-modal';
 import DonationService from '@/services/donation.service';
 import { format } from 'date-fns';
 
@@ -28,6 +27,7 @@ export default function DonorDonations() {
     const queryClient = useQueryClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedDonation, setSelectedDonation] = useState<any>(null);
+    const [trackingDonation, setTrackingDonation] = useState<any>(null);
 
     const { data: donations, isLoading } = useQuery({
         queryKey: ['my-donations'],
@@ -64,7 +64,7 @@ export default function DonorDonations() {
     const mappedDonations = donations || [];
 
     const pendingDonations = mappedDonations.filter(d => d.status === 'active');
-    const activeDonations = mappedDonations.filter(d => ['assigned', 'picked_up'].includes(d.status));
+    const activeDonations = mappedDonations.filter(d => ['assigned', 'accepted', 'at_pickup', 'picked_up', 'at_delivery', 'delivered'].includes(d.status));
     const completedDonations = mappedDonations.filter(d => ['completed', 'expired', 'cancelled', 'rejected'].includes(d.status));
 
     if (isLoading) {
@@ -122,12 +122,23 @@ export default function DonorDonations() {
                 <TabsContent value="active" className="mt-8">
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {activeDonations.map(donation => (
-                            <DonationCard
-                                key={donation.id}
-                                donation={{ ...donation, donorName: user?.name || 'Me' }}
-                                showActions
-                                onView={() => setSelectedDonation(donation)}
-                            />
+                            <div key={donation.id} className="space-y-4">
+                                <DonationCard
+                                    donation={{ ...donation, donorName: user?.name || 'Me' }}
+                                    showActions
+                                    onView={() => setSelectedDonation(donation)}
+                                />
+                                {(['accepted', 'at_pickup', 'picked_up', 'at_delivery'].includes(donation.status)) && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2 border-primary/20 hover:bg-primary/5 text-primary h-11 font-bold"
+                                        onClick={() => setTrackingDonation(donation)}
+                                    >
+                                        <Navigation className="h-4 w-4" />
+                                        Track Volunteer
+                                    </Button>
+                                )}
+                            </div>
                         ))}
                         {activeDonations.length === 0 && (
                             <div className="col-span-full text-center py-20 text-muted-foreground bg-muted/10 rounded-[2rem]">
@@ -155,6 +166,12 @@ export default function DonorDonations() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <VolunteerTrackerModal
+                isOpen={!!trackingDonation}
+                onClose={() => setTrackingDonation(null)}
+                donation={trackingDonation}
+            />
 
             <Dialog open={!!selectedDonation} onOpenChange={(o) => !o && setSelectedDonation(null)}>
                 <DialogContent className="max-w-md">
@@ -192,20 +209,20 @@ export default function DonorDonations() {
                                 </div>
                                 <div className="space-y-1">
                                     <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Expiry</span>
-                                    <p className="font-medium">{format(new Date(selectedDonation.expiryDate), 'MMM d, h:mm a')}</p>
+                                    <p className="font-medium text-destructive">{selectedDonation.expiryDate ? format(new Date(selectedDonation.expiryDate), 'MMM d, h:mm a') : 'N/A'}</p>
                                 </div>
                             </div>
 
                             <div className="bg-muted/30 p-3 rounded-lg text-sm">
                                 <p className="text-muted-foreground mb-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> Pickup Address</p>
-                                <p className="font-medium">{selectedDonation.pickupAddress}</p>
+                                <p className="font-medium">{selectedDonation.pickupAddress || selectedDonation.address}</p>
                             </div>
 
                             {/* Claimed Info */}
                             {selectedDonation.claimedBy && (
                                 <div className="bg-blue-50/50 p-3 rounded-lg text-sm border border-blue-100">
                                     <p className="text-blue-800 font-medium mb-1">Claimed By</p>
-                                    <p className="text-blue-600">{selectedDonation.claimedBy?.organization || "NGO"}</p>
+                                    <p className="text-blue-600">{selectedDonation.ngoName || "NGO"}</p>
                                 </div>
                             )}
                         </div>

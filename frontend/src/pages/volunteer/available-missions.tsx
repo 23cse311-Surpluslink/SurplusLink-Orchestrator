@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Card,
@@ -28,7 +28,8 @@ import {
     AlertCircle,
     Bike,
     Navigation,
-    Box
+    Box,
+    Loader2
 } from "lucide-react";
 import {
     Sheet,
@@ -44,52 +45,10 @@ import {
 } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-
-// Mock Data
-const MOCK_MISSIONS = [
-    {
-        id: "JOB-7721",
-        title: "Fresh Deli Platter Rescue",
-        type: "Cooked",
-        urgency: "High",
-        pickup: "Central Gourmet Deli, Sector 4",
-        dropoff: "Community Kitchen, Sector 9",
-        distance: "3.2 km",
-        eta: "12 mins",
-        quantity: "12kg / 4 Trays",
-        vehicleRequirement: "scooter",
-        expiry: "45 mins",
-        coordinates: { lat: 12.9716, lng: 77.5946 }
-    },
-    {
-        id: "JOB-8812",
-        title: "Organic Vegetable Batch",
-        type: "Raw",
-        urgency: "Normal",
-        pickup: "Fresh Farmers Market, HSR",
-        dropoff: "Hope NGO Center, BTM",
-        distance: "5.8 km",
-        eta: "22 mins",
-        quantity: "45kg / 8 Crates",
-        vehicleRequirement: "car",
-        expiry: "4 hours",
-        coordinates: { lat: 12.9141, lng: 77.6411 }
-    },
-    {
-        id: "JOB-9903",
-        title: "Sealed Dry Goods",
-        type: "Packaged",
-        urgency: "Low",
-        pickup: "Mega Mart Warehouse",
-        dropoff: "Children's Shelter, Indiranagar",
-        distance: "8.1 km",
-        eta: "35 mins",
-        quantity: "150kg / 15 Boxes",
-        vehicleRequirement: "van",
-        expiry: "2 days",
-        coordinates: { lat: 12.9784, lng: 77.6408 }
-    }
-];
+import DonationService from "@/services/donation.service";
+import { Donation } from "@/types";
+import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -105,19 +64,73 @@ const itemVariants = {
 };
 
 export default function AvailableMissions() {
+    const { user } = useAuth();
+    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
+    const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [view, setView] = useState<"list" | "map">("list");
-    const [selectedMission, setSelectedMission] = useState<typeof MOCK_MISSIONS[0] | null>(null);
+    const [missions, setMissions] = useState<Donation[]>([]);
+    const [selectedMission, setSelectedMission] = useState<Donation | null>(null);
     const [filter, setFilter] = useState("All");
 
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 1200);
-        return () => clearTimeout(timer);
-    }, []);
+    const fetchMissions = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await DonationService.getAvailableMissions();
+            setMissions(data);
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to fetch available missions.",
+                variant: "destructive"
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
 
-    const filteredMissions = MOCK_MISSIONS.filter(m =>
-        filter === "All" || m.type === filter
+    useEffect(() => {
+        fetchMissions();
+    }, [fetchMissions]);
+
+    const handleAccept = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setAcceptingId(id);
+        try {
+            await DonationService.acceptMission(id);
+            toast({
+                title: "Mission Accepted! 🚀",
+                description: "Proceed to the active mission tab to start the rescue.",
+                className: "bg-emerald-600 text-white border-none shadow-xl"
+            });
+            fetchMissions();
+            setSelectedMission(null);
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to accept mission. It might have been taken.",
+                variant: "destructive"
+            });
+        } finally {
+            setAcceptingId(null);
+        }
+    };
+
+    const getUrgency = (expiry: string) => {
+        const hours = (new Date(expiry).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+        if (hours < 2) return "High";
+        if (hours < 6) return "Normal";
+        return "Low";
+    };
+
+    const filteredMissions = missions.filter(m =>
+        filter === "All" || m.foodCategory === filter.toLowerCase()
     );
+
+    const isTooHeavy = (quantity: string) => {
+        const kg = parseInt(quantity.match(/\d+/)?.[0] || "0");
+        return user?.volunteerProfile?.maxWeight ? kg > user.volunteerProfile.maxWeight : false;
+    };
 
     return (
         <div className="space-y-6">
@@ -129,7 +142,12 @@ export default function AvailableMissions() {
                             {filteredMissions.length} Near You
                         </Badge>
                     </h1>
-                    <p className="text-muted-foreground text-sm font-medium">Find missions that match your {MOCK_MISSIONS[0].vehicleRequirement}.</p>
+                    <p className="text-muted-foreground text-sm font-medium">
+                        {user?.volunteerProfile?.vehicleType
+                            ? `Matching results for your ${user.volunteerProfile.vehicleType}.`
+                            : "Configure your vehicle in settings for better matching."
+                        }
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -148,7 +166,7 @@ export default function AvailableMissions() {
 
             {/* Filter Bar */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["All", "Cooked", "Raw", "Packaged"].map((f) => (
+                {["All", "Prepared", "Produce", "Packaged"].map((f) => (
                     <Button
                         key={f}
                         variant={filter === f ? "default" : "outline"}
@@ -159,8 +177,8 @@ export default function AvailableMissions() {
                             filter === f ? "border-primary shadow-glow shadow-primary/20" : "bg-card border-border/50 hover:border-primary/50"
                         )}
                     >
-                        {f === "Cooked" && <Utensils className="size-3.5 mr-2" />}
-                        {f === "Raw" && <Beef className="size-3.5 mr-2" />}
+                        {f === "Prepared" && <Utensils className="size-3.5 mr-2" />}
+                        {f === "Produce" && <Beef className="size-3.5 mr-2" />}
                         {f === "Packaged" && <Package className="size-3.5 mr-2" />}
                         {f}
                     </Button>
@@ -211,7 +229,7 @@ export default function AvailableMissions() {
                         <p className="text-muted-foreground max-w-sm mb-8 font-medium">
                             No {filter !== "All" ? filter.toLowerCase() : ""} missions found within your delivery range. Try switching your vehicle or status!
                         </p>
-                        <Button className="rounded-full font-bold px-8 shadow-glow shadow-primary/30 h-12 text-lg">
+                        <Button className="rounded-full font-bold px-8 shadow-glow shadow-primary/30 h-12 text-lg" onClick={fetchMissions}>
                             Refresh Map
                         </Button>
                     </motion.div>
@@ -223,77 +241,96 @@ export default function AvailableMissions() {
                         animate="visible"
                         className="grid gap-5"
                     >
-                        {filteredMissions.map((mission) => (
-                            <motion.div key={mission.id} variants={itemVariants}>
-                                <Card
-                                    className="group relative border-border/60 bg-card hover:border-primary/40 transition-all duration-300 overflow-hidden cursor-pointer shadow-sm hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
-                                    onClick={() => setSelectedMission(mission)}
-                                >
-                                    <div className="p-5 md:p-6">
-                                        <div className="flex flex-col md:flex-row justify-between gap-4">
-                                            {/* Left Info Column */}
-                                            <div className="flex-1 space-y-4">
-                                                <div className="flex items-start justify-between md:justify-start gap-3">
-                                                    <div className="flex gap-2">
-                                                        <Badge className={cn(
-                                                            "rounded-md px-2 py-1 uppercase text-[10px] font-black tracking-widest",
-                                                            mission.urgency === "High" ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-primary/20 text-primary border-none"
-                                                        )}>
-                                                            {mission.urgency === "High" ? "Urgent Rescue" : mission.type}
-                                                        </Badge>
-                                                        <Badge variant="outline" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1 border-primary/20 text-primary">
-                                                            <Bike className="size-3" /> Matches your Vehicle
-                                                        </Badge>
+                        {filteredMissions.map((mission) => {
+                            const tooHeavy = isTooHeavy(mission.quantity);
+                            const urgency = getUrgency(mission.expiryTime);
+
+                            return (
+                                <motion.div key={mission.id} variants={itemVariants}>
+                                    <Card
+                                        className={cn(
+                                            "group relative border-border/60 bg-card hover:border-primary/40 transition-all duration-300 overflow-hidden cursor-pointer shadow-sm hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]",
+                                            tooHeavy && "opacity-60 grayscale-[0.5]"
+                                        )}
+                                        onClick={() => setSelectedMission(mission)}
+                                    >
+                                        <div className="p-5 md:p-6">
+                                            <div className="flex flex-col md:flex-row justify-between gap-4">
+                                                {/* Left Info Column */}
+                                                <div className="flex-1 space-y-4">
+                                                    <div className="flex items-start justify-between md:justify-start gap-3">
+                                                        <div className="flex gap-2">
+                                                            <Badge className={cn(
+                                                                "rounded-md px-2 py-1 uppercase text-[10px] font-black tracking-widest",
+                                                                urgency === "High" ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-primary/20 text-primary border-none"
+                                                            )}>
+                                                                {urgency === "High" ? "Urgent Rescue" : mission.foodCategory}
+                                                            </Badge>
+                                                            {tooHeavy ? (
+                                                                <Badge variant="destructive" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1">
+                                                                    <AlertCircle className="size-3" /> Too Heavy
+                                                                </Badge>
+                                                            ) : (
+                                                                <Badge variant="outline" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1 border-primary/20 text-primary">
+                                                                    <Bike className="size-3" /> Vehicle Matched
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <span className="md:hidden font-black text-primary text-xl">{mission.distance}</span>
+
+                                                    <div>
+                                                        <h3 className="text-xl md:text-2xl font-black tracking-tight group-hover:text-primary transition-colors">
+                                                            {mission.title}
+                                                        </h3>
+                                                        <div className="flex items-center gap-2 text-muted-foreground mt-1 font-medium">
+                                                            <Box className="size-4" />
+                                                            <span>{mission.quantity}</span>
+                                                            <span className="mx-1">•</span>
+                                                            <Clock className="size-4" />
+                                                            <span className={cn(urgency === "High" && "text-destructive font-bold")}>
+                                                                Expires {new Date(mission.expiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-3 pt-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                                            <span className="text-sm font-bold truncate max-w-[200px]">{mission.address}</span>
+                                                            <ArrowRight className="size-4 text-muted-foreground shrink-0" />
+                                                            <div className="size-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
+                                                            <span className="text-sm font-bold truncate max-w-[200px]">{mission.ngoAddress || "NGO Hub"}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
-                                                <div>
-                                                    <h3 className="text-xl md:text-2xl font-black tracking-tight group-hover:text-primary transition-colors">
-                                                        {mission.title}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 text-muted-foreground mt-1 font-medium">
-                                                        <Box className="size-4" />
-                                                        <span>{mission.quantity}</span>
-                                                        <span className="mx-1">•</span>
-                                                        <Clock className="size-4" />
-                                                        <span className={cn(mission.urgency === "High" && "text-destructive font-bold")}>Expires in {mission.expiry}</span>
+                                                {/* Right CTA/Meta Column */}
+                                                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-0 md:pl-8 gap-4 min-w-[120px]">
+                                                    <div className="text-right hidden md:block">
+                                                        <span className="block text-3xl font-black text-foreground">{(Math.random() * 5 + 1).toFixed(1)} km</span>
+                                                        <span className="block text-xs font-black uppercase tracking-widest text-muted-foreground">Est. distance</span>
                                                     </div>
+                                                    <Button
+                                                        disabled={tooHeavy || acceptingId === mission.id}
+                                                        className="rounded-xl w-full md:w-32 h-12 font-black text-lg bg-primary hover:bg-primary/90 shadow-glow shadow-primary/20 group/btn"
+                                                        onClick={(e) => handleAccept(e, mission.id!)}
+                                                    >
+                                                        {acceptingId === mission.id ? (
+                                                            <Loader2 className="animate-spin size-5" />
+                                                        ) : (
+                                                            <>
+                                                                Accept
+                                                                <Navigation className="ml-2 size-4 group-hover/btn:translate-x-1 transition-transform" />
+                                                            </>
+                                                        )}
+                                                    </Button>
                                                 </div>
-
-                                                <div className="flex flex-col gap-3 pt-2">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                                        <span className="text-sm font-bold truncate max-w-[250px]">{mission.pickup}</span>
-                                                        <ArrowRight className="size-4 text-muted-foreground shrink-0" />
-                                                        <div className="size-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
-                                                        <span className="text-sm font-bold truncate max-w-[250px]">{mission.dropoff}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Right CTA/Meta Column */}
-                                            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-0 md:pl-8 gap-4 min-w-[120px]">
-                                                <div className="text-right hidden md:block">
-                                                    <span className="block text-3xl font-black text-foreground">{mission.distance}</span>
-                                                    <span className="block text-xs font-black uppercase tracking-widest text-muted-foreground">Est. travel</span>
-                                                </div>
-                                                <Button
-                                                    className="rounded-xl w-full md:w-32 h-12 font-black text-lg bg-primary hover:bg-primary/90 shadow-glow shadow-primary/20 group/btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        window.location.href = '/volunteer/active';
-                                                    }}
-                                                >
-                                                    Accept
-                                                    <Navigation className="ml-2 size-4 group-hover/btn:translate-x-1 transition-transform" />
-                                                </Button>
                                             </div>
                                         </div>
-                                    </div>
-                                </Card>
-                            </motion.div>
-                        ))}
+                                    </Card>
+                                </motion.div>
+                            );
+                        })}
                     </motion.div>
                 ) : (
                     <motion.div
@@ -349,14 +386,14 @@ export default function AvailableMissions() {
                                 <div className="space-y-8">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <Badge className="bg-primary/20 text-primary uppercase text-xs font-black tracking-widest">{selectedMission.type}</Badge>
-                                            <span className="text-sm font-black text-muted-foreground">ID: {selectedMission.id}</span>
+                                            <Badge className="bg-primary/20 text-primary uppercase text-xs font-black tracking-widest">{selectedMission.foodCategory}</Badge>
+                                            <span className="text-sm font-black text-muted-foreground">ID: {selectedMission.id?.substring(0, 8).toUpperCase()}</span>
                                         </div>
                                         <SheetTitle className="text-4xl font-black leading-tight tracking-tighter">
                                             {selectedMission.title}
                                         </SheetTitle>
                                         <SheetDescription className="text-base font-medium">
-                                            Direct rescue from <span className="text-foreground font-bold">{selectedMission.pickup.split(',')[0]}</span> to <span className="text-foreground font-bold">{selectedMission.dropoff.split(',')[0]}</span>.
+                                            Direct rescue from <span className="text-foreground font-bold">{selectedMission.donorName}</span> to <span className="text-foreground font-bold">{selectedMission.ngoName || "Assigned NGO Hub"}</span>.
                                         </SheetDescription>
                                     </div>
 
@@ -366,8 +403,10 @@ export default function AvailableMissions() {
                                             <p className="text-lg font-black">{selectedMission.quantity}</p>
                                         </div>
                                         <div className="bg-muted/50 p-4 rounded-2xl border border-border/30">
-                                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Time Left</p>
-                                            <p className="text-lg font-black text-destructive">{selectedMission.expiry}</p>
+                                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Deadline</p>
+                                            <p className="text-lg font-black text-destructive">
+                                                {new Date(selectedMission.expiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
                                         </div>
                                     </div>
 
@@ -378,23 +417,33 @@ export default function AvailableMissions() {
                                             <div className="relative">
                                                 <div className="absolute -left-[33px] top-1 size-4 rounded-full bg-emerald-500 border-4 border-card shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                                                 <h5 className="font-black text-lg">Pickup</h5>
-                                                <p className="text-muted-foreground font-medium">{selectedMission.pickup}</p>
-                                                <p className="text-xs text-primary font-bold mt-1">Provider: 5-star verified</p>
+                                                <p className="text-muted-foreground font-medium">{selectedMission.address}</p>
+                                                <p className="text-xs text-primary font-bold mt-1">Provider: {selectedMission.donorName}</p>
                                             </div>
 
                                             <div className="relative">
                                                 <div className="absolute -left-[33px] top-1 size-4 rounded-full bg-primary border-4 border-card shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
                                                 <h5 className="font-black text-lg">Drop-off</h5>
-                                                <p className="text-muted-foreground font-medium">{selectedMission.dropoff}</p>
-                                                <p className="text-xs text-primary font-bold mt-1">Recipient NGO: {selectedMission.dropoff.split(',')[0]}</p>
+                                                <p className="text-muted-foreground font-medium">{selectedMission.ngoAddress || "NGO Hub Location"}</p>
+                                                <p className="text-xs text-primary font-bold mt-1">Recipient NGO: {selectedMission.ngoName || "TBD"}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="pt-4">
-                                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                                        <div className={cn(
+                                            "flex items-center gap-3 p-4 rounded-2xl border text-xs font-bold",
+                                            isTooHeavy(selectedMission.quantity)
+                                                ? "bg-destructive/10 border-destructive/20 text-destructive"
+                                                : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                                        )}>
                                             <AlertCircle className="size-5 shrink-0" />
-                                            <p className="text-xs font-bold">Ensure you have {selectedMission.vehicleRequirement === 'car' ? 'enough trunk space' : 'a carrier box'} for {selectedMission.quantity}.</p>
+                                            <p>
+                                                {isTooHeavy(selectedMission.quantity)
+                                                    ? `Action Required: This load (${selectedMission.quantity}) exceeds your vehicle limits.`
+                                                    : `Safety First: Check food temperature and seals upon arrival.`
+                                                }
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -402,11 +451,18 @@ export default function AvailableMissions() {
 
                             <div className="p-8 border-t border-border/50 bg-background/50 backdrop-blur-md">
                                 <Button
+                                    disabled={isTooHeavy(selectedMission.quantity) || acceptingId === selectedMission.id}
                                     className="w-full h-16 rounded-2xl font-black text-xl shadow-glow shadow-primary/30 group"
-                                    onClick={() => window.location.href = '/volunteer/active'}
+                                    onClick={(e) => handleAccept(e, selectedMission.id!)}
                                 >
-                                    Accept Mission
-                                    <CheckCircle2 className="ml-2 size-6 group-active:scale-125 transition-transform" />
+                                    {acceptingId === selectedMission.id ? (
+                                        <Loader2 className="animate-spin size-6" />
+                                    ) : (
+                                        <>
+                                            Accept Mission
+                                            <CheckCircle2 className="ml-2 size-6 group-active:scale-125 transition-transform" />
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </div>

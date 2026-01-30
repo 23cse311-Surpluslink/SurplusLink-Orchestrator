@@ -21,6 +21,12 @@ interface BackendDonation {
     status: Donation['status'];
     foodCategory?: Donation['foodCategory'];
     storageReq?: Donation['storageReq'];
+    claimedBy?: { _id?: string; id?: string; name?: string; organization?: string; address?: string };
+    volunteer?: { _id?: string; id?: string; name?: string };
+    pickupPhoto?: string;
+    deliveryPhoto?: string;
+    pickupNotes?: string;
+    deliveryNotes?: string;
     coordinates?: {
         type?: 'Point';
         coordinates?: [number, number];
@@ -40,15 +46,18 @@ const mapDonation = (d: BackendDonation): Donation => ({
         : d.pickupWindow || "",
     location: d.location?.address || d.pickupAddress || "Unknown Location",
     address: d.location?.address || d.pickupAddress || "",
-    // Fix: Handle populated donor object or direct name
     donorName: d.donor?.name || d.donor?.organization || d.donorName || "Unknown Donor",
-    // Fix: Map photos array to image (first one) and keep photos
+    ngoName: d.claimedBy?.organization || d.claimedBy?.name || "",
+    ngoAddress: d.claimedBy?.address || "",
     image: d.photos?.[0] || d.image || "",
     photos: d.photos || [],
+    pickupPhoto: d.pickupPhoto,
+    deliveryPhoto: d.deliveryPhoto,
+    pickupNotes: d.pickupNotes,
+    deliveryNotes: d.deliveryNotes,
     status: d.status,
     foodCategory: d.foodCategory,
     storageReq: d.storageReq,
-    // Fix: Map GeoJSON coordinates [lng, lat] to { lat, lng }
     coordinates: d.coordinates?.coordinates ? {
         lat: d.coordinates.coordinates[1],
         lng: d.coordinates.coordinates[0]
@@ -107,7 +116,43 @@ const DonationService = {
     completeDonation: async (id: string, rating: number, comment: string) => {
         const response = await api.patch(`/donations/${id}/complete`, { rating, comment });
         return response.data;
+    },
+
+    // Epic 4: Volunteer Methods
+    getAvailableMissions: async (): Promise<Donation[]> => {
+        const response = await api.get('/donations/available-missions');
+        return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
+    },
+
+    acceptMission: async (id: string) => {
+        const response = await api.patch(`/donations/${id}/accept-mission`);
+        return response.data;
+    },
+
+    updateDeliveryStatus: async (id: string, status: string) => {
+        const response = await api.patch(`/donations/${id}/delivery-status`, { status });
+        return response.data;
+    },
+
+    confirmPickup: async (id: string, formData: FormData) => {
+        const response = await api.patch(`/donations/${id}/pickup`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    confirmDelivery: async (id: string, formData: FormData) => {
+        const response = await api.patch(`/donations/${id}/deliver`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    getVolunteerHistory: async (): Promise<Donation[]> => {
+        const response = await api.get('/donations/volunteer/history');
+        return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
     }
 };
+;
 
 export default DonationService;

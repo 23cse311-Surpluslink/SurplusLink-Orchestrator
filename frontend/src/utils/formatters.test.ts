@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { formatDate, formatTime, getTimeUntil, getRelativeTime } from './formatters';
 
 describe('Formatters Utils', () => {
@@ -16,11 +16,6 @@ describe('Formatters Utils', () => {
     describe('formatDate', () => {
         it('should format date correctly', () => {
             const date = '2024-01-01T10:00:00Z';
-            // Output depends on locale, assumed en-US from implementation
-            // Note: Implementation uses toLocaleDateString which uses local time zone.
-            // If checking strict string, it might vary by machine timezone.
-            // Using a loose check or setting timezone env might be needed.
-            // For now, checks if it returns a string.
             expect(formatDate(date)).toBeTypeOf('string');
         });
     });

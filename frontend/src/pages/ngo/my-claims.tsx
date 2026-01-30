@@ -5,7 +5,8 @@ import { Donation } from '@/types';
 import { PageHeader } from '@/components/common/page-header';
 import { DonationCard } from '@/components/common/donation-card';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, Package } from 'lucide-react';
+import { Loader2, CheckCircle, Package, Navigation } from 'lucide-react';
+import { VolunteerTrackerModal } from '@/components/common/volunteer-tracker-modal';
 import {
     Dialog,
     DialogContent,
@@ -22,6 +23,9 @@ export function MyClaimsPage() {
     const { toast } = useToast();
     const [claims, setClaims] = useState<Donation[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Tracker Modal State
+    const [trackingDonation, setTrackingDonation] = useState<Donation | null>(null);
 
     // Rating Modal State
     const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
@@ -75,7 +79,7 @@ export function MyClaimsPage() {
         }
     };
 
-    const activeClaims = claims.filter(d => ['assigned', 'picked_up'].includes(d.status));
+    const activeClaims = claims.filter(d => ['assigned', 'accepted', 'at_pickup', 'picked_up', 'at_delivery', 'delivered'].includes(d.status));
     const historyClaims = claims.filter(d => ['completed'].includes(d.status));
 
     return (
@@ -103,16 +107,26 @@ export function MyClaimsPage() {
                             <div key={claim.id} className="relative group flex flex-col h-full">
                                 <DonationCard donation={claim} />
                                 <div className="mt-4 space-y-2">
+                                    {(['accepted', 'at_pickup', 'picked_up', 'at_delivery'].includes(claim.status)) && (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full gap-2 border-primary/20 hover:bg-primary/5 text-primary h-11 font-bold"
+                                            onClick={() => setTrackingDonation(claim)}
+                                        >
+                                            <Navigation className="h-4 w-4" />
+                                            Track Volunteer
+                                        </Button>
+                                    )}
                                     <Button
-                                        className="w-full gap-2"
+                                        className="w-full gap-2 h-11 font-bold"
                                         onClick={() => setSelectedDonation(claim)}
                                         variant="hero"
                                     >
                                         <CheckCircle className="h-4 w-4" />
                                         Verify Receipt
                                     </Button>
-                                    <p className="text-xs text-center text-muted-foreground">
-                                        Click after you or your volunteer has picked up the food.
+                                    <p className="text-xs text-center text-muted-foreground font-medium">
+                                        Click after you have received the items.
                                     </p>
                                 </div>
                             </div>
@@ -120,6 +134,12 @@ export function MyClaimsPage() {
                     </div>
                 )}
             </div>
+
+            <VolunteerTrackerModal
+                isOpen={!!trackingDonation}
+                onClose={() => setTrackingDonation(null)}
+                donation={trackingDonation}
+            />
 
             {historyClaims.length > 0 && (
                 <div className="space-y-6 pt-8 border-t">

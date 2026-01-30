@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Bell,
@@ -14,52 +14,16 @@ import {
     Trash2,
     Filter,
     Trophy,
-    Leaf
+    Leaf,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
-// Mock Notifications
-const MOCK_NOTIFICATIONS = [
-    {
-        id: 1,
-        type: "new_mission",
-        title: "Urgent Mission Nearby!",
-        message: "A high-priority rescue is available 1.2km away from your position.",
-        time: "2 mins ago",
-        unread: true,
-        category: "System"
-    },
-    {
-        id: 2,
-        type: "rating",
-        title: "New 5-Star Rating!",
-        message: "Haven Shelter gave you a stellar review for your last delivery.",
-        time: "4 hours ago",
-        unread: true,
-        category: "Feedback"
-    },
-    {
-        id: 3,
-        type: "tier",
-        title: "Level Up Progress",
-        message: "You are only 5 deliveries away from the 'Champion' tier. Keep it up!",
-        time: "1 day ago",
-        unread: false,
-        category: "Progress"
-    },
-    {
-        id: 4,
-        type: "co2",
-        title: "Impact Milestone",
-        message: "Total CO2 saved by your efforts has reached 100kg. Planet says thanks!",
-        time: "2 days ago",
-        unread: false,
-        category: "Impact"
-    }
-];
+import NotificationService from "@/services/notification.service";
+import { Notification } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -72,21 +36,56 @@ const itemVariants = {
 };
 
 export default function VolunteerNotifications() {
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("All");
+    const { toast } = useToast();
 
-    const unreadCount = notifications.filter(n => n.unread).length;
+    const fetchNotifications = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await NotificationService.getNotifications();
+            setNotifications(data);
+        } catch (error) {
+            console.error("Failed to fetch notifications", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-    const markAllRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const markAllRead = async () => {
+        try {
+            await NotificationService.markAsRead();
+            setNotifications(notifications.map(n => ({ ...n, read: true })));
+            toast({ title: "In-box cleared", description: "All notifications marked as read." });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to update notifications.", variant: "destructive" });
+        }
     };
 
-    const deleteNotification = (id: number) => {
+    const deleteNotification = (id: string) => {
+        // Backend doesn't have delete currently in the service, but we can filter locally
         setNotifications(notifications.filter(n => n.id !== id));
     };
 
+    const getCategory = (type: string) => {
+        switch (type) {
+            case 'match': return 'System';
+            case 'pickup':
+            case 'delivery': return 'Mission';
+            case 'hygiene': return 'Progress';
+            default: return 'System';
+        }
+    };
+
     const filteredNotifications = notifications.filter(n =>
-        filter === "All" || n.category === filter
+        filter === "All" || getCategory(n.type) === filter
     );
 
     return (
@@ -111,9 +110,9 @@ export default function VolunteerNotifications() {
                         size="sm"
                         className="rounded-full font-bold border-border/50 hover:bg-primary/5 hover:text-primary transition-colors h-10 px-5"
                         onClick={markAllRead}
-                        disabled={unreadCount === 0}
+                        disabled={unreadCount === 0 || loading}
                     >
-                        <CheckCheck className="size-4 mr-2" />
+                        {loading ? <Loader2 className="size-4 animate-spin" /> : <CheckCheck className="size-4 mr-2" />}
                         Mark all read
                     </Button>
                 </div>
@@ -121,7 +120,7 @@ export default function VolunteerNotifications() {
 
             {/* Filter Chips */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["All", "System", "Feedback", "Progress", "Impact"].map((f) => (
+                {["All", "System", "Mission", "Progress"].map((f) => (
                     <Button
                         key={f}
                         variant={filter === f ? "default" : "outline"}
@@ -138,7 +137,11 @@ export default function VolunteerNotifications() {
             </div>
 
             <AnimatePresence mode="wait">
-                {filteredNotifications.length > 0 ? (
+                {loading ? (
+                    <div className="py-20 flex justify-center">
+                        <Loader2 className="size-12 animate-spin text-primary" />
+                    </div>
+                ) : filteredNotifications.length > 0 ? (
                     <motion.div
                         key="list"
                         variants={containerVariants}
@@ -150,39 +153,41 @@ export default function VolunteerNotifications() {
                             <motion.div key={n.id} variants={itemVariants}>
                                 <Card className={cn(
                                     "group border-border/50 bg-card hover:border-primary/30 transition-all duration-300 relative overflow-hidden",
-                                    n.unread && "border-primary/20 bg-primary/5 shadow-sm shadow-primary/5"
+                                    !n.read && "border-primary/20 bg-primary/5 shadow-sm shadow-primary/5"
                                 )}>
                                     <CardContent className="p-6">
                                         <div className="flex items-start gap-5">
                                             {/* Icon Strategy */}
                                             <div className={cn(
                                                 "size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner",
-                                                n.type === 'new_mission' ? "bg-amber-500/10 text-amber-500" :
-                                                    n.type === 'rating' ? "bg-primary/10 text-primary" :
-                                                        n.type === 'tier' ? "bg-blue-500/10 text-blue-500" :
+                                                n.type === 'match' ? "bg-amber-500/10 text-amber-500" :
+                                                    n.type === 'pickup' ? "bg-primary/10 text-primary" :
+                                                        n.type === 'delivery' ? "bg-blue-500/10 text-blue-500" :
                                                             "bg-emerald-500/10 text-emerald-500"
                                             )}>
-                                                {n.type === 'new_mission' ? <Zap className="size-6" /> :
-                                                    n.type === 'rating' ? <Star className="size-6" /> :
-                                                        n.type === 'tier' ? <Trophy className="size-6" /> :
-                                                            <Leaf className="size-6" />}
+                                                {n.type === 'match' ? <Zap className="size-6" /> :
+                                                    n.type === 'pickup' ? <Clock className="size-6" /> :
+                                                        n.type === 'delivery' ? <Package className="size-6" /> :
+                                                            <ShieldCheck className="size-6" />}
                                             </div>
 
                                             <div className="flex-1 space-y-1">
                                                 <div className="flex items-center justify-between">
-                                                    <h3 className={cn("text-lg font-black tracking-tight", n.unread ? "text-foreground" : "text-muted-foreground")}>
+                                                    <h3 className={cn("text-lg font-black tracking-tight", !n.read ? "text-foreground" : "text-muted-foreground")}>
                                                         {n.title}
                                                     </h3>
-                                                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{n.time}</span>
+                                                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                                                        {format(new Date(n.createdAt), 'h:mm a')}
+                                                    </span>
                                                 </div>
                                                 <p className="text-sm font-medium text-muted-foreground leading-relaxed">
                                                     {n.message}
                                                 </p>
 
-                                                {n.type === 'new_mission' && (
+                                                {n.type === 'match' && (
                                                     <div className="pt-3">
                                                         <Button className="h-9 rounded-xl font-bold bg-primary hover:bg-primary/90 px-4 group/btn" size="sm" onClick={() => window.location.href = '/volunteer/available'}>
-                                                            View Job
+                                                            View Mission
                                                             <ArrowRight className="ml-2 size-4 group-hover/btn:translate-x-1 transition-transform" />
                                                         </Button>
                                                     </div>
@@ -204,7 +209,7 @@ export default function VolunteerNotifications() {
                                     </CardContent>
 
                                     {/* Unread Glow Indicator */}
-                                    {n.unread && (
+                                    {!n.read && (
                                         <div className="absolute top-0 left-0 bottom-0 w-1 bg-primary" />
                                     )}
                                 </Card>

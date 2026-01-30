@@ -19,13 +19,18 @@ interface LoginResponse {
     };
 }
 
+import { updateVolunteerStatus, updateVolunteerProfile, updateVolunteerLocation } from '@/services/user.service';
+
 interface AuthContextType extends AuthState {
     login: (email: string, password: string) => Promise<void>;
     signup: (data: Record<string, any>) => Promise<any>;
     logout: () => Promise<void>;
     updateProfile: (data: Partial<User> | FormData) => Promise<void>;
+    toggleOnlineStatus: (isOnline: boolean) => Promise<void>;
+    updateVolunteerVehicle: (vehicleType: string, maxWeight: number) => Promise<void>;
     sendOTP: (email: string) => Promise<any>;
     verifyOTP: (email: string, otp: string) => Promise<User>;
+    refreshUser: () => Promise<void>;
     isLoading: boolean;
 }
 
@@ -52,6 +57,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         verifySession();
     }, [verifySession]);
+
+    useEffect(() => {
+        let interval: any;
+
+        if (authState.isAuthenticated && authState.role === 'volunteer' && authState.user?.isOnline) {
+            const sendLocation = () => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        updateVolunteerLocation(latitude, longitude).catch(console.error);
+                    },
+                    (error) => console.error('Location error:', error),
+                    { enableHighAccuracy: true }
+                );
+            };
+
+            sendLocation();
+            interval = setInterval(sendLocation, 60000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [authState.isAuthenticated, authState.role, authState.user?.isOnline]);
 
     const login = useCallback(async (email: string, password: string) => {
         const response = await api.post<any>('/auth/login', { email, password });
@@ -114,6 +143,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     }, [toast]);
 
+    const toggleOnlineStatus = useCallback(async (isOnline: boolean) => {
+        const updatedUser = await updateVolunteerStatus(isOnline);
+        const newState = setAuthData(updatedUser);
+        setAuthState(newState);
+        toast({
+            variant: "success",
+            title: isOnline ? "You are now Online" : "You are now Offline",
+            description: isOnline ? "You can now receive mission alerts." : "Mission discovery paused.",
+        });
+    }, [toast]);
+
+    const updateVolunteerVehicle = useCallback(async (vehicleType: string, maxWeight: number) => {
+        const updatedUser = await updateVolunteerProfile({ vehicleType, maxWeight });
+        const newState = setAuthData(updatedUser);
+        setAuthState(newState);
+        toast({
+            variant: "success",
+            title: "Equipment Updated",
+            description: `Vehicle set to ${vehicleType} with ${maxWeight}kg capacity.`,
+        });
+    }, [toast]);
+
     const sendOTP = useCallback(async (email: string) => {
         const response = await api.post('/auth/send-otp', { email });
         toast({
@@ -137,7 +188,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [toast]);
 
     return (
-        <AuthContext.Provider value={{ ...authState, login, signup, logout, updateProfile, sendOTP, verifyOTP, isLoading }}>
+        <AuthContext.Provider value={{
+            ...authState,
+            login,
+            signup,
+            logout,
+            updateProfile,
+            toggleOnlineStatus,
+            updateVolunteerVehicle,
+            sendOTP,
+            verifyOTP,
+            refreshUser: verifySession,
+            isLoading
+        }}>
             {children}
         </AuthContext.Provider>
     );
