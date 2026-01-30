@@ -2,7 +2,7 @@ import { Donation } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { MapPin, Clock, Package, Calendar } from 'lucide-react';
+import { MapPin, Clock, Package, Calendar, CheckCircle } from 'lucide-react';
 import { getTimeUntil, formatTime } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 
@@ -20,7 +20,11 @@ interface DonationCardProps {
 const statusColors: Record<Donation['status'], string> = {
   active: 'bg-warning/10 text-warning border-warning/30',
   assigned: 'bg-info/10 text-info border-info/30',
+  accepted: 'bg-info/20 text-info border-info/40',
+  at_pickup: 'bg-info/20 text-info border-info/40 font-bold animate-pulse',
   picked_up: 'bg-primary/10 text-primary border-primary/30',
+  at_delivery: 'bg-primary/20 text-primary border-primary/40 font-bold animate-pulse',
+  delivered: 'bg-primary/30 text-primary border-primary/50',
   completed: 'bg-success/10 text-success border-success/30',
   expired: 'bg-destructive/10 text-destructive border-destructive/30',
   cancelled: 'bg-muted text-muted-foreground border-muted',
@@ -100,11 +104,42 @@ export function DonationCard({
           )}
         </div>
 
+        {(donation.pickupPhoto || donation.deliveryPhoto) && (
+          <div className="pt-3 border-t border-border space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
+              <CheckCircle className="h-3 w-3" /> Verification Proof
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {donation.pickupPhoto && (
+                <div className="relative group/photo aspect-video rounded-lg overflow-hidden border bg-muted cursor-zoom-in" onClick={() => window.open(donation.pickupPhoto, '_blank')}>
+                  <img src={donation.pickupPhoto} alt="Pickup proof" className="w-full h-full object-cover transition-transform group-hover/photo:scale-110" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-[8px] font-bold text-white uppercase bg-emerald-600 px-2 py-1 rounded">At Pickup</span>
+                  </div>
+                </div>
+              )}
+              {donation.deliveryPhoto && (
+                <div className="relative group/photo aspect-video rounded-lg overflow-hidden border bg-muted cursor-zoom-in" onClick={() => window.open(donation.deliveryPhoto, '_blank')}>
+                  <img src={donation.deliveryPhoto} alt="Delivery proof" className="w-full h-full object-cover transition-transform group-hover/photo:scale-110" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-[8px] font-bold text-white uppercase bg-primary px-2 py-1 rounded">At Delivery</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {donation.deliveryNotes && (
+              <p className="text-[10px] italic text-muted-foreground line-clamp-2 bg-muted/50 p-2 rounded">
+                "{donation.deliveryNotes}"
+              </p>
+            )}
+          </div>
+        )}
+
         {donation.assignedNgo && (
           <div className="pt-2 border-t border-border">
             <p className="text-sm">
               <span className="text-muted-foreground">Assigned to: </span>
-              <span className="font-medium">{donation.assignedNgo}</span>
+              <span className="font-medium">{donation.ngoName || donation.assignedNgo}</span>
             </p>
             {donation.assignedVolunteer && (
               <p className="text-sm">

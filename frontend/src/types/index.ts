@@ -1,5 +1,22 @@
 export type UserRole = 'donor' | 'ngo' | 'admin' | 'volunteer';
 
+export interface VolunteerProfile {
+  tier: 'rookie' | 'hero' | 'champion';
+  vehicleType?: 'bicycle' | 'scooter' | 'car' | 'van';
+  maxWeight?: number;
+  currentLocation?: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
+}
+
+export interface UserStats {
+  completedDonations: number;
+  cancelledDonations: number;
+  mealsSaved?: number;
+  co2Saved?: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -14,6 +31,9 @@ export interface User {
   documentUrl?: string;
   address?: string;
   coordinates?: { lat: number; lng: number };
+  isOnline?: boolean;
+  volunteerProfile?: VolunteerProfile;
+  stats?: UserStats;
 }
 
 export interface Donation {
@@ -27,12 +47,18 @@ export interface Donation {
   pickupWindow: string;
   location: string;
   address: string;
-  status: 'active' | 'assigned' | 'picked_up' | 'completed' | 'cancelled' | 'expired' | 'rejected';
+  status: 'active' | 'assigned' | 'accepted' | 'at_pickup' | 'picked_up' | 'at_delivery' | 'delivered' | 'completed' | 'cancelled' | 'expired' | 'rejected';
   assignedNgo?: string;
   assignedVolunteer?: string;
   createdAt: string;
+  ngoName?: string;
+  ngoAddress?: string;
   image?: string;
   photos?: string[];
+  pickupPhoto?: string;
+  deliveryPhoto?: string;
+  pickupNotes?: string;
+  deliveryNotes?: string;
   expiryDate?: string;
   pickupAddress?: string;
   coordinates?: { lat: number; lng: number };

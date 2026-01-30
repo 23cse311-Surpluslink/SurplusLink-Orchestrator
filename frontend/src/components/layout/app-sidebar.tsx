@@ -100,16 +100,16 @@ const navItemsByRole = {
 }
 
 export function AppSidebar({ role }: { role: UserRole }) {
-    const { user, logout } = useAuth()
+    const { user, logout, toggleOnlineStatus } = useAuth()
     const { state } = useSidebar()
     const location = useLocation()
     const navigate = useNavigate()
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
     const [pendingCount, setPendingCount] = React.useState(0)
-    const [isOnline, setIsOnline] = React.useState(true)
+    const isOnline = user?.isOnline || false
     const navItems = navItemsByRole[role] || []
 
-    const fetchPending = async () => {
+    const fetchPending = React.useCallback(async () => {
         if (role === 'admin') {
             try {
                 const { data } = await api.get('/users/admin/pending');
@@ -119,7 +119,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                 console.error('Error fetching pending count:', error);
             }
         }
-    };
+    }, [role]);
 
     React.useEffect(() => {
         fetchPending();
@@ -127,8 +127,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
             const interval = setInterval(fetchPending, 10000);
             return () => clearInterval(interval);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [role]);
+    }, [role, fetchPending]);
 
     const isCollapsed = state === "collapsed"
 
@@ -167,7 +166,7 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                 </div>
                                 <Switch
                                     checked={isOnline}
-                                    onCheckedChange={setIsOnline}
+                                    onCheckedChange={toggleOnlineStatus}
                                     className="data-[state=checked]:bg-emerald-500"
                                 />
                             </motion.div>
