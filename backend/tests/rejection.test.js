@@ -72,7 +72,7 @@ describe('Rejection Logic Tests', () => {
             .send(donationData);
 
         expect(createRes.status).toBe(201);
-        const donationId = createRes.body._id;
+        const donationId = createRes.body.id;
 
         // 2. Reject Donation (NGO)
         const rejectReason = '[Safety Issue] Food appears moldy in photo';

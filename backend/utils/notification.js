@@ -1,7 +1,13 @@
+import mongoose from 'mongoose';
 import Notification from '../models/Notification.model.js';
 
 export const createNotification = async (recipientId, message, type, relatedDonationId = null) => {
     try {
+        if (!recipientId || !mongoose.Types.ObjectId.isValid(recipientId)) {
+            // console.warn(`[Notification Skip] Invalid recipient: ${recipientId}`);
+            return null;
+        }
+
         // For now, we log it as requested
         console.log(`[Notification] To: ${recipientId}, Msg: ${message}, Type: ${type}`);
 
