@@ -37,7 +37,6 @@ export function Logo({
           iconClassName
         )}
       >
-        {/* Solid Green Leaf */}
         <svg
           viewBox="0 0 24 24"
           className="h-5/6 w-5/6"

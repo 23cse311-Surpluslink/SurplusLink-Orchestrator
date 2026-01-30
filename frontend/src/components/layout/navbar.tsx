@@ -66,7 +66,6 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
   };
 
   if (showMenu) {
-    // ... keep existing dashboard header logic ...
     return (
       <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-background border-b border-border/50 sticky top-0 z-40">
         <div className="flex items-center gap-4">
@@ -122,7 +121,9 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             ? "bg-background/80 backdrop-blur-md border border-border/40 shadow-sm max-w-5xl px-6 py-2.5"
             : "bg-transparent w-full max-w-7xl px-4 lg:px-0 py-4 border border-transparent"
         )}
+    
       >
+
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
             <Logo size={isScrolled ? "sm" : "md"} />

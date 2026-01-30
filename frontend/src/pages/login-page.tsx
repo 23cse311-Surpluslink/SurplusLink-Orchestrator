@@ -95,7 +95,7 @@ export default function LoginPage() {
     try {
       await sendOTP(otpEmail);
       setOtpSent(true);
-      setOtpTimer(600); 
+      setOtpTimer(600);
     } catch (error: any) {
       toast({
         title: "Failed to send OTP",
