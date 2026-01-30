@@ -102,13 +102,20 @@ export const createDonation = async (req, res) => {
 
         const donation = await Donation.create(donationData);
 
-        // Notify NGOs
-        await createNotification(
-            'NGO_BROADCAST_GROUP',
-            `New donation available: ${title}`,
-            'donation_created',
-            donation._id
-        );
+        // Notify All Nearby NGOs (Broadcast)
+        try {
+            const ngos = await User.find({ role: 'ngo' });
+            for (const ngo of ngos) {
+                await createNotification(
+                    ngo._id,
+                    `New donation available: ${title}`,
+                    'donation_created',
+                    donation._id
+                );
+            }
+        } catch (notifyError) {
+            console.error('Broadcast notification failed:', notifyError);
+        }
 
         res.status(201).json(donation);
     } catch (error) {
@@ -388,12 +395,14 @@ export const rejectDonation = async (req, res, next) => {
         }
 
         // 1. App Notification
-        await createNotification(
-            donation.donor._id,
-            `Your donation "${donation.title}" was rejected: ${formattedReason}`,
-            'donation_rejected',
-            donation._id
-        );
+        if (donation.donor) {
+            await createNotification(
+                donation.donor._id || donation.donor,
+                `Your donation "${donation.title}" was rejected: ${formattedReason}`,
+                'donation_rejected',
+                donation._id
+            );
+        }
 
         // 2. Email Notification (Professional HTML)
         try {
@@ -437,12 +446,14 @@ export const rejectDonation = async (req, res, next) => {
             </div>
             `;
 
-            await sendEmail({
-                email: donation.donor.email,
-                subject: 'Action Required: Donation Update',
-                message: `Your donation was rejected. Reason: ${formattedReason}`,
-                html: emailHtml
-            });
+            if (donation.donor && donation.donor.email) {
+                await sendEmail({
+                    email: donation.donor.email,
+                    subject: 'Action Required: Donation Update',
+                    message: `Your donation was rejected. Reason: ${formattedReason}`,
+                    html: emailHtml
+                });
+            }
         } catch (emailError) {
             console.error('Failed to send rejection email:', emailError);
             // Don't fail the request, just log it

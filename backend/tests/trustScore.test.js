@@ -73,7 +73,7 @@ describe('Trust Score Integration Tests', () => {
             .send(donationData);
 
         expect(createRes.status).toBe(201);
-        const donationId = createRes.body._id;
+        const donationId = createRes.body.id;
 
         // 2. Claim Donation (NGO)
         await request(app)
