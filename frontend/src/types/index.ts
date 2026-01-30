@@ -64,6 +64,12 @@ export interface Donation {
   coordinates?: { lat: number; lng: number };
   foodCategory?: 'cooked' | 'raw' | 'packaged';
   storageReq?: 'cold' | 'dry' | 'frozen';
+  rejectionReason?: string;
+  claimedBy?: {
+    id: string;
+    organization: string;
+    name?: string;
+  };
 }
 
 export interface Notification {

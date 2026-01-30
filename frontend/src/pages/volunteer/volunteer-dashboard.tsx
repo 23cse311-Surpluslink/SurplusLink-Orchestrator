@@ -27,17 +27,14 @@ export default function VolunteerDashboard() {
     const fetchActiveMission = useCallback(async () => {
         try {
             // Find an assigned or in-progress donation for this volunteer
-            const allDonations = await DonationService.getAvailableMissions();
-            // In a real scenario, we might have a specific API for 'my current active mission'
-            // For now, let's assume if there's an 'accepted' or 'picked_up' status in the general pool that matches this user (handled by backend or filtered here)
-            // Actually, the volunteer handles their active mission in the 'active-mission' page which likely fetches its own state.
-            // But for the dashboard, we want to show it.
+            // const allDonations = await DonationService.getAvailableMissions();
+            // Logic to find active mission here
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, []);
 
     useEffect(() => {
         fetchActiveMission();
