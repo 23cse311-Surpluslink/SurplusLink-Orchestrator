@@ -185,7 +185,7 @@ export default function DonorDonations() {
                             <div className="flex justify-between items-center">
                                 <h3 className="font-bold text-lg">{selectedDonation.title}</h3>
                                 <Badge variant={selectedDonation.status === 'active' ? 'default' : 'secondary'} className="capitalize">
-                                    {selectedDonation.status.replace('_', ' ')}
+                                    {selectedDonation.status === 'at_pickup' ? 'Volunteer at Pickup' : selectedDonation.status.replace('_', ' ')}
                                 </Badge>
                             </div>
 
@@ -220,9 +220,9 @@ export default function DonorDonations() {
 
                             {/* Claimed Info */}
                             {selectedDonation.claimedBy && (
-                                <div className="bg-blue-50/50 p-3 rounded-lg text-sm border border-blue-100">
-                                    <p className="text-blue-800 font-medium mb-1">Claimed By</p>
-                                    <p className="text-blue-600">{selectedDonation.ngoName || "NGO"}</p>
+                                <div className="bg-blue-50 p-3 rounded-lg text-sm border border-blue-100">
+                                    <p className="text-black font-medium mb-1">Claimed By</p>
+                                    <p className="text-orange-500 font-bold">{selectedDonation.ngoName || "NGO"}</p>
                                 </div>
                             )}
                         </div>

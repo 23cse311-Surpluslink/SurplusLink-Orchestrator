@@ -17,6 +17,7 @@ import {
     confirmDelivery,
     failMission,
     getVolunteerHistory,
+    getVolunteerActiveMission,
     getAdminActiveMissions,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
@@ -37,9 +38,10 @@ router.patch('/:id/claim', roleBasedAccess(['ngo']), claimDonation);
 router.patch('/:id/reject', roleBasedAccess(['ngo']), rejectDonation);
 router.get('/available-missions', roleBasedAccess(['volunteer']), getAvailableMissions);
 router.get('/volunteer/history', roleBasedAccess(['volunteer']), getVolunteerHistory);
+router.get('/active-mission', roleBasedAccess(['volunteer']), getVolunteerActiveMission);
 router.patch('/:id/accept-mission', roleBasedAccess(['volunteer']), acceptMission);
-router.patch('/:id/pickup', roleBasedAccess(['volunteer']), confirmPickup);
-router.patch('/:id/deliver', roleBasedAccess(['volunteer']), confirmDelivery);
+router.patch('/:id/pickup', roleBasedAccess(['volunteer']), upload.single('photo'), confirmPickup);
+router.patch('/:id/deliver', roleBasedAccess(['volunteer']), upload.single('photo'), confirmDelivery);
 router.patch('/:id/delivery-status', roleBasedAccess(['volunteer']), updateDeliveryStatus);
 router.patch('/:id/fail-mission', roleBasedAccess(['volunteer']), failMission);
 

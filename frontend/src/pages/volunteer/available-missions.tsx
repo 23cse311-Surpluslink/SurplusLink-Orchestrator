@@ -164,26 +164,7 @@ export default function AvailableMissions() {
                 </div>
             </header>
 
-            {/* Filter Bar */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["All", "Prepared", "Produce", "Packaged"].map((f) => (
-                    <Button
-                        key={f}
-                        variant={filter === f ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setFilter(f)}
-                        className={cn(
-                            "rounded-full px-5 font-bold border-2 transition-all",
-                            filter === f ? "border-primary shadow-glow shadow-primary/20" : "bg-card border-border/50 hover:border-primary/50"
-                        )}
-                    >
-                        {f === "Prepared" && <Utensils className="size-3.5 mr-2" />}
-                        {f === "Produce" && <Beef className="size-3.5 mr-2" />}
-                        {f === "Packaged" && <Package className="size-3.5 mr-2" />}
-                        {f}
-                    </Button>
-                ))}
-            </div>
+
 
             <AnimatePresence mode="wait">
                 {loading ? (
@@ -222,7 +203,7 @@ export default function AvailableMissions() {
                         <div className="relative mb-6">
                             <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
                             <div className="relative size-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Navigation className="size-10 text-primary animate-float" />
+                                <Navigation className="size-10 mt-1 text-primary " />
                             </div>
                         </div>
                         <h2 className="text-2xl font-black mb-2">Scanning Your Area...</h2>
@@ -261,10 +242,17 @@ export default function AvailableMissions() {
                                                     <div className="flex items-start justify-between md:justify-start gap-3">
                                                         <div className="flex gap-2">
                                                             <Badge className={cn(
-                                                                "rounded-md px-2 py-1 uppercase text-[10px] font-black tracking-widest",
-                                                                urgency === "High" ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-primary/20 text-primary border-none"
+                                                                "rounded-md px-2 py-1 uppercase text-[10px] font-black tracking-widest border-none",
+                                                                urgency === "High"
+                                                                    ? "bg-destructive text-destructive-foreground animate-pulse"
+                                                                    : (!mission.foodCategory
+                                                                        ? "bg-amber-500/20 text-amber-500"
+                                                                        : "bg-primary/20 text-primary")
                                                             )}>
-                                                                {urgency === "High" ? "Urgent Rescue" : mission.foodCategory}
+                                                                {urgency === "High"
+                                                                    ? "Urgent Rescue"
+                                                                    : (mission.foodCategory || "Expiring Soon")
+                                                                }
                                                             </Badge>
                                                             {tooHeavy ? (
                                                                 <Badge variant="destructive" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1">
@@ -369,13 +357,21 @@ export default function AvailableMissions() {
                 <SheetContent side="right" className="w-full sm:max-w-xl border-l-0 p-0 sm:rounded-l-3xl overflow-hidden bg-card">
                     {selectedMission && (
                         <div className="h-full flex flex-col">
-                            <div className="h-64 bg-muted relative">
-                                <div className="absolute inset-0 bg-[url('https://api.placeholder.com/600/400')] bg-cover grayscale opacity-50" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+                            <div className="h-64 bg-muted relative overflow-hidden">
+                                {selectedMission.image || (selectedMission.photos && selectedMission.photos.length > 0) ? (
+                                    <img
+                                        src={selectedMission.photos?.[0] || selectedMission.image}
+                                        alt={selectedMission.title}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 bg-[url('https://api.placeholder.com/600/400')] bg-cover grayscale opacity-50" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute top-4 left-4 size-10 rounded-full bg-background/50 backdrop-blur-md"
+                                    className="absolute top-4 left-4 size-10 rounded-full bg-background/50 backdrop-blur-md z-10"
                                     onClick={() => setSelectedMission(null)}
                                 >
                                     <ArrowRight className="size-6 rotate-180" />

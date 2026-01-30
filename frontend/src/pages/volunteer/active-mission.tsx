@@ -28,8 +28,10 @@ import {
     MessageSquare,
     Trophy,
     PartyPopper,
-    Loader2
+    Loader2,
+    Mail
 } from "lucide-react";
+import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
 import { cn } from "@/lib/utils";
 import {
     AlertDialog,
@@ -58,10 +60,10 @@ import { Donation } from "@/types";
 import { useAuth } from "@/contexts/auth-context";
 
 const STEPS = [
-    { id: "accepted", label: "Accepted", detail: "Heading to Pickup", dbStatus: "accepted" },
+    { id: "accepted", label: "Accepted", detail: "Heading to Pickup", dbStatus: "pending_pickup" },
     { id: "arrived_pickup", label: "Arrived", detail: "Picking up items", dbStatus: "at_pickup" },
     { id: "in_transit", label: "In Transit", detail: "Heading to NGO", dbStatus: "picked_up" },
-    { id: "arrived_ngo", label: "Arrived", detail: "Delivering at NGO", dbStatus: "at_delivery" },
+    { id: "arrived_ngo", label: "Arrived", detail: "Delivering at NGO", dbStatus: "arrived_at_delivery" },
     { id: "completed", label: "Finished", detail: "Mission Complete", dbStatus: "delivered" }
 ];
 
@@ -85,22 +87,18 @@ export default function ActiveMission() {
     const fetchActiveMission = useCallback(async () => {
         setLoading(true);
         try {
-            const missions = await DonationService.getAvailableMissions();
-            // In a real app, we'd have a specific endpoint for the current active mission
-            // For now, we find the one assigned to us that isn't completed
-            const active = missions.find(m =>
-                m.assignedVolunteer === user?.id &&
-                ['accepted', 'at_pickup', 'picked_up', 'at_delivery'].includes(m.status)
-            );
+            const active = await DonationService.getActiveMission();
             if (active) {
                 setMission(active);
+            } else {
+                setMission(null);
             }
         } catch (error) {
             console.error("Failed to fetch active mission", error);
         } finally {
             setLoading(false);
         }
-    }, [user?.id]);
+    }, []);
 
     useEffect(() => {
         fetchActiveMission();
@@ -108,7 +106,8 @@ export default function ActiveMission() {
 
     const getCurrentStepIndex = () => {
         if (!mission) return 0;
-        const index = STEPS.findIndex(s => s.dbStatus === mission.status);
+        const index = STEPS.findIndex(s => s.dbStatus === mission.deliveryStatus || s.id === mission.deliveryStatus);
+        if (mission.deliveryStatus === 'pending_pickup') return 0;
         return index === -1 ? 0 : index;
     };
 
@@ -181,14 +180,14 @@ export default function ActiveMission() {
     const getActionConfig = () => {
         if (!mission) return { text: "No active mission", action: () => { } };
 
-        switch (mission.status) {
-            case "accepted":
+        switch (mission.deliveryStatus) {
+            case "pending_pickup":
                 return { text: "I've Arrived at Donor", action: () => updateStatus("at_pickup") };
             case "at_pickup":
                 return { text: "Verify & Pick Up", action: () => setIsPickupModalOpen(true) };
             case "picked_up":
-                return { text: "I've Arrived at NGO", action: () => updateStatus("at_delivery") };
-            case "at_delivery":
+                return { text: "I've Arrived at NGO", action: () => updateStatus("arrived_at_delivery") };
+            case "arrived_at_delivery":
                 return { text: "Complete Delivery", action: () => setIsDeliveryModalOpen(true) };
             default:
                 return { text: "Return to Dashboard", action: () => window.location.href = "/volunteer" };
@@ -197,10 +196,59 @@ export default function ActiveMission() {
 
     const action = getActionConfig();
 
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+    });
+
+    const donorPos = mission?.coordinates;
+    const ngoPos = mission?.ngoCoordinates;
+    const volunteerPos = user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
+        lat: user.volunteerProfile.currentLocation.coordinates[1],
+        lng: user.volunteerProfile.currentLocation.coordinates[0]
+    } : undefined;
+
+    const mapCenter = currentStepIndex < 2 ? (donorPos || ngoPos || { lat: 28.6139, lng: 77.2090 }) : (ngoPos || donorPos || { lat: 28.6139, lng: 77.2090 });
+
+    const [map, setMap] = useState<google.maps.Map | null>(null);
+
+    const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
+        setMap(mapInstance);
+    }, []);
+
+    const handleRecenter = () => {
+        if (map && mapCenter) {
+            map.panTo(mapCenter);
+            map.setZoom(15);
+        }
+    };
+
+    const handleNavigate = () => {
+        const dest = currentStepIndex < 2 ? donorPos : ngoPos;
+        if (dest) {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&travelmode=driving`, '_blank');
+        }
+    };
+
+    const mapStyles = [
+        { "elementType": "geometry", "stylers": [{ "color": "#1f2937" }] },
+        { "elementType": "labels.text.fill", "stylers": [{ "color": "#9ca3af" }] },
+        { "elementType": "labels.text.stroke", "stylers": [{ "color": "#111827" }] },
+        { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "color": "#374151" }] },
+        { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#111827" }] },
+        { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#6b7280" }] },
+        { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#374151" }] },
+        { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#4b5563" }] },
+        { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0f172a" }] }
+    ];
+
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                <Loader2 className="size-12 animate-spin text-primary" />
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="text-center space-y-4">
+                    <Loader2 className="size-12 animate-spin text-primary mx-auto" />
+                    <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Synchronizing Mission Data...</p>
+                </div>
             </div>
         );
     }
@@ -283,10 +331,13 @@ export default function ActiveMission() {
     return (
         <div className="relative flex flex-col h-[calc(100vh-120px)] w-full overflow-hidden -m-4 lg:-m-8">
             {/* Top Stepper */}
-            <div className="absolute top-0 left-0 right-0 z-20 p-4 md:p-6 bg-gradient-to-b from-background via-background/80 to-transparent">
+            <div className="absolute top-0 left-0 right-0 z-20 p-4 md:p-6 bg-gradient-to-b from-background via-background/95 to-transparent">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex items-center justify-between px-2 mb-2">
-                        <h2 className="text-xl font-extrabold tracking-tight">Mission Execution</h2>
+                        <div className="flex items-center gap-2">
+                            <div className="size-3 rounded-full bg-primary animate-pulse" />
+                            <h2 className="text-xl font-extrabold tracking-tight">Active Tracking</h2>
+                        </div>
                         <Badge variant="outline" className="font-mono bg-background/50 border-primary/20 text-primary uppercase">
                             ID: {mission?.id?.substring(0, 8)}
                         </Badge>
@@ -297,11 +348,11 @@ export default function ActiveMission() {
                             <React.Fragment key={step.id}>
                                 <div className="flex flex-col items-center flex-1">
                                     <div className={cn(
-                                        "h-1.5 w-full rounded-full transition-all duration-500",
-                                        idx <= currentStepIndex ? "bg-primary shadow-[0_0_10px_rgba(var(--primary),.5)]" : "bg-muted"
+                                        "h-2 w-full rounded-full transition-all duration-500",
+                                        idx <= currentStepIndex ? "bg-primary shadow-[0_0_15px_rgba(var(--primary),.6)]" : "bg-muted/50"
                                     )} />
                                     <span className={cn(
-                                        "text-[10px] font-bold uppercase tracking-wider mt-2 hidden md:block",
+                                        "text-[10px] font-black uppercase tracking-wider mt-2 hidden md:block",
                                         idx === currentStepIndex ? "text-primary" : "text-muted-foreground"
                                     )}>
                                         {step.label}
@@ -313,66 +364,128 @@ export default function ActiveMission() {
                             </React.Fragment>
                         ))}
                     </div>
-                    <p className="md:hidden text-center text-xs font-black text-primary mt-2 uppercase tracking-widest animate-pulse">
-                        {currentStep.detail}
-                    </p>
                 </div>
             </div>
 
-            {/* Live Map Area (Mock) */}
-            <div className="relative flex-1 bg-muted/30 overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://api.placeholder.com/1200/800')] bg-cover opacity-40 grayscale pointer-events-none" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <svg className="absolute inset-0 w-full h-full">
-                        <motion.path
-                            d="M 200 400 Q 400 300 600 500 T 1000 450"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth="6"
-                            fill="none"
-                            strokeDasharray="20 10"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            className="opacity-40"
-                        />
-                    </svg>
-                    <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute top-[40%] left-[20%] size-8 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/50">
-                        <div className="size-3 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
-                    </motion.div>
-                    <div className="absolute top-[30%] left-[40%] text-center">
-                        <div className="size-10 bg-emerald-500 rounded-2xl flex items-center justify-center border-4 border-card shadow-lg mb-1">
-                            <Building className="size-5 text-white" />
-                        </div>
-                        <Badge className="bg-card/90 text-[10px] font-black border-emerald-500/20 text-emerald-500 uppercase">PICKUP</Badge>
+            {/* Map Area */}
+            <div className="relative flex-1 bg-[#0f172a] overflow-hidden">
+                {isLoaded ? (
+                    <GoogleMap
+                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                        center={mapCenter}
+                        zoom={15}
+                        onLoad={onMapLoad}
+                        options={{
+                            disableDefaultUI: true,
+                            styles: mapStyles,
+                            zoomControl: false,
+                        }}
+                    >
+                        {donorPos && (
+                            <Marker
+                                position={donorPos}
+                                icon={{
+                                    url: "https://maps.google.com/mapfiles/ms/icons/red-pushpin.png",
+                                    scaledSize: new google.maps.Size(40, 40)
+                                }}
+                                label={{ text: "PICKUP", className: "font-black text-[10px] bg-background/80 px-2 py-1 rounded text-red-500 translate-y-8" }}
+                            />
+                        )}
+                        {ngoPos && (
+                            <Marker
+                                position={ngoPos}
+                                icon={{
+                                    url: "https://maps.google.com/mapfiles/ms/icons/green-pushpin.png",
+                                    scaledSize: new google.maps.Size(40, 40)
+                                }}
+                                label={{ text: "NGO", className: "font-black text-[10px] bg-background/80 px-2 py-1 rounded text-emerald-500 translate-y-8" }}
+                            />
+                        )}
+                        {volunteerPos && (
+                            <Marker
+                                position={volunteerPos}
+                                icon={{
+                                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                                    scale: 8,
+                                    fillColor: "#3b82f6",
+                                    fillOpacity: 1,
+                                    strokeWeight: 2,
+                                    strokeColor: "#ffffff",
+                                    rotation: 0
+                                }}
+                                title="Your Location"
+                            />
+                        )}
+                        {donorPos && ngoPos && (
+                            <Polyline
+                                path={[donorPos, ngoPos]}
+                                options={{
+                                    strokeColor: "#22c55e",
+                                    strokeOpacity: 0.6,
+                                    strokeWeight: 5,
+                                    icons: [{
+                                        icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, strokeOpacity: 1, scale: 3 },
+                                        offset: "50%",
+                                        repeat: "100px"
+                                    }]
+                                }}
+                            />
+                        )}
+                    </GoogleMap>
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[#0f172a]">
+                        <Loader2 className="animate-spin text-primary size-10" />
                     </div>
-                    <div className="absolute top-[50%] left-[80%] text-center">
-                        <div className="size-10 bg-primary rounded-2xl flex items-center justify-center border-4 border-card shadow-lg mb-1">
-                            <CheckCircle2 className="size-5 text-white" />
-                        </div>
-                        <Badge className="bg-card/90 text-[10px] font-black border-primary/20 text-primary uppercase">NGO</Badge>
-                    </div>
+                )}
+
+                {/* Map Controls */}
+                <div className="absolute top-32 right-4 flex flex-col gap-2 z-30">
+                    <Button
+                        size="icon"
+                        variant="secondary"
+                        className="size-12 rounded-2xl shadow-xl border-border/50 backdrop-blur-md"
+                        onClick={handleRecenter}
+                    >
+                        <Navigation className="size-6 text-primary" />
+                    </Button>
+                    <Button
+                        size="icon"
+                        variant="secondary"
+                        className="size-12 rounded-2xl shadow-xl border-border/50 backdrop-blur-md"
+                        onClick={() => map?.setZoom((map.getZoom() || 15) + 1)}
+                    >
+                        <RefreshCw className="size-5" />
+                    </Button>
                 </div>
 
-                <div className="absolute bottom-32 left-4 right-4 md:left-auto md:right-8 md:bottom-36 md:w-80">
-                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-card/95 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-2xl">
+                <div className="absolute bottom-32 left-4 right-4 md:left-auto md:right-8 md:bottom-36 md:w-80 pointer-events-none">
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-card/95 backdrop-blur-xl border-2 border-primary/20 rounded-3xl p-5 shadow-3xl pointer-events-auto">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <Navigation className="size-4 text-primary animate-float" />
+                            <div className="flex items-center gap-3">
+                                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                    <Navigation className="size-5 text-primary animate-float" />
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Next Stop</p>
-                                    <p className="text-sm font-bold truncate max-w-[120px]">
+                                    <p className="text-base font-black truncate max-w-[140px]">
                                         {currentStepIndex < 2 ? mission.donorName : mission.ngoName}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-xl font-black text-primary">{(Math.random() * 10 + 2).toFixed(0)} min</p>
-                                <p className="text-[10px] font-black uppercase text-muted-foreground">{(Math.random() * 3 + 1).toFixed(1)} km</p>
+                                <p className="text-2xl font-black text-primary leading-none">{(Math.random() * 8 + 2).toFixed(0)}</p>
+                                <p className="text-[10px] font-black uppercase text-muted-foreground">min</p>
                             </div>
                         </div>
-                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+
+                        <Button
+                            className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-black text-sm uppercase tracking-widest shadow-glow shadow-primary/20 gap-2 mb-4"
+                            onClick={handleNavigate}
+                        >
+                            <MapPin className="size-4" /> Open In GPS
+                        </Button>
+
+                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                             <motion.div className="h-full bg-primary" animate={{ width: ["20%", "45%", "80%"] }} transition={{ duration: 10, repeat: Infinity }} />
                         </div>
                     </motion.div>
@@ -402,8 +515,8 @@ export default function ActiveMission() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" className="flex-1 h-14 rounded-xl gap-2 font-black uppercase text-xs tracking-widest" asChild>
-                                    <a href={`tel:+919999999999`}>
-                                        <Phone className="size-4" /> Call Partner
+                                    <a href={`mailto:${currentStepIndex < 2 ? mission.donorEmail : (mission.ngoEmail || mission.claimedBy?.email || "help@surpluslink.com")}`}>
+                                        <Mail className="size-4" /> Mail Partner
                                     </a>
                                 </Button>
                             </div>
@@ -416,7 +529,7 @@ export default function ActiveMission() {
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Destination</p>
                                     <p className="font-bold leading-tight line-clamp-2">
-                                        {currentStepIndex < 2 ? mission.address : (mission.ngoAddress || "NGO Distribution Center")}
+                                        {currentStepIndex < 2 ? mission.address : (mission.ngoAddress || mission.claimedBy?.organization || "NGO Distribution Center")}
                                     </p>
                                 </div>
                             </div>

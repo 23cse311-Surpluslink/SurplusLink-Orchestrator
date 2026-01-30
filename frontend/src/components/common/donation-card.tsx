@@ -31,6 +31,20 @@ const statusColors: Record<Donation['status'], string> = {
   rejected: 'bg-destructive/20 text-destructive border-destructive/40',
 };
 
+const statusLabels: Record<Donation['status'], string> = {
+  active: 'Pending',
+  assigned: 'Claimed',
+  accepted: 'Volunteer En Route',
+  at_pickup: 'Volunteer at Pickup',
+  picked_up: 'Food Picked Up',
+  at_delivery: 'Volunteer at Delivery',
+  delivered: 'Arrived at Destination',
+  completed: 'Completed',
+  expired: 'Expired',
+  cancelled: 'Cancelled',
+  rejected: 'Rejected',
+};
+
 export function DonationCard({
   donation,
   showActions = false,
@@ -53,7 +67,7 @@ export function DonationCard({
             <p className="text-sm text-muted-foreground">{donation.donorName}</p>
           </div>
           <Badge className={cn("capitalize border", statusColors[donation.status])}>
-            {donation.status === 'active' ? 'Pending' : donation.status}
+            {statusLabels[donation.status]}
           </Badge>
         </div>
       </CardHeader>

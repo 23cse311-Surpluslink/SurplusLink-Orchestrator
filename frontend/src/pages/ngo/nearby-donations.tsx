@@ -212,7 +212,7 @@ export function NearbyDonationsPage() {
                     )}
                 </div>
             </div>
-
+{/* 
             <div className="flex w-full md:w-[400px] xl:w-[500px] h-[350px] md:h-auto shrink-0 flex-col rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative shadow-xl transition-all duration-500 hover:shadow-2xl mt-4 md:mt-0">
                 <NgoMap donations={filteredDonations} apiKey={MAP_API_KEY} />
                 <div className="absolute bottom-6 left-6 right-6 pointer-events-none">
@@ -224,7 +224,7 @@ export function NearbyDonationsPage() {
                         <span className="text-slate-400 font-mono tracking-wider">LIVE FEED</span>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             <Dialog open={!!rejectId} onOpenChange={(o) => {
                 if (!o) {

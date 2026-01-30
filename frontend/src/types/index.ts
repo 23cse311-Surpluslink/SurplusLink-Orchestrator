@@ -64,12 +64,18 @@ export interface Donation {
   coordinates?: { lat: number; lng: number };
   foodCategory?: 'cooked' | 'raw' | 'packaged';
   storageReq?: 'cold' | 'dry' | 'frozen';
-  rejectionReason?: string;
+  deliveryStatus?: 'idle' | 'pending_pickup' | 'heading_to_pickup' | 'at_pickup' | 'picked_up' | 'in_transit' | 'arrived_at_delivery' | 'delivered';
+  donorEmail?: string;
+  ngoEmail?: string;
+  ngoCoordinates?: { lat: number; lng: number };
   claimedBy?: {
     id: string;
     organization: string;
     name?: string;
+    email?: string;
+    coordinates?: { lat: number; lng: number };
   };
+  rejectionReason?: string;
 }
 
 export interface Notification {
