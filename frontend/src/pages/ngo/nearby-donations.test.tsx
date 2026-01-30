@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { NearbyDonationsPage } from './nearby-donations';
 import DonationService from '@/services/donation.service';
+import { Donation } from '@/types';
 
 // Mock Dependencies
 vi.mock('@/services/donation.service', () => ({
@@ -22,35 +23,43 @@ vi.mock('@/hooks/use-toast', () => ({
     })
 }));
 
-const mockDonations = [
+const mockDonations: Donation[] = [
     {
         id: '1',
+        donorId: 'd1',
         title: 'Cooked Rice',
         foodType: 'Cooked',
         quantity: '5kg',
         expiryTime: new Date(Date.now() + 1000000).toISOString(),
         location: 'Test Loc',
+        address: 'Test Addr',
         status: 'active',
         foodCategory: 'cooked',
-        donorName: 'John Doe'
+        donorName: 'John Doe',
+        pickupWindow: 'Today',
+        createdAt: new Date().toISOString()
     },
     {
         id: '2',
+        donorId: 'd2',
         title: 'Raw Veggies',
         foodType: 'Raw',
         quantity: '10kg',
         expiryTime: new Date(Date.now() + 2000000).toISOString(),
         location: 'Farm',
+        address: 'Farm Addr',
         status: 'active',
         foodCategory: 'raw',
-        donorName: 'Jane Doe'
+        donorName: 'Jane Doe',
+        pickupWindow: 'Tomorrow',
+        createdAt: new Date().toISOString()
     }
 ];
 
 describe('NearbyDonationsPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (DonationService.getSmartFeed as any).mockResolvedValue({ donations: mockDonations });
+        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: mockDonations, capacityWarning: false, count: 2 });
     });
 
     it('renders the feed and loads donations', async () => {
@@ -83,7 +92,7 @@ describe('NearbyDonationsPage', () => {
     });
 
     it('shows empty state when no donations found', async () => {
-        (DonationService.getSmartFeed as any).mockResolvedValue({ donations: [] });
+        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: [], capacityWarning: false, count: 0 });
         render(<NearbyDonationsPage />);
 
         await waitFor(() => {
