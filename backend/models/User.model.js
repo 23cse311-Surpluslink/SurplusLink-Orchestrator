@@ -55,12 +55,44 @@ const userSchema = mongoose.Schema(
       trustScore: { type: Number, default: 5.0 },
       totalRatings: { type: Number, default: 0 },
       completedDonations: { type: Number, default: 0 },
+      cancelledDonations: { type: Number, default: 0 },
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+    volunteerProfile: {
+      tier: {
+        type: String,
+        enum: ['rookie', 'hero', 'champion'],
+        default: 'rookie',
+      },
+      vehicleType: {
+        type: String,
+        enum: ['bicycle', 'scooter', 'car', 'van'],
+      },
+      maxWeight: {
+        type: Number,
+      },
+      currentLocation: {
+        type: {
+          type: String,
+          enum: ['Point'],
+          default: 'Point',
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+          default: [0, 0],
+        },
+      },
     },
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.index({ 'volunteerProfile.currentLocation': '2dsphere' });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

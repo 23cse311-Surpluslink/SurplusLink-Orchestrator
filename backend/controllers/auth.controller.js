@@ -146,6 +146,8 @@ const loginUser = async (req, res, next) => {
                 status: user.status,
                 avatar: user.avatar,
                 createdAt: user.createdAt,
+                isOnline: user.isOnline,
+                volunteerProfile: user.volunteerProfile,
             });
         } else {
             res.status(401);
@@ -263,10 +265,10 @@ const verifyOTP = async (req, res, next) => {
     const { email, otp } = req.body;
 
     try {
-        const user = await User.findOne({ 
-            email, 
-            otp, 
-            otpExpires: { $gt: Date.now() } 
+        const user = await User.findOne({
+            email,
+            otp,
+            otpExpires: { $gt: Date.now() }
         });
 
         if (!user) {
@@ -290,8 +292,8 @@ const verifyOTP = async (req, res, next) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, 
-            sameSite: 'none', 
+            secure: true,
+            sameSite: 'none',
             maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
@@ -304,6 +306,8 @@ const verifyOTP = async (req, res, next) => {
             status: user.status,
             avatar: user.avatar,
             createdAt: user.createdAt,
+            isOnline: user.isOnline,
+            volunteerProfile: user.volunteerProfile,
         });
 
     } catch (error) {
