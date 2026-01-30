@@ -25,6 +25,11 @@ import AdminDashboard from "./pages/admin/admin-dashboard";
 import UserManagement from "./pages/admin/user-management";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
+import VolunteerSettings from "./pages/volunteer/settings";
+import AvailableMissions from "./pages/volunteer/available-missions";
+import ActiveMission from "./pages/volunteer/active-mission";
+import MissionHistory from "./pages/volunteer/mission-history";
+import VolunteerNotifications from "./pages/volunteer/notifications";
 import AccountPage from "./pages/account-page";
 import { SettingsPage } from "./pages/settings-page";
 import { NgoSettingsPage } from "./pages/ngo/settings-page";
@@ -82,7 +87,14 @@ const App = () => (
 
                 <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
                   <Route index element={<VolunteerDashboard />} />
+                  <Route path="available" element={<AvailableMissions />} />
+                  <Route path="active" element={<ActiveMission />} />
+                  <Route path="history" element={<MissionHistory />} />
+                  <Route path="notifications" element={<VolunteerNotifications />} />
+                  <Route path="settings" element={<VolunteerSettings />} />
                 </Route>
+
+                <Route path="/volunteer/preview" element={<VolunteerDashboard />} />
 
                 <Route path="/account" element={<DashboardLayout />}>
                   <Route index element={<AccountPage />} />
