@@ -49,7 +49,7 @@ export default function LandingPage() {
 
                 <Features />
                 <Process />
-                <Impact />
+                {/* <Impact /> */}
                 <FAQ />
 
                 <section className="py-24 relative overflow-hidden">

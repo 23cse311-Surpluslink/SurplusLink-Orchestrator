@@ -42,7 +42,7 @@ export function FAQ() {
                         Frequently Asked <span className="text-primary">Questions</span>
                     </motion.h2>
                     <p className="text-xl text-muted-foreground">
-                        Everything you need to know about the SurplusLink platform.
+                        Everything you need to know about SurplusLink.
                     </p>
                 </div>
 
