@@ -22,7 +22,7 @@ export function Hero() {
                     >
 
 
-                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
+                        <h1 className="text-5xl ml-0 md:ml-10 sm:text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
                             Feed the <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-emerald-500 to-teal-500">
                                 Future,
@@ -30,14 +30,14 @@ export function Hero() {
                             Reduce Waste.
                         </h1>
 
-                        <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-2xl font-medium opacity-90">
+                        <p className="text-xl ml-0 md:ml-10 md:text-2xl text-muted-foreground leading-relaxed max-w-2xl font-medium opacity-90">
                             The intelligent bridge between food generators and those who need it most. Empowering local shelf-life management with <span className="text-foreground underline decoration-primary/30 underline-offset-4">real-time AI matching.</span>
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-5 pt-2">
                             <button
                                 onClick={() => navigate('/login')}
-                                className="group flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/95 active:scale-95"
+                                className="group flex ml-0 md:ml-10 items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/95 active:scale-95"
                             >
                                 Join the Mission
                                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
