@@ -127,3 +127,10 @@ export interface DonationStats {
   completedDonations: number;
   acceptanceRate: number;
 }
+
+export interface NgoStats {
+  mealsReceived: number;
+  avgDeliveryTime: number;
+  totalDistributions: number;
+  trend: number;
+}

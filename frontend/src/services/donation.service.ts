@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { Donation, DonationStats } from '@/types';
+import { Donation, DonationStats, NgoStats } from '@/types';
 
 interface BackendDonation {
     _id?: string;
@@ -160,7 +160,7 @@ const DonationService = {
         return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
     },
 
-    getNgoStats: async (): Promise<any> => {
+    getNgoStats: async (): Promise<NgoStats> => {
         const response = await api.get('/donations/ngo/stats');
         return response.data;
     },
