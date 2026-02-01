@@ -11,7 +11,6 @@ import { VerificationBanner } from '@/components/layout/verification-banner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DonationService from '@/services/donation.service';
 import { Donation } from '@/types';
-import { ngoMetrics } from '@/mockData/metrics';
 import { Button } from '@/components/ui/button';
 
 export default function NgoDashboard() {
@@ -21,17 +20,25 @@ export default function NgoDashboard() {
   const [activeClaims, setActiveClaims] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [capacityWarning, setCapacityWarning] = useState(false);
+  const [stats, setStats] = useState({
+    mealsReceived: 0,
+    avgDeliveryTime: 0,
+    trend: 12,
+    totalDistributions: 0
+  });
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [feedData, claimsData] = await Promise.all([
+      const [feedData, claimsData, statsData] = await Promise.all([
         DonationService.getSmartFeed(),
-        DonationService.getMyDonations()
+        DonationService.getClaimedDonations(),
+        DonationService.getNgoStats()
       ]);
 
       setNearbyCount(feedData.count);
       setCapacityWarning(feedData.capacityWarning);
-      setActiveClaims(claimsData.filter(d => ['assigned', 'picked_up'].includes(d.status)).slice(0, 3));
+      setActiveClaims(claimsData.filter(d => ['assigned', 'picked_up', 'accepted', 'at_pickup', 'at_delivery'].includes(d.status)).slice(0, 3));
+      setStats(statsData);
     } catch (error) {
       console.error(error);
       toast({
@@ -75,9 +82,9 @@ export default function NgoDashboard() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Meals Distributed" value={ngoMetrics.mealsReceived.toLocaleString()} icon={<Package className="h-5 w-5" />} trend={{ value: 12, isPositive: true }} />
+        <StatCard title="Meals Distributed" value={stats.mealsReceived.toLocaleString()} icon={<Package className="h-5 w-5" />} trend={{ value: stats.trend, isPositive: true }} />
         <StatCard title="Active Deliveries" value={activeClaims.length} icon={<TrendingUp className="h-5 w-5 font-bold" />} />
-        <StatCard title="Avg Time" value={`${ngoMetrics.avgDeliveryTime}m`} icon={<Clock className="h-5 w-5 font-bold" />} />
+        <StatCard title="Avg Time" value={`${stats.avgDeliveryTime}m`} icon={<Clock className="h-5 w-5 font-bold" />} />
         <StatCard title="Opportunities" value={nearbyCount} icon={<MapPin className="h-5 w-5 font-bold text-primary" />} />
       </div>
 

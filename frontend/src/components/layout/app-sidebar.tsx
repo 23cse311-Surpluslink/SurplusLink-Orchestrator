@@ -79,7 +79,6 @@ const navItemsByRole = {
         { label: "Volunteer View", href: "/ngo/volunteers", icon: Users },
         { label: "Notifications", href: "/ngo/notifications", icon: Bell },
         { label: "Feedback", href: "/ngo/feedback", icon: MessageSquare },
-        { label: "Impact Metrics", href: "/ngo/impact", icon: BarChart3 },
         { label: "Settings", href: "/ngo/settings", icon: Settings },
     ],
     admin: [
