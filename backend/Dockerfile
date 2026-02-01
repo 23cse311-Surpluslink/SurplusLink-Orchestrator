@@ -1,20 +1,34 @@
-# Use Node.js 20 Alpine as base image
-FROM node:20-alpine
+# Stage 1: Build & Dependencies
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including dev for building/testing if needed)
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy application code
 COPY . .
 
-# Expose port 8000
+# Stage 2: Production Runner
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy only production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy application code from builder
+COPY --from=builder /app .
+
+# Expose port
 EXPOSE 8000
 
-# Default command (can be overridden in docker-compose)
+# Set Node environment
+ENV NODE_ENV=production
+
+# Default command
 CMD ["npm", "start"]

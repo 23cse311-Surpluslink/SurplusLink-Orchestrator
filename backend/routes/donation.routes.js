@@ -24,6 +24,8 @@ import {
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
 
+import { deliveryStatusLimiter } from '../middleware/rateLimiter.js';
+
 const router = express.Router();
 
 // All routes are protected
@@ -44,7 +46,7 @@ router.get('/active-mission', roleBasedAccess(['volunteer']), getVolunteerActive
 router.patch('/:id/accept-mission', roleBasedAccess(['volunteer']), acceptMission);
 router.patch('/:id/pickup', roleBasedAccess(['volunteer']), upload.single('photo'), confirmPickup);
 router.patch('/:id/deliver', roleBasedAccess(['volunteer']), upload.single('photo'), confirmDelivery);
-router.patch('/:id/delivery-status', roleBasedAccess(['volunteer']), updateDeliveryStatus);
+router.patch('/:id/delivery-status', roleBasedAccess(['volunteer']), deliveryStatusLimiter, updateDeliveryStatus);
 router.patch('/:id/fail-mission', roleBasedAccess(['volunteer']), failMission);
 
 // Donor specific routes

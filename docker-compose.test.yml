@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=test
+      - MONGO_URI=mongodb://mongodb:27017/surpluslink_test
+      - JWT_SECRET=test_secret
+    depends_on:
+      - mongodb
+    command: npm test
+
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=test
+    command: npm test
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27018:27017" # Avoid conflict with local mongo if running

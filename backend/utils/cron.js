@@ -68,26 +68,42 @@ const setupCronJobs = () => {
                 }
             }
 
-            // 2. Inactivity Tracking: In Transit > 2 Hours
+            // 2. Inactivity Tracking: In Transit > 2 Hours (General Alert)
             const stuckInTransit = await Donation.find({
                 deliveryStatus: { $in: ['picked_up', 'in_transit'] },
                 updatedAt: { $lt: twoHoursAgo } // No update in 2 hours
             }).populate('claimedBy');
 
             for (const donation of stuckInTransit) {
-                // Prevent spamming alerts? 
-                // We could check if we already sent an alert, but for MVP we just log/notify.
-                // ideally check a flag, but schemas are rigid.
-                // We'll just notify the NGO.
                 if (donation.claimedBy) {
                     await createNotification(
                         donation.claimedBy._id,
-                        `URGENT: Delivery for "${donation.title}" has been in transit for > 2 hours. Please check with volunteer.`,
+                        `Status Alert: Delivery for "${donation.title}" has been in transit for > 2 hours.`,
                         'general',
                         donation._id
                     );
                 }
-                console.log(`[Cron] Flagged donation ${donation._id} as stuck in transit.`);
+                console.log(`[Cron] Flagged donation ${donation._id} as stuck in transit (2h).`);
+            }
+
+            // 3. Safety Timeout: Picked Up > 4 Hours (Critical Alert)
+            const fourHoursAgo = new Date(now - 4 * 60 * 60 * 1000);
+            const criticalTimeouts = await Donation.find({
+                deliveryStatus: 'picked_up',
+                pickedUpAt: { $lt: fourHoursAgo }
+            }).populate('claimedBy').populate('volunteer');
+
+            for (const donation of criticalTimeouts) {
+                console.log(`[Cron] CRITICAL: Donation ${donation._id} picked up > 4 hours ago.`);
+
+                if (donation.claimedBy) {
+                    await createNotification(
+                        donation.claimedBy._id,
+                        `CRITICAL ALERT: Mission "${donation.title}" has been in PICKED_UP state for > 4 hours. Please contact volunteer ${donation.volunteer?.name} immediately!`,
+                        'general',
+                        donation._id
+                    );
+                }
             }
 
         } catch (error) {

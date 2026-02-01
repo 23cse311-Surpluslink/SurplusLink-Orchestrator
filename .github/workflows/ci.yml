@@ -2,24 +2,16 @@ name: CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
+    branches: [ main, develop ]
 
 jobs:
-  ci:
-    name: Build, Lint, and Test
+  lint-and-typecheck:
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout Code
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # Step 2: Setup Node.js Environment
-      - name: Setup Node.js
+      - uses: actions/checkout@v4
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -28,32 +20,75 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
 
-      # Step 3: Install Backend Dependencies
-      - name: Install Backend Dependencies
-        working-directory: ./backend
-        run: npm ci --legacy-peer-deps
-        
-      # Step 4: Install Frontend Dependencies
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: npm ci
+      - name: Install Dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
 
-      # Step 5: Run Frontend Linter
-      - name: Run Frontend Linter
-        working-directory: ./frontend
-        run: npm run lint
+      - name: Frontend Lint
+        run: cd frontend && npm run lint
 
-      # Step 6: Run Backend Tests
-      - name: Run Backend Tests
-        working-directory: ./backend
-        run: npm test
+      - name: Frontend Typecheck
+        run: cd frontend && npm run type-check
 
-      # Step 7: Run Frontend Tests
-      - name: Run Frontend Tests
-        working-directory: ./frontend
-        run: npm test
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
-      # Step 8: Build Frontend for Production
+      - name: Install Backend Deps
+        run: cd backend && npm ci
+
+      - name: Run Integration Tests
+        run: cd backend && npm test
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
+  frontend-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Deps
+        run: cd frontend && npm ci
+
+      - name: Install Playwright Browsers
+        run: cd frontend && npx playwright install --with-deps
+
+      - name: Run E2E Tests
+        run: cd frontend && npx playwright test
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Build Frontend
-        working-directory: ./frontend
-        run: npm run build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+
+      - name: Build Backend (Docker)
+        run: |
+          cd backend
+          docker build -t surpluslink-backend .
