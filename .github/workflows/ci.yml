@@ -68,6 +68,19 @@ jobs:
       - name: Install Frontend Deps
         run: cd frontend && npm ci
 
+      - name: Install Backend Deps (for E2E)
+        run: cd backend && npm ci
+
+      - name: Start Backend in Background
+        run: |
+          cd backend
+          npm run dev &
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: 8000
+          NODE_ENV: test
+
       - name: Install Playwright Browsers
         run: cd frontend && npx playwright install --with-deps
 
@@ -75,6 +88,7 @@ jobs:
         run: cd frontend && npx playwright test
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_API_URL: http://localhost:8000/api/v1
 
   build-check:
     runs-on: ubuntu-latest
