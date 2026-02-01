@@ -19,6 +19,7 @@ import {
     getVolunteerHistory,
     getVolunteerActiveMission,
     getAdminActiveMissions,
+    getNgoStats,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -34,6 +35,7 @@ router.get('/admin/active-missions', roleBasedAccess(['admin']), getAdminActiveM
 // NGO specific routes
 router.get('/feed', roleBasedAccess(['ngo']), getSmartFeed);
 router.get('/claimed', roleBasedAccess(['ngo']), getClaimedDonations);
+router.get('/ngo/stats', roleBasedAccess(['ngo']), getNgoStats);
 router.patch('/:id/claim', roleBasedAccess(['ngo']), claimDonation);
 router.patch('/:id/reject', roleBasedAccess(['ngo']), rejectDonation);
 router.get('/available-missions', roleBasedAccess(['volunteer']), getAvailableMissions);

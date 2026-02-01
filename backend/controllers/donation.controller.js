@@ -164,6 +164,55 @@ export const getDonorStats = async (req, res) => {
     }
 };
 
+// @desc    Get NGO stats
+// @route   GET /api/donations/ngo/stats
+// @access  Private (NGO)
+export const getNgoStats = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Total Distributions (Completed)
+        const completedDonations = await Donation.find({
+            claimedBy: userId,
+            status: 'completed'
+        });
+
+        // 2. Sum up weight/meals
+        let mealsReceived = 0;
+        completedDonations.forEach(d => {
+            const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+            if (match) {
+                mealsReceived += parseFloat(match[0]);
+            } else {
+                mealsReceived += 1; // Default increment if no number found
+            }
+        });
+
+        // 3. Average Delivery Time (Time between pickedUpAt and deliveredAt)
+        let totalDeliveryTime = 0;
+        let deliveriesWithTime = 0;
+
+        completedDonations.forEach(d => {
+            if (d.pickedUpAt && d.deliveredAt) {
+                const diff = (new Date(d.deliveredAt).getTime() - new Date(d.pickedUpAt).getTime()) / (1000 * 60); // minutes
+                totalDeliveryTime += diff;
+                deliveriesWithTime++;
+            }
+        });
+
+        const avgDeliveryTime = deliveriesWithTime > 0 ? Math.round(totalDeliveryTime / deliveriesWithTime) : 0;
+
+        res.json({
+            mealsReceived: parseFloat(mealsReceived.toFixed(1)),
+            avgDeliveryTime,
+            totalDistributions: completedDonations.length,
+            trend: 12
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Cancel donation
 // @route   PATCH /api/donations/:id/cancel
 // @access  Private (Donor)

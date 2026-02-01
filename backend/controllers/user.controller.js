@@ -338,6 +338,63 @@ const getVolunteerStats = async (req, res, next) => {
     }
 };
 
+// @desc    Get volunteers associated with an NGO
+// @route   GET /api/v1/users/ngo/volunteers
+// @access  Private (NGO)
+const getNgoVolunteers = async (req, res, next) => {
+    try {
+        // Find all donations claimed by this NGO that have a volunteer assigned
+        const donations = await Donation.find({ 
+            claimedBy: req.user._id,
+            volunteer: { $exists: true }
+        }).populate('volunteer', 'name email phone avatar stats volunteerProfile isOnline');
+
+        // Extract unique volunteers and format them for the dashboard
+        const uniqueVolunteersMap = new Map();
+
+        donations.forEach(donation => {
+            if (donation.volunteer) {
+                const vol = donation.volunteer;
+                const volId = vol._id.toString();
+
+                if (!uniqueVolunteersMap.has(volId)) {
+                    // Determine status based on active missions
+                    let currentTask = null;
+                    let status = vol.isOnline ? 'available' : 'offline';
+
+                    const onRouteStatuses = ['pending_pickup', 'at_pickup', 'picked_up', 'in_transit', 'arrived_at_delivery'];
+                    if (onRouteStatuses.includes(donation.deliveryStatus)) {
+                        status = 'on_route';
+                        const isHeadingToPickup = ['pending_pickup', 'at_pickup'].includes(donation.deliveryStatus);
+                        currentTask = isHeadingToPickup 
+                            ? `Picking up from ${donation.donorName || 'Donor'}`
+                            : `Delivering to ${req.user.organization || 'NGO Center'}`;
+                    } else if (donation.deliveryStatus === 'delivered' && donation.status !== 'completed') {
+                         status = 'busy';
+                         currentTask = 'Verification Pending';
+                    }
+
+                    uniqueVolunteersMap.set(volId, {
+                        id: vol._id,
+                        name: vol.name,
+                        email: vol.email,
+                        phone: vol.phone || '+1 234-567-8900',
+                        status: status,
+                        currentTask: currentTask,
+                        completedTasks: vol.stats?.completedDonations || 0,
+                        rating: vol.stats?.trustScore || 5.0,
+                        avatar: vol.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${vol.name}`,
+                    });
+                }
+            }
+        });
+
+        res.json(Array.from(uniqueVolunteersMap.values()));
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     getUserProfile,
     verifyUser,
@@ -349,5 +406,6 @@ export {
     toggleVolunteerStatus,
     updateVolunteerProfile,
     updateVolunteerLocation,
-    getVolunteerStats
+    getVolunteerStats,
+    getNgoVolunteers
 };
