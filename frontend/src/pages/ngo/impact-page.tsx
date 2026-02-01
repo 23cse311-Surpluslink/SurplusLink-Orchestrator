@@ -1,7 +1,10 @@
+import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/common/stat-card';
-import { Package, Users, Leaf, Clock, TrendingUp } from 'lucide-react';
+import { Package, Users, Leaf, Clock, TrendingUp, Loader2 } from 'lucide-react';
+import DonationService from '@/services/donation.service';
+import { useToast } from '@/hooks/use-toast';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Legend
@@ -17,6 +20,30 @@ const data = [
 ];
 
 export function NgoImpactPage() {
+    const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await DonationService.getNgoStats();
+                setStats(data);
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to load impact stats", variant: "destructive" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, [toast]);
+
+    if (loading) return (
+        <div className="flex h-[60vh] items-center justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+    );
+
     return (
         <div className="space-y-6 animate-fade-in">
             <PageHeader
@@ -25,9 +52,9 @@ export function NgoImpactPage() {
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Total Meals Shared" value="3,850" icon={<Package className="h-5 w-5" />} trend={{ value: 24, isPositive: true }} />
-                <StatCard title="CO2 Offset (kg)" value="1,120" icon={<Leaf className="h-5 w-5 text-green-600" />} trend={{ value: 18, isPositive: true }} />
-                <StatCard title="Partner Donors" value="48" icon={<Users className="h-5 w-5" />} trend={{ value: 12, isPositive: true }} />
+                <StatCard title="Total Meals Shared" value={stats?.mealsReceived || 0} icon={<Package className="h-5 w-5" />} trend={{ value: 24, isPositive: true }} />
+                <StatCard title="CO2 Offset (kg)" value={Math.round((stats?.mealsReceived || 0) * 1.4)} icon={<Leaf className="h-5 w-5 text-green-600" />} trend={{ value: 18, isPositive: true }} />
+                <StatCard title="Distributions" value={stats?.totalDistributions || 0} icon={<Users className="h-5 w-5" />} trend={{ value: 12, isPositive: true }} />
                 <StatCard title="Rescue Efficiency" value="94%" icon={<TrendingUp className="h-5 w-5 text-primary" />} />
             </div>
 

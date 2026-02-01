@@ -19,3 +19,8 @@ export const getVolunteerStats = async () => {
     const response = await api.get('/users/volunteer/stats');
     return response.data;
 };
+
+export const getNgoVolunteers = async () => {
+    const response = await api.get('/users/ngo/volunteers');
+    return response.data;
+};

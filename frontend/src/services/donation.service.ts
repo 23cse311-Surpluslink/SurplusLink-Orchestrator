@@ -160,6 +160,11 @@ const DonationService = {
         return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
     },
 
+    getNgoStats: async (): Promise<any> => {
+        const response = await api.get('/donations/ngo/stats');
+        return response.data;
+    },
+
     claimDonation: async (id: string) => {
         const response = await api.patch(`/donations/${id}/claim`);
         return response.data;
