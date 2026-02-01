@@ -5,6 +5,7 @@ import { StatCard } from '@/components/common/stat-card';
 import { Package, Users, Leaf, Clock, TrendingUp, Loader2 } from 'lucide-react';
 import DonationService from '@/services/donation.service';
 import { useToast } from '@/hooks/use-toast';
+import { NgoStats } from '@/types';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Legend
@@ -20,7 +21,7 @@ const data = [
 ];
 
 export function NgoImpactPage() {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<NgoStats | null>(null);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
