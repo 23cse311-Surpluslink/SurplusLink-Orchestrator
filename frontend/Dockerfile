@@ -1,6 +1,12 @@
 # Stage 1: Build the React application
 FROM node:20-alpine AS build
 
+# Build argument for Google Maps API Key
+ARG VITE_GOOGLE_MAPS_API_KEY
+
+# Set as environment variable for Vite
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+
 # Set working directory
 WORKDIR /app
 
