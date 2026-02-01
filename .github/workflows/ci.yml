@@ -33,6 +33,11 @@ jobs:
 
   backend-tests:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node
@@ -48,14 +53,20 @@ jobs:
       - name: Run Integration Tests
         run: cd backend && npm test
         env:
-          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MONGODB_URI: mongodb://localhost:27017/surpluslink_test
+          MONGO_URI: mongodb://localhost:27017/surpluslink_test
+          JWT_SECRET: test_secret_key_123
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
 
   frontend-e2e:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node
@@ -63,7 +74,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
 
       - name: Install Frontend Deps
         run: cd frontend && npm ci
@@ -71,15 +84,25 @@ jobs:
       - name: Install Backend Deps (for E2E)
         run: cd backend && npm ci
 
+      - name: Seed Database for E2E
+        run: cd backend && node scripts/seedE2E.js
+        env:
+          MONGODB_URI: mongodb://localhost:27017/surpluslink_test
+          MONGO_URI: mongodb://localhost:27017/surpluslink_test
+
       - name: Start Backend in Background
         run: |
           cd backend
           npm run dev &
+          sleep 10
+          curl -v http://localhost:8000/ || exit 1
         env:
-          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MONGODB_URI: mongodb://localhost:27017/surpluslink_test
+          MONGO_URI: mongodb://localhost:27017/surpluslink_test
+          JWT_SECRET: test_secret_key_123
           PORT: 8000
-          NODE_ENV: test
+          NODE_ENV: e2e
+          VITE_API_BASE_URL: http://localhost:8000/api/v1
 
       - name: Install Playwright Browsers
         run: cd frontend && npx playwright install --with-deps
@@ -88,7 +111,8 @@ jobs:
         run: cd frontend && npx playwright test --timeout=60000
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
-          VITE_API_URL: http://localhost:8000/api/v1
+          VITE_API_BASE_URL: http://localhost:8000/api/v1
+          VITE_APP_ENV: test
 
   build-check:
     runs-on: ubuntu-latest
