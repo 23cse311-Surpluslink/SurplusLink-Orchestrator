@@ -1,0 +1,557 @@
+
+> backend@1.0.0 test
+> cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --testTimeout=120000 tests/volunteer_lifecycle.test.js
+
+(node:13188) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.log
+    [Notification] To: 697f85d35e87d64febe42c29, Msg: Your donation "Test Donation" has been claimed by Helping Hands, Type: donation_assigned
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d35e87d64febe42c29, Msg: A volunteer Volunteer One is on their way to pick up your donation!, Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d55e87d64febe42c3c, Msg: Volunteer Volunteer One has accepted your delivery and is heading to the donor., Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.log
+    [Notification] To: 697f85d65e87d64febe42c51, Msg: Your donation "Test Donation" has been claimed by Helping Hands, Type: donation_assigned
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d65e87d64febe42c51, Msg: A volunteer Volunteer One is on their way to pick up your donation!, Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d75e87d64febe42c64, Msg: Volunteer Volunteer One has accepted your delivery and is heading to the donor., Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.log
+    [Notification] To: 697f85d75e87d64febe42c7a, Msg: Your donation "Test Donation" has been claimed by Helping Hands, Type: donation_assigned
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d75e87d64febe42c7a, Msg: A volunteer Volunteer One is on their way to pick up your donation!, Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d85e87d64febe42c8d, Msg: Volunteer Volunteer One has accepted your delivery and is heading to the donor., Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    MOCK MIDDLEWARE HIT: photo
+
+      at tests/volunteer_lifecycle.test.js:13:21
+
+  console.log
+    [Notification] To: 697f85d85e87d64febe42c8d, Msg: Your donation has been picked up by Volunteer One and is on the way!, Type: donation_picked_up
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    MOCK MIDDLEWARE HIT: photo
+
+      at tests/volunteer_lifecycle.test.js:13:21
+
+  console.log
+    [Notification] To: 697f85d85e87d64febe42c8d, Msg: Volunteer One has arrived at your location. Please verify receipt to finalize!, Type: donation_delivered
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.log
+    [Notification] To: 697f85d95e87d64febe42cbb, Msg: Your donation "Test Donation" has been claimed by Helping Hands, Type: donation_assigned
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85d95e87d64febe42cbb, Msg: A volunteer Volunteer One is on their way to pick up your donation!, Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85da5e87d64febe42cce, Msg: Volunteer Volunteer One has accepted your delivery and is heading to the donor., Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.error
+    Failed to send welcome OTP email: Error: connect ECONNREFUSED 127.0.0.1:587
+        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+      errno: -4078,
+      code: 'ESOCKET',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 587,
+      command: 'CONN'
+    }
+
+    [0m [90m  95 |[39m                 })[33m;[39m
+     [90m  96 |[39m             } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m  97 |[39m                 console[33m.[39merror([32m"Failed to send welcome OTP email:"[39m[33m,[39m err)[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m  98 |[39m                 [90m// We still proceed, user can request new OTP on login[39m
+     [90m  99 |[39m             }
+     [90m 100 |[39m[0m
+
+      at signupUser (controllers/auth.controller.js:97:25)
+
+  console.log
+    [Notification] To: 697f85db5e87d64febe42ce3, Msg: Your donation "Test Donation" has been claimed by Helping Hands, Type: donation_assigned
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85db5e87d64febe42ce3, Msg: A volunteer Volunteer One is on their way to pick up your donation!, Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Notification] To: 697f85dd5e87d64febe42cf6, Msg: Volunteer Volunteer One has accepted your delivery and is heading to the donor., Type: volunteer_accepted
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    MOCK MIDDLEWARE HIT: photo
+
+      at tests/volunteer_lifecycle.test.js:13:21
+
+  console.log
+    [Notification] To: 697f85dd5e87d64febe42cf6, Msg: Your donation has been picked up by Volunteer One and is on the way!, Type: donation_picked_up
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    MOCK MIDDLEWARE HIT: photo
+
+      at tests/volunteer_lifecycle.test.js:13:21
+
+  console.log
+    [Notification] To: 697f85dd5e87d64febe42cf6, Msg: Volunteer One has arrived at your location. Please verify receipt to finalize!, Type: donation_delivered
+
+      at createNotification (utils/notification.js:12:17)
+
+PASS tests/volunteer_lifecycle.test.js (24.769 s)
+  Volunteer Lifecycle Integration Tests
+    Mission Claim Integrity
+      √ should allow a volunteer to accept a mission and update status (3203 ms)
+      √ should prevent another volunteer from claiming the same mission (1483 ms)
+    Progressive State Machine
+      √ should support the full happy path lifecycle (2079 ms)
+      √ should prevent jumping to delivered via status endpoint (1682 ms)
+    Automatic Impact Calculation
+      √ should increment volunteer stats upon delivery confirmation (2517 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       5 passed, 5 total
+Snapshots:   0 total
+Time:        25.035 s
+Ran all test suites matching tests/volunteer_lifecycle.test.js.
