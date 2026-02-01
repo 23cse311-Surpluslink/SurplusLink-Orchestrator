@@ -4,10 +4,12 @@ test.describe('Donation Lifecycle', () => {
     test('Donor posts food, NGO claims and verifies it', async ({ page }) => {
         // 1. Login as Donor
         await page.goto('/login');
-        await page.getByPlaceholder('Email').fill('donor@test.com');
-        await page.getByPlaceholder('Password').fill('password123');
-        await page.getByRole('button', { name: 'Login' }).click();
-        await expect(page).toHaveURL('/dashboard');
+        // Switch to the Sign In tab first
+        await page.getByRole('tab', { name: 'Sign In' }).click();
+        await page.getByPlaceholder('you@example.com').fill('donor@test.com');
+        await page.getByPlaceholder('Enter your password').fill('password123');
+        await page.getByRole('button', { name: 'Sign In' }).click();
+        await expect(page).toHaveURL(/\/donor/);
 
         // 2. Post Donation
         await page.getByRole('link', { name: 'Donate Food' }).click();
@@ -23,9 +25,11 @@ test.describe('Donation Lifecycle', () => {
 
         // 4. Login as NGO
         await page.goto('/login');
-        await page.getByPlaceholder('Email').fill('ngo@test.com');
-        await page.getByPlaceholder('Password').fill('password123');
-        await page.getByRole('button', { name: 'Login' }).click();
+        await page.getByRole('tab', { name: 'Sign In' }).click();
+        await page.getByPlaceholder('you@example.com').fill('ngo@test.com');
+        await page.getByPlaceholder('Enter your password').fill('password123');
+        await page.getByRole('button', { name: 'Sign In' }).click();
+        await expect(page).toHaveURL(/\/ngo/);
 
         // 5. Claim Donation
         await page.goto('/nearby-donations');
