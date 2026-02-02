@@ -3,7 +3,7 @@ import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
 import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
-import { findBestDonationsForNGO, getUnmetNeed } from '../services/matching.service.js';
+import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
 
 // @desc    Create new donation
 // @route   POST /api/donations
@@ -443,9 +443,62 @@ export const claimDonation = async (req, res, next) => {
             donation._id
         );
 
+        // Trigger Auto-Dispatch for volunteers
+        initiateAutoDispatch(donation._id);
+
         res.json(donation);
     } catch (error) {
         next(error);
+    }
+};
+
+/**
+ * Auto-Dispatch Logic: Finds top 3 volunteers and notifies them with tiered delays.
+ * Implements 2-minute "First Right of Refusal" lock.
+ * @param {string} donationId 
+ */
+const initiateAutoDispatch = async (donationId) => {
+    try {
+        const donation = await Donation.findById(donationId);
+        if (!donation) return;
+
+        // Find top suitable volunteers (10km base)
+        const topVolunteers = await findSuitableVolunteers(donation, 10000);
+        if (topVolunteers.length === 0) {
+            console.log(`[Auto-Dispatch] No volunteers found for donation ${donationId} within 10km.`);
+            return;
+        }
+
+        // Filter top 3 for priority dispatch
+        const priorityVolunteers = topVolunteers.slice(0, 3);
+
+        // Update donation with dispatch info
+        donation.dispatchedTo = priorityVolunteers.map(v => v._id);
+        donation.dispatchedAt = new Date();
+        await donation.save();
+
+        console.log(`[Auto-Dispatch] Dispatching donation ${donationId} to ${priorityVolunteers.length} volunteers.`);
+
+        // Tiered Notifications (30s gap)
+        priorityVolunteers.forEach((volunteer, index) => {
+            const delay = index * 30000; // 0s, 30s, 60s
+
+            setTimeout(async () => {
+                // Re-verify donation is still available for mission (deliveryStatus: idle)
+                const freshDonation = await Donation.findById(donationId);
+                if (freshDonation && freshDonation.deliveryStatus === 'idle') {
+                    await createNotification(
+                        volunteer._id,
+                        `PRIORITY MISSION: A nearby donation "${freshDonation.title}" needs delivery! You have priority access for the next 2 minutes.`,
+                        'priority_dispatch',
+                        donationId
+                    );
+                }
+            }, delay);
+        });
+
+    } catch (error) {
+        console.error('[Auto-Dispatch] Error:', error);
     }
 };
 
@@ -594,10 +647,22 @@ export const getAvailableMissions = async (req, res, next) => {
         // 3. Proximity Sort & Safety Filter (Only show items with > 30 mins remaining)
         const now = new Date();
         const safetyThreshold = new Date(now.getTime() + 30 * 60000);
+        const lockThreshold = new Date(now.getTime() - 2 * 60000); // 2 minutes ago
+
+        // First Right of Refusal Filter:
+        // if locked (dispatchedAt > 2 mins ago), only show to dispatchedTo volunteers
+        const lockFilter = {
+            $or: [
+                { dispatchedAt: { $exists: false } }, // Not dispatched
+                { dispatchedAt: { $lt: lockThreshold } }, // Lock expired
+                { dispatchedTo: req.user.id } // User is one of the priority volunteers
+            ]
+        };
 
         const baseQuery = {
             ...query,
-            expiryDate: { $gt: safetyThreshold }
+            expiryDate: { $gt: safetyThreshold },
+            ...lockFilter
         };
 
         if (currentLocation && currentLocation.coordinates && currentLocation.coordinates.length === 2) {

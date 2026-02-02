@@ -132,6 +132,15 @@ const donationSchema = new mongoose.Schema(
         deliveredAt: {
             type: Date,
         },
+        dispatchedTo: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        ],
+        dispatchedAt: {
+            type: Date,
+        },
     },
     {
         timestamps: true,
