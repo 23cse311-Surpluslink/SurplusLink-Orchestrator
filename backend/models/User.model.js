@@ -73,6 +73,10 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    currentTaskCount: {
+      type: Number,
+      default: 0,
+    },
     volunteerProfile: {
       tier: {
         type: String,
@@ -96,6 +100,13 @@ const userSchema = mongoose.Schema(
           type: [Number], // [longitude, latitude]
           default: [0, 0],
         },
+      },
+      lastLocationUpdate: {
+        type: Date,
+        default: Date.now
+      },
+      lastMissionDate: {
+        type: Date
       },
     },
   },

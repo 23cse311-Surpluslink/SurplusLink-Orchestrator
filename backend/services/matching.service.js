@@ -33,14 +33,16 @@ export const getUrgencyInfo = (expiryDate) => {
  * @param {number} unmetNeed - Unmet need for the NGO (still used for base capacity check)
  * @returns {number} Suitability score (0-100)
  */
-const calculateSuitabilityScore = (donation, ngo, distance, unmetNeed) => {
+export const calculateSuitabilityScore = (donation, ngo, distance, unmetNeed) => {
+    const urgency = getUrgencyInfo(donation.expiryDate);
+    const isCritical = urgency.tier === 1;
+
     // 1. Distance score (40% weight)
     const distanceKm = distance / 1000;
     const distanceScore = (1 / (distanceKm + 1)) * 100;
     const distanceWeight = 0.4;
 
     // 2. Time Urgency score (60% weight)
-    const urgency = getUrgencyInfo(donation.expiryDate);
     const urgencyScore = urgency.score;
     const urgencyWeight = 0.6;
 
@@ -50,6 +52,17 @@ const calculateSuitabilityScore = (donation, ngo, distance, unmetNeed) => {
     // Boost by 20% if NGO has isUrgentNeed flag
     if (ngo.ngoProfile && ngo.ngoProfile.isUrgentNeed) {
         finalScore = finalScore * 1.2;
+    }
+
+    // INTELLIGENT LOAD BALANCING (Density Check)
+    // Requirement 5.6: If at >80% capacity, apply 0.5x multiplier for non-critical donations
+    if (!isCritical && ngo.ngoProfile?.dailyCapacity > 0) {
+        const claimedCount = ngo.ngoProfile.dailyCapacity - unmetNeed;
+        const capacityUsage = claimedCount / ngo.ngoProfile.dailyCapacity;
+
+        if (capacityUsage > 0.8) {
+            finalScore = finalScore * 0.5;
+        }
     }
 
     return Math.round(Math.min(finalScore, 100) * 100) / 100;
@@ -333,16 +346,41 @@ export const getUnmetNeed = async (ngoId) => {
  * @param {number} distance - Distance in meters
  * @returns {number} Suitability score
  */
-const getVolunteerSuitabilityScore = (volunteer, distance) => {
+export const getVolunteerSuitabilityScore = (volunteer, distance, donation) => {
+    const urgency = getUrgencyInfo(donation.expiryDate);
+    const isCritical = urgency.tier === 1; // < 3h
+    const isStandard = urgency.tier === 3; // > 6h
+
     const distanceKm = distance / 1000;
     const distanceScore = (1 / (distanceKm + 1)) * 100;
+
+    // DECISION TREE LOGIC (Requirement 5.6):
+    // Is critical? Ignore load balancing, prioritize distance.
+    if (isCritical) {
+        return Math.round(distanceScore * 100) / 100;
+    }
 
     // Tier weight: Champion (100), Hero (60), Rookie (20)
     const tierWeights = { champion: 100, hero: 60, rookie: 20 };
     const tierScore = tierWeights[volunteer.volunteerProfile?.tier] || 20;
 
-    // Formula: (Distance * 0.5) + (Tier * 0.5)
-    return Math.round(((distanceScore * 0.5) + (tierScore * 0.5)) * 100) / 100;
+    // Base score = (Distance * 0.5) + (Tier * 0.5)
+    let score = (distanceScore * 0.5) + (tierScore * 0.5);
+
+    // VOLUNTEER EQUITY (Round Robin Logic)
+    // If standard (>6h), prioritize few recent tasks.
+    if (isStandard) {
+        // Boost if no tasks today or haven't received a mission today
+        const now = new Date();
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+
+        const hasNoMissionsToday = !volunteer.volunteerProfile.lastMissionDate || volunteer.volunteerProfile.lastMissionDate < startOfDay;
+        if (hasNoMissionsToday || volunteer.currentTaskCount === 0) {
+            score += 30; // Significant boost for equity
+        }
+    }
+
+    return Math.round(score * 100) / 100;
 };
 
 /**
@@ -390,7 +428,7 @@ export const findSuitableVolunteers = async (donation, radius = 10000) => {
 
         // Map and rank
         const rankedVolunteers = volunteers.map(v => {
-            const score = getVolunteerSuitabilityScore(v, v.distance);
+            const score = getVolunteerSuitabilityScore(v, v.distance, donation);
 
             // Prioritize vehicle type if weight is high
             let vehicleBonus = 0;

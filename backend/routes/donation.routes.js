@@ -22,6 +22,7 @@ import {
     getNgoStats,
     getBestNGOs,
     getOptimizedRoute,
+    cancelMission,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -42,6 +43,8 @@ router.get('/claimed', roleBasedAccess(['ngo']), getClaimedDonations);
 router.get('/ngo/stats', roleBasedAccess(['ngo']), getNgoStats);
 router.patch('/:id/claim', roleBasedAccess(['ngo']), claimDonation);
 router.patch('/:id/reject', roleBasedAccess(['ngo']), rejectDonation);
+
+// Volunteer specific routes
 router.get('/available-missions', roleBasedAccess(['volunteer']), getAvailableMissions);
 router.get('/volunteer/history', roleBasedAccess(['volunteer']), getVolunteerHistory);
 router.get('/active-mission', roleBasedAccess(['volunteer']), getVolunteerActiveMission);
@@ -50,6 +53,7 @@ router.patch('/:id/pickup', roleBasedAccess(['volunteer']), upload.single('photo
 router.patch('/:id/deliver', roleBasedAccess(['volunteer']), upload.single('photo'), confirmDelivery);
 router.patch('/:id/delivery-status', roleBasedAccess(['volunteer']), deliveryStatusLimiter, updateDeliveryStatus);
 router.patch('/:id/fail-mission', roleBasedAccess(['volunteer']), failMission);
+router.patch('/:id/cancel-mission', roleBasedAccess(['volunteer']), cancelMission);
 router.get('/:id/optimized-route', roleBasedAccess(['volunteer']), getOptimizedRoute);
 
 // Donor specific routes
