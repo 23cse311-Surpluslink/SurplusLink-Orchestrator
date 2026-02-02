@@ -3,6 +3,7 @@ import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
 import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
+import { findBestDonationsForNGO, getUnmetNeed } from '../services/matching.service.js';
 
 // @desc    Create new donation
 // @route   POST /api/donations
@@ -350,44 +351,60 @@ export const getSmartFeed = async (req, res, next) => {
             return res.status(403).json({ message: 'Only NGOs can access the feed' });
         }
 
-        const { storageFacilities, dailyCapacity, isUrgentNeed } = user.ngoProfile;
+        const { storageFacilities, dailyCapacity } = user.ngoProfile;
 
-        let query = {
-            status: 'active',
-        };
+        // Use the new matching service to find best donations for the NGO
+        let donations = [];
+        let unmetNeed = 0;
+        let capacityWarning = false;
 
-        // Storage Match: If the NGO has storageFacilities, only return matching donations
-        if (storageFacilities && storageFacilities.length > 0) {
-            query.storageReq = { $in: storageFacilities };
-        }
-
-        let donations;
-
-        // Sorting and Geospatial logic
-        if (user.coordinates && user.coordinates.lat && user.coordinates.lng) {
-            const userCoords = [user.coordinates.lng, user.coordinates.lat];
-
-            donations = await Donation.find({
-                ...query,
-                coordinates: {
-                    $near: {
-                        $geometry: {
-                            type: "Point",
-                            coordinates: userCoords
-                        }
-                    }
+        try {
+            if (user.coordinates && user.coordinates.lat && user.coordinates.lng) {
+                // Populate location field for geospatial query if not already populated
+                if (!user.location || (user.location.coordinates[0] === 0 && user.location.coordinates[1] === 0)) {
+                    user.location = {
+                        type: 'Point',
+                        coordinates: [user.coordinates.lng, user.coordinates.lat]
+                    };
+                    await user.save();
                 }
-            }).populate('donor', 'name');
-        } else {
-            donations = await Donation.find(query).sort({ createdAt: -1 }).populate('donor', 'name');
-        }
 
-        // Capacity Warning logic (Simplified: based on dailyCapacity vs available donations count)
-        const capacityWarning = dailyCapacity > 0 && donations.length > dailyCapacity;
+                // Find best donations within 15km radius with suitability scores
+                donations = await findBestDonationsForNGO(req.user.id);
+
+                // Get unmet need for today
+                unmetNeed = await getUnmetNeed(req.user.id);
+
+                // Capacity warning if claimed donations exceed dailyCapacity
+                capacityWarning = dailyCapacity > 0 && donations.length > 0 && unmetNeed <= 0;
+            } else {
+                // Fallback: return all active donations if NGO coordinates are not set
+                donations = await Donation.find({ status: 'active' })
+                    .populate('donor', 'name organization')
+                    .sort({ createdAt: -1 })
+                    .limit(20);
+            }
+        } catch (matchingError) {
+            console.error('Matching service error:', matchingError);
+            // Fallback to simple query if matching service fails
+            const query = { status: 'active' };
+            if (storageFacilities && storageFacilities.length > 0) {
+                query.storageReq = { $in: storageFacilities };
+            }
+            donations = await Donation.find(query)
+                .populate('donor', 'name organization')
+                .sort({ createdAt: -1 })
+                .limit(20);
+        }
 
         res.json({
-            donations,
+            donations: donations.map(d => ({
+                ...d._doc || d,
+                matchPercentage: d.matchPercentage || undefined,
+                suitabilityScore: d.suitabilityScore || undefined,
+            })),
             capacityWarning,
+            unmetNeed,
             count: donations.length
         });
     } catch (error) {
@@ -905,6 +922,28 @@ export const getAdminActiveMissions = async (req, res, next) => {
             .populate('claimedBy', 'organization address');
 
         res.json(activeMissions);
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Find best NGOs for a specific donation
+// @route   GET /api/donations/:id/best-ngos
+// @access  Private (Donor)
+export const getBestNGOs = async (req, res, next) => {
+    try {
+        const donationId = req.params.id;
+        const donation = await Donation.findById(donationId);
+
+        if (!donation) {
+            return res.status(404).json({ message: 'Donation not found' });
+        }
+
+        if (donation.donor.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const bestNGOs = await findBestNGOsForDonation(donationId);
+        res.json(bestNGOs);
     } catch (error) {
         next(error);
     }

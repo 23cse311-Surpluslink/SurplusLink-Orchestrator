@@ -41,6 +41,18 @@ const userSchema = mongoose.Schema(
       lat: Number,
       lng: Number,
     },
+    // GeoJSON coordinates for geospatial queries (used for NGOs and volunteers)
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [0, 0],
+      },
+    },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     avatar: String,
@@ -93,6 +105,7 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.index({ 'volunteerProfile.currentLocation': '2dsphere' });
+userSchema.index({ 'location': '2dsphere' }); // Index for NGO geospatial queries
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
