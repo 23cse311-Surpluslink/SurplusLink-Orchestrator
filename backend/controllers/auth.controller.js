@@ -102,7 +102,8 @@ const signupUser = async (req, res, next) => {
                 success: true,
                 message: 'Registration successful! Please verify your email.',
                 requiresOtp: true,
-                email: user.email
+                email: user.email,
+                devOtp: otp
             });
         } else {
             res.status(400);
@@ -245,7 +246,7 @@ const sendOTP = async (req, res, next) => {
                 html: emailTemplate
             });
 
-            res.status(200).json({ success: true, message: 'OTP sent to email' });
+            res.status(200).json({ success: true, message: 'OTP sent to email', devOtp: otp });
         } catch (error) {
             user.otp = undefined;
             user.otpExpires = undefined;

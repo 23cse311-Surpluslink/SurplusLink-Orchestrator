@@ -167,6 +167,14 @@ export default function LoginPage() {
           title: "Verify your email",
           description: "We've sent a code to your email. Please enter it to continue.",
         });
+      } else if (response) {
+        // Direct successful registration w/o OTP (fallback)
+        toast({
+          title: "Registration Successful",
+          description: "Redirecting...",
+        });
+        // Navigation will be handled by the useEffect or we can force it
+        // but useEffect is safer.
       }
     } catch (error: any) {
       toast({
