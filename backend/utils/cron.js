@@ -3,6 +3,7 @@ import https from 'https';
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from './notification.js';
+import { findSuitableVolunteers } from '../services/matching.service.js';
 
 const setupCronJobs = () => {
     // Keep-alive Ping (Existing)
@@ -134,6 +135,52 @@ const setupCronJobs = () => {
             }
         } catch (err) {
             console.error('[Cron] Expiration task failed:', err);
+        }
+    });
+
+    // 5. Auto-Dispatch Radius Expansion (Runs every 2 minutes)
+    cron.schedule('*/2 * * * *', async () => {
+        console.log('[Cron] Checking for mission radius expansion...');
+        try {
+            const now = new Date();
+            const fiveMinsAgo = new Date(now.getTime() - 5 * 60000);
+
+            // Find donations claimed (assigned) but with no volunteer for > 5 mins
+            const stuckMissions = await Donation.find({
+                status: 'assigned',
+                deliveryStatus: 'idle',
+                claimedAt: { $lt: fiveMinsAgo },
+                // Only expand if we haven't already Expanded (or just run findSuitableVolunteers with 20km)
+                // To avoid spamming, we could check a flag, but for now let's just attempt re-dispatch to 20km
+                // Requirement 5.2: "If no volunteer is found within 5 minutes, expand the radius to 20km."
+            });
+
+            for (const donation of stuckMissions) {
+                console.log(`[Cron] Expanding radius for donation ${donation._id}`);
+
+                // Find volunteers in expanded 20km radius
+                const expandedVolunteers = await findSuitableVolunteers(donation, 20000);
+
+                if (expandedVolunteers.length > 0) {
+                    const top3 = expandedVolunteers.slice(0, 3);
+
+                    // Update lock
+                    donation.dispatchedTo = top3.map(v => v._id);
+                    donation.dispatchedAt = new Date(); // Reset lock timer for expanded group
+                    await donation.save();
+
+                    for (const v of top3) {
+                        await createNotification(
+                            v._id,
+                            `EXPANDED MISSION: A donation "${donation.title}" is available in a wider area. You have priority!`,
+                            'priority_dispatch',
+                            donation._id
+                        );
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('[Cron] Radius expansion failed:', err);
         }
     });
 };

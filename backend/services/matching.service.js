@@ -325,3 +325,92 @@ export const getUnmetNeed = async (ngoId) => {
         throw error;
     }
 };
+
+/**
+ * Get volunteer suitability score based on distance and tier
+ * @param {Object} volunteer - The volunteer object
+ * @param {number} distance - Distance in meters
+ * @returns {number} Suitability score
+ */
+const getVolunteerSuitabilityScore = (volunteer, distance) => {
+    const distanceKm = distance / 1000;
+    const distanceScore = (1 / (distanceKm + 1)) * 100;
+
+    // Tier weight: Champion (100), Hero (60), Rookie (20)
+    const tierWeights = { champion: 100, hero: 60, rookie: 20 };
+    const tierScore = tierWeights[volunteer.volunteerProfile?.tier] || 20;
+
+    // Formula: (Distance * 0.5) + (Tier * 0.5)
+    return Math.round(((distanceScore * 0.5) + (tierScore * 0.5)) * 100) / 100;
+};
+
+/**
+ * Find suitable volunteers for a donation
+ * @param {Object} donation - The donation object
+ * @param {number} radius - Radius in meters
+ * @returns {Promise<Array>} List of suitable volunteers sorted by suitability
+ */
+export const findSuitableVolunteers = async (donation, radius = 10000) => {
+    try {
+        const [lng, lat] = donation.coordinates.coordinates;
+
+        // Parse quantity to estimate weight/bulk
+        const quantityStr = String(donation.quantity).toLowerCase();
+        const weightMatch = quantityStr.match(/(\d+(\.\d+)?)/);
+        const estimatedWeight = weightMatch ? parseFloat(weightMatch[0]) : 0;
+        const needsLargeVehicle = estimatedWeight > 20; // Threshold for prioritizing cars/vans
+
+        // Get currently active volunteers (not on a mission)
+        // Active mission = any donation with this volunteer where deliveryStatus is NOT 'delivered' or 'idle'
+        const activeVolunteersWithMissions = await Donation.distinct('volunteer', {
+            volunteer: { $exists: true },
+            deliveryStatus: { $nin: ['delivered', 'idle'] }
+        });
+
+        const pipeline = [
+            {
+                $geoNear: {
+                    near: { type: 'Point', coordinates: [lng, lat] },
+                    distanceField: 'distance',
+                    maxDistance: radius,
+                    spherical: true,
+                    query: {
+                        role: 'volunteer',
+                        status: 'active',
+                        isOnline: true,
+                        _id: { $nin: activeVolunteersWithMissions }
+                    },
+                },
+            }
+        ];
+
+        const volunteers = await User.aggregate(pipeline);
+
+        // Map and rank
+        const rankedVolunteers = volunteers.map(v => {
+            const score = getVolunteerSuitabilityScore(v, v.distance);
+
+            // Prioritize vehicle type if weight is high
+            let vehicleBonus = 0;
+            if (needsLargeVehicle && ['car', 'van'].includes(v.volunteerProfile?.vehicleType)) {
+                vehicleBonus = 20; // Significant bonus for large vehicles
+            }
+
+            return {
+                ...v,
+                suitabilityScore: score + vehicleBonus,
+                tier: v.volunteerProfile?.tier || 'rookie'
+            };
+        });
+
+        // Sort by suitability score desc
+        rankedVolunteers.sort((a, b) => b.suitabilityScore - a.suitabilityScore);
+
+        // Return top matches (requirement says top 3 best volunteers)
+        return rankedVolunteers.slice(0, 10); // Return more so controller can filter/limit as needed
+    } catch (error) {
+        console.error('Error finding suitable volunteers:', error);
+        throw error;
+    }
+};
+
