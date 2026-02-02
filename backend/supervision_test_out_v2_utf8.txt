@@ -1,0 +1,93 @@
+﻿node.exe : (node:159908) ExperimentalWarning: VM Modules is an 
+experimental feature and might change at any time
+At C:\Program Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:159908) E...n 
+   ge at any time:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was 
+created)
+  console.log
+    [Notification] To: 6980bee96033efa180afb896, Msg: The mission for "Stalled Mission" has been unassigned due to: Manual Test Stall., Type: general
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    [Supervisor] Reassigning mission 6980bee96033efa180afb898 due to Manual Test Stall
+
+      at reassignMission (controllers/donation.controller.js:488:17)
+
+  console.error
+    Error finding suitable volunteers: MongoClientClosedError: Operation interrupted because client was closed
+        at ConnectionPool.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\cmap\connection_pool.ts:495:20)
+        at Server.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\sdam\server.ts:251:22)
+        at Topology.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\sdam\topology.ts:496:21)
+        at MongoClient._close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\mongo_client.ts:782:20)
+        at MongoClient.close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\mongo_client.ts:764:29)
+        at NativeConnection.doClose (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\connection.js:208:21)
+        at NativeConnection._close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\connection.js:1264:18)
+        at NativeConnection.close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\connection.js:1229:15)
+        at disconnect (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\tests\setup.js:27:35)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at Object.<anonymous> (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\tests\supervision.test.js:18:9) {
+      errorLabelSet: Set(0) {}
+    }
+
+    [0m [90m 450 |[39m         [36mreturn[39m rankedVolunteers[33m.[39mslice([35m0[39m[33m,[39m [35m10[39m)[33m;[39m [90m// Return more so controller can filter/limit as needed[39m
+     [90m 451 |[39m     } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 452 |[39m         console[33m.[39merror([32m'Error finding suitable volunteers:'[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 453 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 454 |[39m     }
+     [90m 455 |[39m }[33m;[39m[0m
+
+      at findSuitableVolunteers (services/matching.service.js:452:17)
+      at initiateAutoDispatch (controllers/donation.controller.js:510:31)
+
+  console.error
+    [Auto-Dispatch] Error: MongoClientClosedError: Operation interrupted because client was closed
+        at ConnectionPool.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\cmap\connection_pool.ts:495:20)
+        at Server.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\sdam\server.ts:251:22)
+        at Topology.closeCheckedOutConnections (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\sdam\topology.ts:496:21)
+        at MongoClient._close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\mongo_client.ts:782:20)
+        at MongoClient.close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongodb\src\mongo_client.ts:764:29)
+        at NativeConnection.doClose (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\connection.js:208:21)
+        at NativeConnection._close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\connection.js:1264:18)
+        at NativeConnection.close (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\node_modules\mongoose\lib\connection.js:1229:15)
+        at disconnect (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\tests\setup.js:27:35)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at Object.<anonymous> (C:\Users\Arpitha Shri\23cse311-SurplusLink\backend\tests\supervision.test.js:18:9) {
+      errorLabelSet: Set(0) {}
+    }
+
+    [0m [90m 547 |[39m
+     [90m 548 |[39m     } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 549 |[39m         console[33m.[39merror([32m'[Auto-Dispatch] Error:'[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 550 |[39m     }
+     [90m 551 |[39m }[33m;[39m
+     [90m 552 |[39m[0m
+
+      at initiateAutoDispatch (controllers/donation.controller.js:549:17)
+
+PASS tests/supervision.test.js
+  Resilience & Load Balancing Tests
+    NGO Load Balancing (Requirement 5.6)
+      ΓêÜ should apply 0.5x multiplier to suitability score when 
+NGO is at >80% capacity (16 ms)
+      ΓêÜ should NOT apply penalty for Critical (<2h) donations 
+regardless of load (6 ms)
+    Volunteer Equity (Requirement 5.6)
+      ΓêÜ should boost score for volunteers with no tasks today 
+(Standard Mission) (5 ms)
+    Supervisor Reassignment (Requirement 5.5)
+      ΓêÜ should reassign mission if volunteer heartbeat is 
+stalled (277 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        2.5 s
+Ran all test suites matching tests/supervision.test.js.

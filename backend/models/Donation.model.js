@@ -141,6 +141,9 @@ const donationSchema = new mongoose.Schema(
         dispatchedAt: {
             type: Date,
         },
+        estimatedArrivalAt: {
+            type: Date,
+        },
     },
     {
         timestamps: true,

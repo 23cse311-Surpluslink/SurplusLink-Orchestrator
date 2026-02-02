@@ -454,11 +454,54 @@ export const claimDonation = async (req, res, next) => {
 };
 
 /**
+ * REASSIGN MISSION (Requirement 5.5)
+ * Automatically unassigns current volunteer and triggers new dispatch
+ */
+export const reassignMission = async (donationId, reason = 'Stalled or abandoned') => {
+    try {
+        const donation = await Donation.findById(donationId).populate('volunteer');
+        if (!donation) return;
+
+        const oldVolunteer = donation.volunteer;
+
+        // Reset Mission
+        donation.volunteer = undefined;
+        donation.deliveryStatus = 'idle';
+        donation.status = 'assigned';
+        donation.estimatedArrivalAt = undefined;
+        await donation.save();
+
+        if (oldVolunteer) {
+            await User.findByIdAndUpdate(oldVolunteer._id, {
+                $inc: { currentTaskCount: -1 },
+                $set: { 'volunteerProfile.lastLocationUpdate': new Date(0) } // Reset heartbeat
+            });
+
+            await createNotification(
+                oldVolunteer._id,
+                `The mission for "${donation.title}" has been unassigned due to: ${reason}.`,
+                'general'
+            );
+        }
+
+        // Trigger High-Priority Notification to next 3 volunteers
+        console.log(`[Supervisor] Reassigning mission ${donationId} due to ${reason}`);
+        initiateAutoDispatch(donationId, true); // true = high priority reassignment
+
+    } catch (error) {
+        console.error('[Supervisor] Reassignment failed:', error);
+    }
+};
+
+
+/**
  * Auto-Dispatch Logic: Finds top 3 volunteers and notifies them with tiered delays.
  * Implements 2-minute "First Right of Refusal" lock.
- * @param {string} donationId 
  */
-const initiateAutoDispatch = async (donationId) => {
+// @desc    Initiate auto-dispatch for a donation
+// @route   Internal
+// @access  Private
+export const initiateAutoDispatch = async (donationId, isRetry = false) => {
     try {
         const donation = await Donation.findById(donationId);
         if (!donation) return;
@@ -482,17 +525,21 @@ const initiateAutoDispatch = async (donationId) => {
 
         // Tiered Notifications (30s gap)
         priorityVolunteers.forEach((volunteer, index) => {
-            const delay = index * 30000; // 0s, 30s, 60s
+            const delay = isTest ? 0 : index * 30000; // 0s in test, else 30s, 60s
 
             setTimeout(async () => {
-                // Re-verify donation is still available for mission (deliveryStatus: idle)
+                // Double check if mission is still available
                 const freshDonation = await Donation.findById(donationId);
-                if (freshDonation && freshDonation.deliveryStatus === 'idle') {
+                if (freshDonation && freshDonation.status === 'assigned' && !freshDonation.volunteer) {
+                    const message = isRetry ?
+                        `URGENT REASSIGNMENT: "${donation.title}" needs a volunteer immediately!` :
+                        `New Mission: A donation "${donation.title}" is available near you!`;
+
                     await createNotification(
                         volunteer._id,
-                        `PRIORITY MISSION: A nearby donation "${freshDonation.title}" needs delivery! You have priority access for the next 2 minutes.`,
+                        message,
                         'priority_dispatch',
-                        donationId
+                        donation._id
                     );
                 }
             }, delay);
@@ -736,7 +783,10 @@ export const acceptMission = async (req, res, next) => {
             {
                 volunteer: volunteerId,
                 deliveryStatus: 'pending_pickup',
-                $set: { status: 'assigned' } // Re-affirm status (redundant but safe)
+                $set: {
+                    status: 'assigned',
+                    estimatedArrivalAt: new Date(Date.now() + 60 * 60000) // Default 1hr ETA
+                }
             },
             { new: true }
         ).populate('donor', 'name email').populate('claimedBy', 'organization email');
@@ -744,6 +794,15 @@ export const acceptMission = async (req, res, next) => {
         if (!updatedDonation) {
             return res.status(400).json({ message: 'Mission already taken.' });
         }
+
+        // Update Volunteer State (Equity & Load Balancing)
+        await User.findByIdAndUpdate(volunteerId, {
+            $inc: { currentTaskCount: 1 },
+            $set: {
+                'volunteerProfile.lastMissionDate': new Date(),
+                'volunteerProfile.lastLocationUpdate': new Date()
+            }
+        });
 
         const donationFinal = updatedDonation;
 
@@ -798,6 +857,11 @@ export const updateDeliveryStatus = async (req, res, next) => {
 
         donation.deliveryStatus = status;
         await donation.save();
+
+        // Heartbeat: Update volunteer's last location update time
+        await User.findByIdAndUpdate(req.user.id, {
+            $set: { 'volunteerProfile.lastLocationUpdate': new Date() }
+        });
 
         res.json(donation);
     } catch (error) {
@@ -885,6 +949,7 @@ export const confirmDelivery = async (req, res, next) => {
         const volunteer = await User.findById(req.user.id);
         if (volunteer) {
             volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
+            volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
 
             // Check Tier Upgrade
             const count = volunteer.stats.completedDonations;
@@ -945,17 +1010,13 @@ export const failMission = async (req, res, next) => {
 
         const volunteerName = req.user.name;
 
-        // Reset Mission
-        donation.volunteer = undefined;
-        donation.deliveryStatus = 'idle';
-        donation.status = 'assigned'; // Back to the pool of claimed donations waiting for a volunteer
+        // Reset Mission (Decrement currentTaskCount is handled in reassignMission)
+        await reassignMission(donation._id, `Volunteer Reported Failure: ${failureReason}`);
 
-        // We don't store failureReason permanently in schema as per current instructions, maybe redundant.
-        // But we must notify.
-        await donation.save();
-
-        // Update stats
-        await User.findByIdAndUpdate(req.user.id, { $inc: { 'stats.cancelledDonations': 1 } });
+        // Update stats for failure
+        await User.findByIdAndUpdate(req.user.id, {
+            $inc: { 'stats.cancelledDonations': 1 }
+        });
 
         // Notify NGO
         if (donation.claimedBy) {
@@ -1130,6 +1191,27 @@ export const getOptimizedRoute = async (req, res, next) => {
             diversionSuggested: stops.length > 2
         });
 
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Volunteer cancels mission (emergency/escape)
+// @route   PATCH /api/donations/:id/cancel-mission
+// @access  Private (Volunteer)
+export const cancelMission = async (req, res, next) => {
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) return res.status(404).json({ message: 'Donation not found' });
+
+        if (donation.volunteer?.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const { reason } = req.body || { reason: 'Emergency/Breakdown' };
+
+        await reassignMission(donation._id, `Volunteer Emergency: ${reason}`);
+
+        res.json({ message: 'Mission cancelled and sent for reassignment.' });
     } catch (error) {
         next(error);
     }

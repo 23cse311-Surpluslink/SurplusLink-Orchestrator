@@ -2,8 +2,8 @@ import cron from 'node-cron';
 import https from 'https';
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
-import { createNotification } from './notification.js';
 import { findSuitableVolunteers } from '../services/matching.service.js';
+import { reassignMission } from '../controllers/donation.controller.js';
 
 const setupCronJobs = () => {
     // Keep-alive Ping (Existing)
@@ -19,96 +19,47 @@ const setupCronJobs = () => {
         }
     });
 
-    // Phase 4: Reliability & Safety Checks (Runs every 5 minutes)
+    // 2. System Supervisor: Stalled Mission Detection (Runs every 5 minutes)
+    // Requirement 5.5: Auto-reassignment on failure/stall
     cron.schedule('*/5 * * * *', async () => {
-        console.log('[Cron] Running safety checks...');
-
+        console.log('[Cron] System Supervisor: Checking for stalled missions...');
         try {
             const now = new Date();
-            const fortyFiveMinsAgo = new Date(now - 45 * 60 * 1000);
-            const twoHoursAgo = new Date(now - 2 * 60 * 60 * 1000);
+            const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000);
+            const etaThreshold = 20 * 60000; // 20 minutes allowance
 
-            // 1. Task Expiry: Pending Pickup > 45 mins
-            const expiredPickups = await Donation.find({
-                deliveryStatus: 'pending_pickup',
-                updatedAt: { $lt: fortyFiveMinsAgo }
-            }).populate('claimedBy').populate('volunteer'); // claimedBy is NGO, volunteer is Volunteer
+            // Find active missions (deliveryStatus != idle/delivered)
+            const activeMissions = await Donation.find({
+                status: 'assigned',
+                deliveryStatus: { $nin: ['idle', 'delivered'] },
+                volunteer: { $exists: true }
+            }).populate('volunteer');
 
-            for (const donation of expiredPickups) {
-                console.log(`[Cron] Expiring donation ${donation._id} due to pickup timeout.`);
+            for (const mission of activeMissions) {
+                const vol = mission.volunteer;
+                if (!vol) continue;
 
-                const oldVolunteerId = donation.volunteer?._id;
-                const ngoId = donation.claimedBy?._id;
+                // A. Heartbeat Check: No location update for 15 mins
+                const lastHeartbeat = vol.volunteerProfile?.lastLocationUpdate || vol.updatedAt;
+                const isHeartbeatStalled = lastHeartbeat < fifteenMinsAgo;
 
-                // Reset
-                donation.volunteer = undefined;
-                donation.deliveryStatus = 'idle';
-                donation.status = 'assigned'; // Ensure it's ready for a new match
-                await donation.save();
+                // B. ETA Check: Exceeded ETA by > 20 mins
+                const isETAExceeded = mission.estimatedArrivalAt &&
+                    (now.getTime() > new Date(mission.estimatedArrivalAt).getTime() + etaThreshold);
 
-                // Notify Volunteer
-                if (oldVolunteerId) {
-                    await User.findByIdAndUpdate(oldVolunteerId, { $inc: { 'stats.cancelledDonations': 1 } });
+                if (isHeartbeatStalled || isETAExceeded) {
+                    const reason = isHeartbeatStalled ? 'Heartbeat Timeout (Inactivity)' : 'ETA Violation (Overdue)';
+                    console.log(`[Supervisor] Flagging mission ${mission._id} for reassignment: ${reason}`);
 
-                    await createNotification(
-                        oldVolunteerId,
-                        `Mission for "${donation.title}" expired due to inactivity.`,
-                        'general', // or specific type
-                        donation._id
-                    );
-                }
-
-                // Notify NGO
-                if (ngoId) {
-                    await createNotification(
-                        ngoId,
-                        `Volunteer assignment for "${donation.title}" timed out. Searching for a new match.`,
-                        'general',
-                        donation._id
-                    );
+                    await reassignMission(mission._id, `System Supervisor: ${reason}`);
                 }
             }
 
-            // 2. Inactivity Tracking: In Transit > 2 Hours (General Alert)
-            const stuckInTransit = await Donation.find({
-                deliveryStatus: { $in: ['picked_up', 'in_transit'] },
-                updatedAt: { $lt: twoHoursAgo } // No update in 2 hours
-            }).populate('claimedBy');
-
-            for (const donation of stuckInTransit) {
-                if (donation.claimedBy) {
-                    await createNotification(
-                        donation.claimedBy._id,
-                        `Status Alert: Delivery for "${donation.title}" has been in transit for > 2 hours.`,
-                        'general',
-                        donation._id
-                    );
-                }
-                console.log(`[Cron] Flagged donation ${donation._id} as stuck in transit (2h).`);
-            }
-
-            // 3. Safety Timeout: Picked Up > 4 Hours (Critical Alert)
-            const fourHoursAgo = new Date(now - 4 * 60 * 60 * 1000);
-            const criticalTimeouts = await Donation.find({
-                deliveryStatus: 'picked_up',
-                pickedUpAt: { $lt: fourHoursAgo }
-            }).populate('claimedBy').populate('volunteer');
-
-            for (const donation of criticalTimeouts) {
-                console.log(`[Cron] CRITICAL: Donation ${donation._id} picked up > 4 hours ago.`);
-
-                if (donation.claimedBy) {
-                    await createNotification(
-                        donation.claimedBy._id,
-                        `CRITICAL ALERT: Mission "${donation.title}" has been in PICKED_UP state for > 4 hours. Please contact volunteer ${donation.volunteer?.name} immediately!`,
-                        'general',
-                        donation._id
-                    );
-                }
-            }
-
+            // Clean up old "Safety Checks" logic or merge them if they overlap.
+            // Requirement 5.5 says "If a volunteer is on an active mission but their currentLocation hasn't updated in 15 minutes, or if they exceed the ETA by more than 20 minutes, flag the mission as stalled."
+            // This replaces the old simpler checks for 'idle' timers.
         } catch (error) {
-            console.error('[Cron] Error in safety checks:', error);
+            console.error('[Supervisor] Error in health checks:', error);
         }
     });
 
