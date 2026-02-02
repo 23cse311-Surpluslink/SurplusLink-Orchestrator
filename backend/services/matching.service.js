@@ -3,42 +3,56 @@ import User from '../models/User.model.js';
 import mongoose from 'mongoose';
 
 /**
+ * Get urgency information based on time remaining until expiry
+ * @param {Date} expiryDate - The expiry date of the donation
+ * @returns {Object} Urgency info { score, level, tier }
+ */
+export const getUrgencyInfo = (expiryDate) => {
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const hoursRemaining = (expiry - now) / (1000 * 60 * 60);
+
+    if (hoursRemaining < 3) {
+        return { score: 100, level: 'Critical', tier: 1 };
+    } else if (hoursRemaining < 6) {
+        return { score: 60, level: 'Urgent', tier: 2 };
+    } else {
+        return { score: 20, level: 'Standard', tier: 3 };
+    }
+};
+
+/**
  * Calculate the suitability score for an NGO based on a donation
- * Combines distance (60%) and need/capacity (40%)
- * Formula: Suitability = ((1/(distanceKm + 1)) * 60) + ((unmetNeed/capacity) * 40)
+ * Combines Distance (40%) and Time Urgency (60%)
+ * Formula: Ranking = (DistanceScore * 0.4) + (TimeUrgencyScore * 0.6)
  * Boosts by 20% if NGO has isUrgentNeed flag
  * 
  * @param {Object} donation - The donation object
  * @param {Object} ngo - The NGO user object
  * @param {number} distance - Distance in meters
- * @param {number} unmetNeed - Unmet need for the NGO
+ * @param {number} unmetNeed - Unmet need for the NGO (still used for base capacity check)
  * @returns {number} Suitability score (0-100)
  */
 const calculateSuitabilityScore = (donation, ngo, distance, unmetNeed) => {
-    // Distance score (60% weight): Closer is better
-    // Formula: 1 / (distance_in_km + 1) * 100
+    // 1. Distance score (40% weight)
     const distanceKm = distance / 1000;
     const distanceScore = (1 / (distanceKm + 1)) * 100;
-    const distanceWeight = 0.6;
+    const distanceWeight = 0.4;
 
-    // Need/Capacity score (40% weight)
-    // Score = (unmetNeed / dailyCapacity) * 100
-    let needScore = 0;
-    const capacity = ngo.ngoProfile?.dailyCapacity || 0;
-    if (capacity > 0) {
-        needScore = (unmetNeed / capacity) * 100;
-    }
-    const needWeight = 0.4;
+    // 2. Time Urgency score (60% weight)
+    const urgency = getUrgencyInfo(donation.expiryDate);
+    const urgencyScore = urgency.score;
+    const urgencyWeight = 0.6;
 
-    // Combine scores
-    let finalScore = (distanceScore * distanceWeight) + (needScore * needWeight);
+    // 3. Combine scores
+    let finalScore = (distanceScore * distanceWeight) + (urgencyScore * urgencyWeight);
 
-    // Boost by 20% if NGO has isUrgentNeed flag (Multiplicative boost)
+    // Boost by 20% if NGO has isUrgentNeed flag
     if (ngo.ngoProfile && ngo.ngoProfile.isUrgentNeed) {
         finalScore = finalScore * 1.2;
     }
 
-    return Math.round(Math.min(finalScore, 100) * 100) / 100; // Cap at 100 and round to 2 decimal places
+    return Math.round(Math.min(finalScore, 100) * 100) / 100;
 };
 
 /**
@@ -121,11 +135,14 @@ export const findBestNGOsForDonation = async (donationId) => {
         const scoredNGOs = await Promise.all(ngos.map(async (ngo) => {
             const unmetNeed = await getUnmetNeed(ngo._id);
             const suitabilityScore = calculateSuitabilityScore(donation, ngo, ngo.distance, unmetNeed);
+            const urgency = getUrgencyInfo(donation.expiryDate);
 
             return {
                 ...ngo,
                 suitabilityScore,
                 matchPercentage: suitabilityScore,
+                urgencyLevel: urgency.level,
+                urgencyTier: urgency.tier,
             };
         }));
 
@@ -240,11 +257,14 @@ export const findBestDonationsForNGO = async (ngoId) => {
         // Calculate suitability scores for each donation
         const scoredDonations = donations.map((donation) => {
             const suitabilityScore = calculateSuitabilityScore(donation, ngo, donation.distance, unmetNeed);
+            const urgency = getUrgencyInfo(donation.expiryDate);
 
             return {
                 ...donation,
                 suitabilityScore,
                 matchPercentage: suitabilityScore,
+                urgencyLevel: urgency.level,
+                urgencyTier: urgency.tier,
             };
         });
 

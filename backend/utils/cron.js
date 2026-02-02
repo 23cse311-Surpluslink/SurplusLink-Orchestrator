@@ -110,6 +110,32 @@ const setupCronJobs = () => {
             console.error('[Cron] Error in safety checks:', error);
         }
     });
+
+    // 4. Automatic Expiration (Runs every 15 minutes) - Requirement 5.4
+    cron.schedule('*/15 * * * *', async () => {
+        console.log('[Cron] Checking for expired donations...');
+        try {
+            const expiredDonations = await Donation.find({
+                status: 'active',
+                expiryDate: { $lt: new Date() }
+            });
+
+            for (const donation of expiredDonations) {
+                donation.status = 'expired';
+                await donation.save();
+
+                await createNotification(
+                    donation.donor,
+                    `Your donation "${donation.title}" has expired and is no longer available.`,
+                    'donation_expired',
+                    donation._id
+                );
+                console.log(`[Cron] Expired donation: ${donation._id}`);
+            }
+        } catch (err) {
+            console.error('[Cron] Expiration task failed:', err);
+        }
+    });
 };
 
 export default setupCronJobs;
