@@ -248,11 +248,13 @@ const sendOTP = async (req, res, next) => {
 
             res.status(200).json({ success: true, message: 'OTP sent to email', devOtp: otp });
         } catch (error) {
-            user.otp = undefined;
-            user.otpExpires = undefined;
-            await user.save();
-            res.status(500);
-            throw new Error('Email could not be sent');
+            console.error("Failed to send OTP email:", error);
+            // Don't fail the request, just return the OTP for dev/fallback
+            res.status(200).json({ 
+                success: true, 
+                message: 'Email failed (SMTP Error), use devOtp', 
+                devOtp: otp 
+            });
         }
     } catch (error) {
         next(error);
