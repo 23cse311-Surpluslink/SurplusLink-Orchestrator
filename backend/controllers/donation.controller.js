@@ -402,6 +402,7 @@ export const getSmartFeed = async (req, res, next) => {
                 ...d._doc || d,
                 matchPercentage: d.matchPercentage || undefined,
                 suitabilityScore: d.suitabilityScore || undefined,
+                urgencyLevel: d.urgencyLevel || undefined,
             })),
             capacityWarning,
             unmetNeed,
@@ -420,6 +421,15 @@ export const claimDonation = async (req, res, next) => {
         const donation = await Donation.findById(req.params.id);
         if (!donation) return res.status(404).json({ message: 'Donation not found' });
         if (donation.status !== 'active') return res.status(400).json({ message: 'Donation is no longer active' });
+
+        // Safety Buffer Logic: Prevent claiming if less than 30 minutes until expiry
+        const now = new Date();
+        const minsRemaining = (new Date(donation.expiryDate) - now) / (1000 * 60);
+        if (minsRemaining < 30) {
+            return res.status(400).json({
+                message: 'Safety Threshold Reached: This donation is too close to expiry for safe transport.'
+            });
+        }
 
         donation.status = 'assigned';
         donation.claimedBy = req.user.id;
@@ -581,10 +591,18 @@ export const getAvailableMissions = async (req, res, next) => {
 
         let donations;
 
-        // 3. Proximity Sort
+        // 3. Proximity Sort & Safety Filter (Only show items with > 30 mins remaining)
+        const now = new Date();
+        const safetyThreshold = new Date(now.getTime() + 30 * 60000);
+
+        const baseQuery = {
+            ...query,
+            expiryDate: { $gt: safetyThreshold }
+        };
+
         if (currentLocation && currentLocation.coordinates && currentLocation.coordinates.length === 2) {
             donations = await Donation.find({
-                ...query,
+                ...baseQuery,
                 coordinates: {
                     $near: {
                         $geometry: {
@@ -595,7 +613,7 @@ export const getAvailableMissions = async (req, res, next) => {
                 }
             }).populate('donor', 'name address').populate('claimedBy', 'organization address');
         } else {
-            donations = await Donation.find(query).populate('donor', 'name address').populate('claimedBy', 'organization address');
+            donations = await Donation.find(baseQuery).populate('donor', 'name address').populate('claimedBy', 'organization address');
         }
 
         // 4. Capacity Filter (In-memory)
@@ -627,8 +645,22 @@ export const acceptMission = async (req, res, next) => {
         const donationId = req.params.id;
         const volunteerId = req.user.id;
 
+        const donation = await Donation.findById(donationId);
+        if (!donation) {
+            return res.status(400).json({ message: 'Mission not found.' });
+        }
+
+        // Safety Buffer Logic
+        const now = new Date();
+        const minsRemaining = (new Date(donation.expiryDate) - now) / (1000 * 60);
+        if (minsRemaining < 30) {
+            return res.status(400).json({
+                message: 'Safety Threshold Reached: Too close to expiry for safe delivery.'
+            });
+        }
+
         // Atomic update to prevent race conditions
-        const donation = await Donation.findOneAndUpdate(
+        const updatedDonation = await Donation.findOneAndUpdate(
             {
                 _id: donationId,
                 status: 'assigned',
@@ -643,31 +675,33 @@ export const acceptMission = async (req, res, next) => {
             { new: true }
         ).populate('donor', 'name email').populate('claimedBy', 'organization email');
 
-        if (!donation) {
-            return res.status(400).json({ message: 'Mission not available or already taken.' });
+        if (!updatedDonation) {
+            return res.status(400).json({ message: 'Mission already taken.' });
         }
+
+        const donationFinal = updatedDonation;
 
         const volunteerName = req.user.name;
 
         // Notify Donor
         await createNotification(
-            donation.donor._id,
+            donationFinal.donor._id,
             `A volunteer ${volunteerName} is on their way to pick up your donation!`,
             'volunteer_accepted',
-            donation._id
+            donationFinal._id
         );
 
         // Notify NGO
-        if (donation.claimedBy) {
+        if (donationFinal.claimedBy) {
             await createNotification(
-                donation.claimedBy._id,
+                donationFinal.claimedBy._id,
                 `Volunteer ${volunteerName} has accepted your delivery and is heading to the donor.`,
                 'volunteer_accepted',
-                donation._id
+                donationFinal._id
             );
         }
 
-        res.json(donation);
+        res.json(donationFinal);
     } catch (error) {
         next(error);
     }
