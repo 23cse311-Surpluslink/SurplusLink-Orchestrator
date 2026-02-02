@@ -1,5 +1,6 @@
 import User from '../models/User.model.js';
 import Donation from '../models/Donation.model.js';
+import { geocodeAddress } from '../utils/geocoder.js';
 
 // @desc    Get user profile
 // @route   GET /api/v1/users/profile
@@ -67,7 +68,16 @@ const updateUserProfile = async (req, res, next) => {
         if (user) {
             user.name = req.body.name || user.name;
             user.address = req.body.address || user.address;
-            user.coordinates = req.body.coordinates || user.coordinates;
+            
+            // Automated Address-to-Coordinate Conversion
+            if (req.body.address && req.body.address !== user.address) {
+                const geocoded = await geocodeAddress(req.body.address);
+                if (geocoded) {
+                    user.coordinates = geocoded;
+                }
+            } else {
+                user.coordinates = req.body.coordinates || user.coordinates;
+            }
 
             if (req.file) {
                 user.avatar = req.file.path;
@@ -112,6 +122,14 @@ const submitVerification = async (req, res, next) => {
             user.taxId = req.body.taxId || user.taxId;
             user.permitNumber = req.body.permitNumber || user.permitNumber;
             user.address = req.body.address || user.address;
+
+            // Update coordinates if address is provided during verification
+            if (req.body.address) {
+                const geocoded = await geocodeAddress(req.body.address);
+                if (geocoded) {
+                    user.coordinates = geocoded;
+                }
+            }
 
             if (req.file) {
                 user.documentUrl = req.file.path;
