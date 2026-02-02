@@ -16,6 +16,8 @@ export function NgoSettingsPage() {
     const [capacity, setCapacity] = useState<number>(50);
     const [facilities, setFacilities] = useState<string[]>([]);
     const [isUrgent, setIsUrgent] = useState(false);
+    const [address, setAddress] = useState('');
+    const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -26,6 +28,8 @@ export function NgoSettingsPage() {
                     setCapacity(data.ngoProfile.dailyCapacity || 50);
                     setFacilities(data.ngoProfile.storageFacilities || []);
                     setIsUrgent(data.ngoProfile.isUrgentNeed || false);
+                    setAddress(data.address || '');
+                    setCoords(data.coordinates || null);
                 }
             } catch (error) {
                 console.error("Failed to fetch NGO profile", error);
@@ -55,6 +59,11 @@ export function NgoSettingsPage() {
                 storageFacilities: facilities,
                 isUrgentNeed: isUrgent
             };
+
+            // First update the user profile (address)
+            await api.put('/users/profile', { address });
+
+            // Then update the NGO-specific settings
             await NgoService.updateNgoProfile(profile);
             toast({
                 title: "Settings Saved",
@@ -85,6 +94,30 @@ export function NgoSettingsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
+
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="address">Permanent Office Address</Label>
+                            <p className="text-sm text-muted-foreground">This location will be used to calculate distances for donation matching.</p>
+                            <div className="relative">
+                                <Input
+                                    id="address"
+                                    placeholder="Enter your NGO's main location"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    className="pr-10"
+                                />
+                                <div className="absolute right-3 top-3">
+                                    {coords ? "📍" : "❓"}
+                                </div>
+                            </div>
+                            {coords && (
+                                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                    Verified Coordinates: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                                </p>
+                            )}
+                        </div>
+                    </div>
 
                     <div className="space-y-4">
                         <div className="flex flex-col gap-2">
