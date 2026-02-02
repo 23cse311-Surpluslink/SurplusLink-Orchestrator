@@ -20,6 +20,7 @@ import {
     getVolunteerActiveMission,
     getAdminActiveMissions,
     getNgoStats,
+    getBestNGOs,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -54,6 +55,7 @@ router.post('/', roleBasedAccess(['donor']), upload.array('photos', 5), createDo
 router.get('/my-donations', roleBasedAccess(['donor']), getDonorHistory);
 router.get('/stats', roleBasedAccess(['donor']), getDonorStats);
 router.patch('/:id/cancel', roleBasedAccess(['donor']), cancelDonation);
+router.get('/:id/best-ngos', roleBasedAccess(['donor']), getBestNGOs);
 
 // General donation routes
 router.get('/:id', getDonationById);
