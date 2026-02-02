@@ -82,6 +82,7 @@ export const findBestNGOsForDonation = async (donationId) => {
                     distanceField: 'distance',
                     maxDistance: 15000, // 15km in meters
                     spherical: true,
+                    key: 'location', // Explicitly use the NGO location index
                     query: {
                         role: 'ngo',
                         status: 'active',
@@ -374,6 +375,7 @@ export const findSuitableVolunteers = async (donation, radius = 10000) => {
                     distanceField: 'distance',
                     maxDistance: radius,
                     spherical: true,
+                    key: 'volunteerProfile.currentLocation', // Expliticly use volunteer location index
                     query: {
                         role: 'volunteer',
                         status: 'active',

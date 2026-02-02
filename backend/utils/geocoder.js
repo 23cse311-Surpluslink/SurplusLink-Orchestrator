@@ -10,7 +10,9 @@ export const geocodeAddress = async (address) => {
     
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
-        console.warn('GEOCODER: GOOGLE_MAPS_API_KEY is missing');
+        if (process.env.NODE_ENV !== 'test') {
+            console.warn('GEOCODER: GOOGLE_MAPS_API_KEY is missing');
+        }
         return null;
     }
 
