@@ -175,7 +175,7 @@ describe('Volunteer Lifecycle Integration Tests', () => {
                 .set('Cookie', [volunteer2Token]);
 
             expect(res.statusCode).toBe(400); // Expect failure
-            expect(res.body.message).toMatch(/not available/i);
+            expect(res.body.message).toMatch(/Mission already taken/i);
         });
     });
 
