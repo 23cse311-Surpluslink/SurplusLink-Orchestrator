@@ -4,6 +4,7 @@ import { createNotification } from '../utils/notification.js';
 import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
 import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
+import { getOptimalPath, getTravelCost } from '../services/routing.service.js';
 
 // @desc    Create new donation
 // @route   POST /api/donations
@@ -1043,6 +1044,92 @@ export const getBestNGOs = async (req, res, next) => {
 
         const bestNGOs = await findBestNGOsForDonation(donationId);
         res.json(bestNGOs);
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Get optimized route for active mission
+// @route   GET /api/donations/:id/optimized-route
+// @access  Private (Volunteer)
+export const getOptimizedRoute = async (req, res, next) => {
+    try {
+        const donationId = req.params.id;
+        const volunteerId = req.user.id;
+
+        const donation = await Donation.findById(donationId)
+            .populate('donor', 'coordinates address')
+            .populate('claimedBy', 'location address');
+
+        if (!donation) {
+            return res.status(404).json({ message: 'Donation not found.' });
+        }
+
+        const user = await User.findById(volunteerId);
+        const volunteerCoords = user.volunteerProfile?.currentLocation?.coordinates;
+
+        if (!volunteerCoords || volunteerCoords[0] === 0) {
+            return res.status(400).json({ message: 'Volunteer location not available.' });
+        }
+
+        // Define primary stops for this mission
+        const stops = [
+            {
+                id: 'pickup',
+                type: 'pickup',
+                coordinates: donation.coordinates.coordinates,
+                address: donation.pickupAddress,
+                priority: 5 // medium priority base
+            },
+            {
+                id: 'dropoff',
+                type: 'dropoff',
+                coordinates: donation.claimedBy?.location?.coordinates || [0, 0],
+                address: donation.claimedBy?.address,
+                priority: 5
+            }
+        ];
+
+        // DYNAMIC DIVERSION LOGIC:
+        // Check if there's a nearby high-priority donation that needs pickup
+        const now = new Date();
+        const urgencyThreshold = new Date(now.getTime() + 60 * 60000); // Exiring in < 1hr
+
+        const highPriorityDonations = await Donation.find({
+            status: 'assigned',
+            deliveryStatus: 'idle',
+            volunteer: { $exists: false },
+            expiryDate: { $lt: urgencyThreshold, $gt: now },
+            coordinates: {
+                $near: {
+                    $geometry: { type: 'Point', coordinates: volunteerCoords },
+                    $maxDistance: 5000 // Within 5km diversion radius
+                }
+            }
+        }).limit(1);
+
+        if (highPriorityDonations.length > 0) {
+            const extra = highPriorityDonations[0];
+            stops.push({
+                id: `diversion-${extra._id}`,
+                type: 'pickup',
+                coordinates: extra.coordinates.coordinates,
+                address: extra.pickupAddress,
+                priority: 10, // Max priority for diversion
+                isDiversion: true,
+                diversionDonationId: extra._id
+            });
+            console.log(`[Routing] High-priority diversion detected for donation ${extra._id}`);
+        }
+
+        const optimizedResult = await getOptimalPath(volunteerCoords, stops);
+
+        res.json({
+            missionId: donationId,
+            currentLocation: { lng: volunteerCoords[0], lat: volunteerCoords[1] },
+            ...optimizedResult,
+            diversionSuggested: stops.length > 2
+        });
+
     } catch (error) {
         next(error);
     }
