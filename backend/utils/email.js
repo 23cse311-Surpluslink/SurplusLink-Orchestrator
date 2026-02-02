@@ -1,6 +1,14 @@
 import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USERNAME) {
+    console.log('MOCK EMAIL SENDING (Credentials missing):');
+    console.log(`To: ${options.email}`);
+    console.log(`Subject: ${options.subject}`);
+    console.log(`Message: ${options.message}`);
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,

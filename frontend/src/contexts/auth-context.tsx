@@ -100,7 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.data.requiresOtp) {
             toast({
                 title: "Verification Sent",
-                description: "Please check your email for the verification code.",
+                description: response.data.devOtp
+                    ? `Use Code: ${response.data.devOtp}`
+                    : "Please check your email for the verification code.",
             });
             return response.data;
         }
@@ -113,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             title: "Account created!",
             description: `Welcome to SurplusLink as a ${user.role}!`,
         });
+        return user;
     }, [toast]);
 
     const logout = useCallback(async () => {
@@ -169,7 +172,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await api.post('/auth/send-otp', { email });
         toast({
             title: "OTP Sent",
-            description: response.data.message || "Please check your email for the verification code.",
+            description: response.data.devOtp
+                ? `Use Code: ${response.data.devOtp}`
+                : (response.data.message || "Please check your email for the verification code."),
         });
         return response.data;
     }, [toast]);
