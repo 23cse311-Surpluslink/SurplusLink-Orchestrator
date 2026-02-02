@@ -21,6 +21,7 @@ import {
     getAdminActiveMissions,
     getNgoStats,
     getBestNGOs,
+    getOptimizedRoute,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -49,6 +50,7 @@ router.patch('/:id/pickup', roleBasedAccess(['volunteer']), upload.single('photo
 router.patch('/:id/deliver', roleBasedAccess(['volunteer']), upload.single('photo'), confirmDelivery);
 router.patch('/:id/delivery-status', roleBasedAccess(['volunteer']), deliveryStatusLimiter, updateDeliveryStatus);
 router.patch('/:id/fail-mission', roleBasedAccess(['volunteer']), failMission);
+router.get('/:id/optimized-route', roleBasedAccess(['volunteer']), getOptimizedRoute);
 
 // Donor specific routes
 router.post('/', roleBasedAccess(['donor']), upload.array('photos', 5), createDonation);
