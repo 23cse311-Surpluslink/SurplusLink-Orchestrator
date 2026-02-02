@@ -2,6 +2,7 @@ import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
 import sendEmail from '../utils/email.js';
+import { geocodeAddress } from '../utils/geocoder.js';
 
 // @desc    Create new donation
 // @route   POST /api/donations
@@ -91,6 +92,18 @@ export const createDonation = async (req, res) => {
             dietaryTags,
             donor: req.user._id,
         };
+
+        // Automated Address-to-Coordinate Conversion (Geocoding)
+        if (pickupAddress) {
+            const geocoded = await geocodeAddress(pickupAddress);
+            if (geocoded) {
+                console.log(`Donation Geocoding Success: ${pickupAddress} -> [${geocoded.lng}, ${geocoded.lat}]`);
+                donationData.coordinates = {
+                    type: 'Point',
+                    coordinates: [geocoded.lng, geocoded.lat]
+                };
+            }
+        }
 
         // Ensure coordinates are just the [lng, lat] array
         if (donationData.coordinates.coordinates && Array.isArray(donationData.coordinates.coordinates)) {
