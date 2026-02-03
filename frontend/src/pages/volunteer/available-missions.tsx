@@ -29,8 +29,11 @@ import {
     Bike,
     Navigation,
     Box,
-    Loader2
+    Loader2,
+    Sparkles
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MissionCard } from "@/components/volunteer/mission-card";
 import {
     Sheet,
     SheetContent,
@@ -66,6 +69,7 @@ const itemVariants = {
 export default function AvailableMissions() {
     const { user } = useAuth();
     const { toast } = useToast();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [view, setView] = useState<"list" | "map">("list");
@@ -99,18 +103,22 @@ export default function AvailableMissions() {
         try {
             await DonationService.acceptMission(id);
             toast({
-                title: "Mission Accepted! 🚀",
-                description: "Proceed to the active mission tab to start the rescue.",
+                title: "Mission Secured! 🚀",
+                description: "Initializing your rescue route...",
                 className: "bg-emerald-600 text-white border-none shadow-xl"
             });
-            fetchMissions();
-            setSelectedMission(null);
-        } catch (error) {
+            // Brief delay for the toast/experience
+            setTimeout(() => {
+                navigate("/volunteer/active");
+            }, 1000);
+        } catch (error: any) {
+            const message = error.response?.data?.message || "Failed to accept mission.";
             toast({
-                title: "Error",
-                description: "Failed to accept mission. It might have been taken.",
+                title: "Mission Unavailable",
+                description: message,
                 variant: "destructive"
             });
+            fetchMissions();
         } finally {
             setAcceptingId(null);
         }
@@ -222,103 +230,16 @@ export default function AvailableMissions() {
                         animate="visible"
                         className="grid gap-5"
                     >
-                        {filteredMissions.map((mission) => {
-                            const tooHeavy = isTooHeavy(mission.quantity);
-                            const urgency = getUrgency(mission.expiryTime);
-
-                            return (
-                                <motion.div key={mission.id} variants={itemVariants}>
-                                    <Card
-                                        className={cn(
-                                            "group relative border-border/60 bg-card hover:border-primary/40 transition-all duration-300 overflow-hidden cursor-pointer shadow-sm hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]",
-                                            tooHeavy && "opacity-60 grayscale-[0.5]"
-                                        )}
-                                        onClick={() => setSelectedMission(mission)}
-                                    >
-                                        <div className="p-5 md:p-6">
-                                            <div className="flex flex-col md:flex-row justify-between gap-4">
-                                                {/* Left Info Column */}
-                                                <div className="flex-1 space-y-4">
-                                                    <div className="flex items-start justify-between md:justify-start gap-3">
-                                                        <div className="flex gap-2">
-                                                            <Badge className={cn(
-                                                                "rounded-md px-2 py-1 uppercase text-[10px] font-black tracking-widest border-none",
-                                                                urgency === "High"
-                                                                    ? "bg-destructive text-destructive-foreground animate-pulse"
-                                                                    : (!mission.foodCategory
-                                                                        ? "bg-amber-500/20 text-amber-500"
-                                                                        : "bg-primary/20 text-primary")
-                                                            )}>
-                                                                {urgency === "High"
-                                                                    ? "Urgent Rescue"
-                                                                    : (mission.foodCategory || "Expiring Soon")
-                                                                }
-                                                            </Badge>
-                                                            {tooHeavy ? (
-                                                                <Badge variant="destructive" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1">
-                                                                    <AlertCircle className="size-3" /> Too Heavy
-                                                                </Badge>
-                                                            ) : (
-                                                                <Badge variant="outline" className="rounded-md px-2 py-1 text-[10px] uppercase font-black tracking-widest gap-1 border-primary/20 text-primary">
-                                                                    <Bike className="size-3" /> Vehicle Matched
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <h3 className="text-xl md:text-2xl font-black tracking-tight group-hover:text-primary transition-colors">
-                                                            {mission.title}
-                                                        </h3>
-                                                        <div className="flex items-center gap-2 text-muted-foreground mt-1 font-medium">
-                                                            <Box className="size-4" />
-                                                            <span>{mission.quantity}</span>
-                                                            <span className="mx-1">•</span>
-                                                            <Clock className="size-4" />
-                                                            <span className={cn(urgency === "High" && "text-destructive font-bold")}>
-                                                                Expires {new Date(mission.expiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex flex-col gap-3 pt-2">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                                            <span className="text-sm font-bold truncate max-w-[200px]">{mission.address}</span>
-                                                            <ArrowRight className="size-4 text-muted-foreground shrink-0" />
-                                                            <div className="size-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
-                                                            <span className="text-sm font-bold truncate max-w-[200px]">{mission.ngoAddress || "NGO Hub"}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Right CTA/Meta Column */}
-                                                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-0 md:pl-8 gap-4 min-w-[120px]">
-                                                    <div className="text-right hidden md:block">
-                                                        <span className="block text-3xl font-black text-foreground">{(Math.random() * 5 + 1).toFixed(1)} km</span>
-                                                        <span className="block text-xs font-black uppercase tracking-widest text-muted-foreground">Est. distance</span>
-                                                    </div>
-                                                    <Button
-                                                        disabled={tooHeavy || acceptingId === mission.id}
-                                                        className="rounded-xl w-full md:w-32 h-12 font-black text-lg bg-primary hover:bg-primary/90 shadow-glow shadow-primary/20 group/btn"
-                                                        onClick={(e) => handleAccept(e, mission.id!)}
-                                                    >
-                                                        {acceptingId === mission.id ? (
-                                                            <Loader2 className="animate-spin size-5" />
-                                                        ) : (
-                                                            <>
-                                                                Accept
-                                                                <Navigation className="ml-2 size-4 group-hover/btn:translate-x-1 transition-transform" />
-                                                            </>
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            );
-                        })}
+                        {filteredMissions.map((mission) => (
+                            <MissionCard
+                                key={mission.id}
+                                mission={mission}
+                                onAccept={(id) => handleAccept({ stopPropagation: () => { } } as any, id)}
+                                onView={setSelectedMission}
+                                isAccepting={acceptingId === mission.id}
+                                isTooHeavy={isTooHeavy(mission.quantity)}
+                            />
+                        ))}
                     </motion.div>
                 ) : (
                     <motion.div

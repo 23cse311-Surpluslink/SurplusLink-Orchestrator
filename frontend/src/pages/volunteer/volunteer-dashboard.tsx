@@ -56,19 +56,37 @@ export default function VolunteerDashboard() {
         },
         {
             label: "Reliability",
-            value: user?.stats?.completedDonations ? "98%" : "100%",
+            value: (function () {
+                const completed = user?.stats?.completedDonations || 0;
+                const cancelled = user?.stats?.cancelledDonations || 0;
+                const total = completed + cancelled;
+                if (total === 0) return "100%";
+                return `${Math.round((completed / total) * 100)}%`;
+            })(),
             icon: ShieldCheck,
-            description: "On-time arrival rate",
+            description: "Rescue completion rate",
             color: "text-amber-500",
         },
         {
             label: "Current Tier",
             value: user?.volunteerProfile?.tier || "Rookie",
             icon: Zap,
-            description: "Unlock perks as you level up",
+            description: (function () {
+                const count = user?.stats?.completedDonations || 0;
+                if (count < 10) return `${10 - count} more to 'Hero'`;
+                if (count < 50) return `${50 - count} more to 'Champion'`;
+                return "Elite 'Champion' Status";
+            })(),
             color: "text-purple-500",
         },
     ];
+
+    const getTierProgress = () => {
+        const count = user?.stats?.completedDonations || 0;
+        if (count < 10) return (count / 10) * 100;
+        if (count < 50) return ((count - 10) / 40) * 100;
+        return 100;
+    };
 
     return (
         <motion.div
@@ -77,12 +95,13 @@ export default function VolunteerDashboard() {
             variants={containerVariants}
             className="space-y-8 p-6"
         >
-            <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                    Volunteer Portal
+            <div className="flex flex-col gap-2 relative">
+                <div className="absolute -left-4 top-0 w-1 bg-primary h-full rounded-full" />
+                <h1 className="text-4xl font-black tracking-tight lg:text-6xl text-foreground">
+                    Volunteer <span className="text-primary italic">Portal</span>
                 </h1>
-                <p className="text-muted-foreground text-lg font-medium">
-                    Welcome back, <span className="text-foreground font-black">{user?.name}</span>! Ready for your next mission?
+                <p className="text-muted-foreground text-lg font-medium max-w-2xl">
+                    Welcome back, <span className="text-foreground font-black underline decoration-primary/30 underline-offset-4">{user?.name}</span>! Ready for your next rescue mission?
                 </p>
             </div>
 
@@ -90,18 +109,37 @@ export default function VolunteerDashboard() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, index) => (
                     <motion.div key={index} variants={itemVariants}>
-                        <Card className="hover:bg-accent/50 transition-all cursor-default group border-border/50 border-2 hover:border-primary/20">
+                        <Card className="relative overflow-hidden hover:bg-accent/50 transition-all cursor-default group border-border/50 border-2 hover:border-primary/20 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                            <div className={cn("absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-5 transition-transform group-hover:scale-150 group-hover:opacity-10 bg-current", stat.color.replace('text-', 'bg-'))} />
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                                     {stat.label}
                                 </CardTitle>
-                                <stat.icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", stat.color)} />
+                                <div className={cn("p-2 rounded-xl bg-accent/50", stat.color)}>
+                                    <stat.icon className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                                </div>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-black tracking-tighter capitalize">{stat.value}</div>
-                                <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
+                                <div className="text-3xl font-black tracking-tighter capitalize mb-1">{stat.value}</div>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                    <span className={cn("size-1.5 rounded-full animate-pulse", stat.color.replace('text-', 'bg-'))} />
                                     {stat.description}
                                 </p>
+                                {stat.label === "Current Tier" && (
+                                    <div className="mt-4 space-y-2">
+                                        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                            <span>Progress</span>
+                                            <span className="text-primary">{Math.round(getTierProgress())}%</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${getTierProgress()}%` }}
+                                                className="h-full bg-gradient-to-r from-purple-500 to-primary rounded-full"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </motion.div>
