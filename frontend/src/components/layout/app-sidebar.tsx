@@ -74,7 +74,7 @@ const navItemsByRole = {
     ],
     ngo: [
         { label: "Dashboard", href: "/ngo", icon: Home },
-        { label: "Nearby Donations", href: "/ngo/nearby", icon: MapPin },
+        { label: "Smart Feed", href: "/ngo/nearby", icon: Sparkles },
         { label: "Accepted Donations", href: "/ngo/accepted", icon: CheckSquare },
         { label: "Volunteer View", href: "/ngo/volunteers", icon: Users },
         { label: "Notifications", href: "/ngo/notifications", icon: Bell },

@@ -11,7 +11,15 @@ interface BackendDonation {
     location?: { address: string };
     donorName?: string;
     donorId?: string;
-    donor?: { _id?: string; id?: string; name?: string; organization?: string; email?: string; coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] } };
+    donor?: {
+        _id?: string;
+        id?: string;
+        name?: string;
+        organization?: string;
+        email?: string;
+        coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] };
+        stats?: { trustScore?: number };
+    };
     photos?: string[];
     image?: string;
     title?: string;
@@ -65,7 +73,7 @@ const mapDonation = (d: BackendDonation): Donation => ({
     deliveryPhoto: d.deliveryPhoto,
     pickupNotes: d.pickupNotes,
     deliveryNotes: d.deliveryNotes,
-    status: (function() {
+    status: (function () {
         if (d.status === 'assigned' || d.status === 'picked_up') {
             if (d.deliveryStatus === 'pending_pickup' || d.deliveryStatus === 'heading_to_pickup') return 'accepted';
             if (d.deliveryStatus === 'at_pickup') return 'at_pickup';
@@ -80,7 +88,7 @@ const mapDonation = (d: BackendDonation): Donation => ({
     assignedVolunteer: typeof d.volunteer === 'object' ? d.volunteer?.id || d.volunteer?._id : d.volunteer,
     donorEmail: d.donor?.email,
     ngoEmail: d.claimedBy?.email,
-    ngoCoordinates: (function() {
+    ngoCoordinates: (function () {
         const coords = d.claimedBy?.coordinates;
         if (!coords) return undefined;
         if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
@@ -95,7 +103,7 @@ const mapDonation = (d: BackendDonation): Donation => ({
         id: d.claimedBy._id || d.claimedBy.id || "",
         organization: d.claimedBy.organization || d.claimedBy.name || "",
         email: d.claimedBy.email,
-        coordinates: (function() {
+        coordinates: (function () {
             const coords = d.claimedBy?.coordinates;
             if (!coords) return undefined;
             if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
@@ -115,6 +123,10 @@ const mapDonation = (d: BackendDonation): Donation => ({
     expiryDate: d.expiryDate || d.expiryTime,
     pickupAddress: d.pickupAddress,
     storageReq: d.storageReq,
+    matchPercentage: (d as any).matchPercentage,
+    urgencyLevel: (d as any).urgencyLevel,
+    distance: (d as any).distance,
+    donorTrustScore: d.donor?.stats?.trustScore,
 });
 
 const DonationService = {
@@ -146,8 +158,8 @@ const DonationService = {
         return response.data;
     },
 
-    // Epic 3: NGO Methods
-    getSmartFeed: async (): Promise<{ donations: Donation[], capacityWarning: boolean, count: number }> => {
+    // Epic 5: Smart Feed
+    getSmartFeed: async (): Promise<{ donations: Donation[], capacityWarning: boolean, unmetNeed: number }> => {
         const response = await api.get('/donations/feed');
         return {
             ...response.data,

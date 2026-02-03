@@ -25,7 +25,7 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Loader2, MapPin, Filter, AlertCircle, Search, Calendar, Clock, Package, User, Image as ImageIcon } from 'lucide-react';
+import { Loader2, MapPin, Filter, AlertCircle, Search, Calendar, Clock, Package, User, Image as ImageIcon, Zap } from 'lucide-react';
 import { getTimeUntil, formatTime } from '@/utils/formatters';
 import { NgoMap } from '@/components/common/ngo-map';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,8 @@ export function NearbyDonationsPage() {
     const [foodType, setFoodType] = useState('all');
     const [onlyExpiring, setOnlyExpiring] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [capacityWarning, setCapacityWarning] = useState(false);
+    const [unmetNeed, setUnmetNeed] = useState(0);
 
     const [rejectId, setRejectId] = useState<string | null>(null);
     const [rejectCategory, setRejectCategory] = useState<string>('');
@@ -51,6 +53,8 @@ export function NearbyDonationsPage() {
         try {
             const data = await DonationService.getSmartFeed();
             setDonations(data.donations);
+            setCapacityWarning(data.capacityWarning);
+            setUnmetNeed(data.unmetNeed);
         } catch (error) {
             console.error(error);
             if (!silent) {
@@ -137,9 +141,29 @@ export function NearbyDonationsPage() {
             <div className="flex-1 flex flex-col h-full overflow-hidden md:rounded-xl md:border bg-background">
                 <div className="p-4 border-b space-y-4 bg-muted/10">
                     <PageHeader
-                        title="Nearby Donations"
-                        description="Live feed of food available for rescue in your area."
+                        title="Smart Feed"
+                        description="Intelligently prioritized donations based on your needs and capacity."
                     />
+
+                    {capacityWarning && (
+                        <div className="bg-rose-50 border border-rose-200 p-3 rounded-lg flex items-center gap-3 text-rose-800 animate-in fade-in slide-in-from-top-2">
+                            <AlertCircle className="h-5 w-5 shrink-0" />
+                            <div className="flex-1">
+                                <p className="text-sm font-bold">Capacity Warning</p>
+                                <p className="text-xs">Your organization is currently at or near max capacity. Consider completing active claims before taking more.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {!capacityWarning && unmetNeed > 0 && unmetNeed < 100 && (
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg flex items-center gap-3 text-amber-800 animate-in fade-in slide-in-from-top-2">
+                            <Zap className="h-5 w-5 shrink-0" />
+                            <div className="flex-1">
+                                <p className="text-sm font-bold">Medium Capacity Remaining</p>
+                                <p className="text-xs">You can still accommodate approximately {unmetNeed} more meals today.</p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
@@ -212,7 +236,7 @@ export function NearbyDonationsPage() {
                     )}
                 </div>
             </div>
-{/* 
+            {/* 
             <div className="flex w-full md:w-[400px] xl:w-[500px] h-[350px] md:h-auto shrink-0 flex-col rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative shadow-xl transition-all duration-500 hover:shadow-2xl mt-4 md:mt-0">
                 <NgoMap donations={filteredDonations} apiKey={MAP_API_KEY} />
                 <div className="absolute bottom-6 left-6 right-6 pointer-events-none">

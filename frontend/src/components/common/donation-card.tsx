@@ -2,7 +2,7 @@ import { Donation } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { MapPin, Clock, Package, Calendar, CheckCircle } from 'lucide-react';
+import { MapPin, Clock, Package, Calendar, CheckCircle, Zap, ShieldAlert, Navigation } from 'lucide-react';
 import { getTimeUntil, formatTime } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 
@@ -70,6 +70,24 @@ export function DonationCard({
             {statusLabels[donation.status]}
           </Badge>
         </div>
+
+        {donation.matchPercentage !== undefined && (
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all duration-500",
+                  donation.matchPercentage > 80 ? "bg-emerald-500" :
+                    donation.matchPercentage > 50 ? "bg-amber-500" : "bg-slate-400"
+                )}
+                style={{ width: `${donation.matchPercentage}%` }}
+              />
+            </div>
+            <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+              {donation.matchPercentage}% Match
+            </span>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -96,6 +114,25 @@ export function DonationCard({
         </div>
 
         <div className="flex flex-wrap gap-2 mt-2">
+          {donation.urgencyLevel && (
+            <Badge className={cn("text-[10px] font-black uppercase tracking-tighter border",
+              donation.urgencyLevel === 'Critical' && "bg-rose-500 text-white border-rose-600 animate-pulse",
+              donation.urgencyLevel === 'Urgent' && "bg-amber-500 text-white border-amber-600",
+              donation.urgencyLevel === 'Standard' && "bg-slate-100 text-slate-700 border-slate-200"
+            )}>
+              {donation.urgencyLevel === 'Critical' && <ShieldAlert className="h-3 w-3 mr-1" />}
+              {donation.urgencyLevel === 'Urgent' && <Zap className="h-3 w-3 mr-1" />}
+              {donation.urgencyLevel}
+            </Badge>
+          )}
+
+          {donation.distance !== undefined && (
+            <Badge variant="outline" className="text-[10px] font-bold bg-secondary/50">
+              <Navigation className="h-3 w-3 mr-1" />
+              {donation.distance < 1000 ? `${donation.distance}m` : `${(donation.distance / 1000).toFixed(1)}km`}
+            </Badge>
+          )}
+
           {donation.foodCategory && (
             <Badge className={cn("text-xs border capitalize",
               donation.foodCategory === 'cooked' && "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",

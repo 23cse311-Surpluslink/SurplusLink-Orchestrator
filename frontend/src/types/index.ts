@@ -75,6 +75,10 @@ export interface Donation {
     email?: string;
     coordinates?: { lat: number; lng: number };
   };
+  matchPercentage?: number;
+  urgencyLevel?: 'Critical' | 'Urgent' | 'Standard';
+  distance?: number;
+  donorTrustScore?: number;
   rejectionReason?: string;
 }
 

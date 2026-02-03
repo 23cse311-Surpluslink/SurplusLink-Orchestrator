@@ -724,9 +724,9 @@ export const getAvailableMissions = async (req, res, next) => {
                         }
                     }
                 }
-            }).populate('donor', 'name address').populate('claimedBy', 'organization address');
+            }).populate('donor', 'name address stats.trustScore').populate('claimedBy', 'organization address');
         } else {
-            donations = await Donation.find(baseQuery).populate('donor', 'name address').populate('claimedBy', 'organization address');
+            donations = await Donation.find(baseQuery).populate('donor', 'name address stats.trustScore').populate('claimedBy', 'organization address');
         }
 
         // 4. Capacity Filter (In-memory)
