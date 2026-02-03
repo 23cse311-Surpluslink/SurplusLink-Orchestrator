@@ -97,8 +97,8 @@ export default function AvailableMissions() {
         fetchMissions();
     }, [fetchMissions]);
 
-    const handleAccept = async (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
+    const handleAccept = async (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
         setAcceptingId(id);
         try {
             await DonationService.acceptMission(id);
@@ -111,8 +111,9 @@ export default function AvailableMissions() {
             setTimeout(() => {
                 navigate("/volunteer/active");
             }, 1000);
-        } catch (error: any) {
-            const message = error.response?.data?.message || "Failed to accept mission.";
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            const message = err.response?.data?.message || "Failed to accept mission.";
             toast({
                 title: "Mission Unavailable",
                 description: message,
@@ -234,7 +235,7 @@ export default function AvailableMissions() {
                             <MissionCard
                                 key={mission.id}
                                 mission={mission}
-                                onAccept={(id) => handleAccept({ stopPropagation: () => { } } as any, id)}
+                                onAccept={handleAccept}
                                 onView={setSelectedMission}
                                 isAccepting={acceptingId === mission.id}
                                 isTooHeavy={isTooHeavy(mission.quantity)}
@@ -370,7 +371,7 @@ export default function AvailableMissions() {
                                 <Button
                                     disabled={isTooHeavy(selectedMission.quantity) || acceptingId === selectedMission.id}
                                     className="w-full h-16 rounded-2xl font-black text-xl shadow-glow shadow-primary/30 group"
-                                    onClick={(e) => handleAccept(e, selectedMission.id!)}
+                                    onClick={(e) => handleAccept(selectedMission.id!, e)}
                                 >
                                     {acceptingId === selectedMission.id ? (
                                         <Loader2 className="animate-spin size-6" />
