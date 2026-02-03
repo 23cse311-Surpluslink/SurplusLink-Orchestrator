@@ -202,6 +202,24 @@ export default function AvailableMissions() {
                             </Card>
                         ))}
                     </motion.div>
+                ) : !user?.isOnline ? (
+                    <motion.div
+                        key="offline"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="rounded-3xl border-2 border-dashed border-border/60 p-20 flex flex-col items-center justify-center text-center bg-muted/5 mt-10"
+                    >
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 bg-amber-500/20 rounded-full animate-ping" />
+                            <div className="relative size-20 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                <AlertCircle className="size-10 text-amber-500" />
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-black mb-2">You're Currently Offline</h2>
+                        <p className="text-muted-foreground max-w-sm mb-8 font-medium">
+                            Go online in the sidebar to start receiving new mission alerts and see available jobs in your area.
+                        </p>
+                    </motion.div>
                 ) : filteredMissions.length === 0 ? (
                     <motion.div
                         key="empty"

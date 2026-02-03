@@ -35,9 +35,10 @@ import { SettingsPage } from "./pages/settings-page";
 import { NgoSettingsPage } from "./pages/ngo/settings-page";
 import { MyClaimsPage } from "./pages/ngo/my-claims";
 import { NearbyDonationsPage } from "./pages/ngo/nearby-donations";
-import { NgoVolunteersPage } from "./pages/ngo/volunteers-page";
 import { NgoFeedbackPage } from "./pages/ngo/feedback-page";
 import { NgoImpactPage } from "./pages/ngo/impact-page";
+import NgoFleetDashboard from "./pages/ngo/fleet";
+import { NgoVolunteersPage } from "./pages/ngo/volunteers-page";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
                   <Route index element={<NgoDashboard />} />
                   <Route path="nearby" element={<NearbyDonationsPage />} />
                   <Route path="accepted" element={<MyClaimsPage />} />
+                  <Route path="fleet" element={<NgoFleetDashboard />} />
                   <Route path="volunteers" element={<NgoVolunteersPage />} />
                   <Route path="notifications" element={<DonorNotifications />} />
                   <Route path="feedback" element={<NgoFeedbackPage />} />
