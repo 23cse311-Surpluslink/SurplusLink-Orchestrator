@@ -228,6 +228,16 @@ const DonationService = {
     getVolunteerHistory: async (): Promise<Donation[]> => {
         const response = await api.get('/donations/volunteer/history');
         return Array.isArray(response.data) ? response.data.map(mapDonation) : [];
+    },
+
+    cancelMission: async (id: string, reason: string) => {
+        const response = await api.patch(`/donations/${id}/cancel-mission`, { reason });
+        return response.data;
+    },
+
+    getOptimizedRoute: async (id: string) => {
+        const response = await api.get(`/donations/${id}/optimized-route`);
+        return response.data;
     }
 };
 

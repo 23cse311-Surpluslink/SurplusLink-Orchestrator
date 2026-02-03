@@ -31,7 +31,7 @@ import {
     Loader2,
     Mail
 } from "lucide-react";
-import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
+import { RouteMap } from "@/components/volunteer/route-map";
 import { cn } from "@/lib/utils";
 import {
     AlertDialog,
@@ -67,6 +67,16 @@ const STEPS = [
     { id: "completed", label: "Finished", detail: "Mission Complete", dbStatus: "delivered" }
 ];
 
+interface MissionStop {
+    id: string;
+    type: string;
+    coordinates: [number, number];
+    address: string;
+    priority: number;
+    isDiversion?: boolean;
+    diversionDonationId?: string;
+}
+
 export default function ActiveMission() {
     const { user, refreshUser } = useAuth();
     const [loading, setLoading] = useState(true);
@@ -80,6 +90,9 @@ export default function ActiveMission() {
     const [deliveryNotes, setDeliveryNotes] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState("");
+    const [optimizedStops, setOptimizedStops] = useState<MissionStop[]>([]);
     const { toast } = useToast();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,9 +113,24 @@ export default function ActiveMission() {
         }
     }, []);
 
+    const fetchOptimizedRoute = useCallback(async (id: string) => {
+        try {
+            const extra = await DonationService.getOptimizedRoute(id);
+            if (extra.stops) setOptimizedStops(extra.stops);
+        } catch (error) {
+            console.error("Failed to fetch optimized route", error);
+        }
+    }, []);
+
     useEffect(() => {
         fetchActiveMission();
     }, [fetchActiveMission]);
+
+    useEffect(() => {
+        if (mission?.id) {
+            fetchOptimizedRoute(mission.id);
+        }
+    }, [mission?.id, fetchOptimizedRoute]);
 
     const getCurrentStepIndex = () => {
         if (!mission) return 0;
@@ -163,6 +191,29 @@ export default function ActiveMission() {
         }
     };
 
+    const handleCancelMission = async () => {
+        if (!mission?.id) return;
+        setIsUpdating(true);
+        try {
+            await DonationService.cancelMission(mission.id, cancelReason || "No reason provided");
+            toast({
+                title: "Mission Cancelled",
+                description: "The mission has been unassigned and sent for reassignment.",
+                variant: "destructive"
+            });
+            window.location.href = "/volunteer";
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to cancel mission.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsUpdating(false);
+            setIsCancelDialogOpen(false);
+        }
+    };
+
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'pickup' | 'delivery') => {
         const file = event.target.files?.[0];
         if (file) {
@@ -196,10 +247,6 @@ export default function ActiveMission() {
 
     const action = getActionConfig();
 
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
-    });
 
     const donorPos = mission?.coordinates;
     const ngoPos = mission?.ngoCoordinates;
@@ -210,18 +257,6 @@ export default function ActiveMission() {
 
     const mapCenter = currentStepIndex < 2 ? (donorPos || ngoPos || { lat: 28.6139, lng: 77.2090 }) : (ngoPos || donorPos || { lat: 28.6139, lng: 77.2090 });
 
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-
-    const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
-        setMap(mapInstance);
-    }, []);
-
-    const handleRecenter = () => {
-        if (map && mapCenter) {
-            map.panTo(mapCenter);
-            map.setZoom(15);
-        }
-    };
 
     const handleNavigate = () => {
         const dest = currentStepIndex < 2 ? donorPos : ngoPos;
@@ -369,74 +404,12 @@ export default function ActiveMission() {
 
             {/* Map Area */}
             <div className="relative flex-1 bg-[#0f172a] overflow-hidden">
-                {isLoaded ? (
-                    <GoogleMap
-                        mapContainerStyle={{ width: '100%', height: '100%' }}
-                        center={mapCenter}
-                        zoom={15}
-                        onLoad={onMapLoad}
-                        options={{
-                            disableDefaultUI: true,
-                            styles: mapStyles,
-                            zoomControl: false,
-                        }}
-                    >
-                        {donorPos && (
-                            <Marker
-                                position={donorPos}
-                                icon={{
-                                    url: "https://maps.google.com/mapfiles/ms/icons/red-pushpin.png",
-                                    scaledSize: new google.maps.Size(40, 40)
-                                }}
-                                label={{ text: "PICKUP", className: "font-black text-[10px] bg-background/80 px-2 py-1 rounded text-red-500 translate-y-8" }}
-                            />
-                        )}
-                        {ngoPos && (
-                            <Marker
-                                position={ngoPos}
-                                icon={{
-                                    url: "https://maps.google.com/mapfiles/ms/icons/green-pushpin.png",
-                                    scaledSize: new google.maps.Size(40, 40)
-                                }}
-                                label={{ text: "NGO", className: "font-black text-[10px] bg-background/80 px-2 py-1 rounded text-emerald-500 translate-y-8" }}
-                            />
-                        )}
-                        {volunteerPos && (
-                            <Marker
-                                position={volunteerPos}
-                                icon={{
-                                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                                    scale: 8,
-                                    fillColor: "#3b82f6",
-                                    fillOpacity: 1,
-                                    strokeWeight: 2,
-                                    strokeColor: "#ffffff",
-                                    rotation: 0
-                                }}
-                                title="Your Location"
-                            />
-                        )}
-                        {donorPos && ngoPos && (
-                            <Polyline
-                                path={[donorPos, ngoPos]}
-                                options={{
-                                    strokeColor: "#22c55e",
-                                    strokeOpacity: 0.6,
-                                    strokeWeight: 5,
-                                    icons: [{
-                                        icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, strokeOpacity: 1, scale: 3 },
-                                        offset: "50%",
-                                        repeat: "100px"
-                                    }]
-                                }}
-                            />
-                        )}
-                    </GoogleMap>
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[#0f172a]">
-                        <Loader2 className="animate-spin text-primary size-10" />
-                    </div>
-                )}
+                <RouteMap
+                    volunteerCoords={volunteerPos}
+                    donorCoords={donorPos}
+                    ngoCoords={ngoPos}
+                    stops={optimizedStops}
+                />
 
                 {/* Map Controls */}
                 <div className="absolute top-32 right-4 flex flex-col gap-2 z-30">
@@ -444,17 +417,9 @@ export default function ActiveMission() {
                         size="icon"
                         variant="secondary"
                         className="size-12 rounded-2xl shadow-xl border-border/50 backdrop-blur-md"
-                        onClick={handleRecenter}
+                        onClick={handleNavigate}
                     >
                         <Navigation className="size-6 text-primary" />
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="secondary"
-                        className="size-12 rounded-2xl shadow-xl border-border/50 backdrop-blur-md"
-                        onClick={() => map?.setZoom((map.getZoom() || 15) + 1)}
-                    >
-                        <RefreshCw className="size-5" />
                     </Button>
                 </div>
 
@@ -537,6 +502,13 @@ export default function ActiveMission() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <Button
+                            variant="destructive"
+                            className="h-16 w-16 rounded-2xl p-0 shrink-0"
+                            onClick={() => setIsCancelDialogOpen(true)}
+                        >
+                            <AlertTriangle className="size-6" />
+                        </Button>
                         <Button
                             size="lg"
                             disabled={isUpdating}
@@ -688,6 +660,43 @@ export default function ActiveMission() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+            {/* Cancel Mission Dialog */}
+            <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <AlertDialogContent className="rounded-3xl max-w-sm">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-black">Abort Mission?</AlertDialogTitle>
+                        <AlertDialogDescription className="font-medium text-left">
+                            This will unassign you from the rescue. Please provide a reason for logistics tracking.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <div className="py-2 space-y-4">
+                        <select
+                            className="w-full h-12 bg-muted rounded-xl px-4 text-sm font-bold focus:ring-primary focus:ring-2 outline-none appearance-none"
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                        >
+                            <option value="">Select Reason...</option>
+                            <option value="Vehicle Breakdown">Vehicle Breakdown</option>
+                            <option value="Traffic/Accident">Traffic / Accident</option>
+                            <option value="Personal Emergency">Personal Emergency</option>
+                            <option value="Too Large for Vehicle">Too Large for Vehicle</option>
+                            <option value="Donor Not Found">Donor Not Found</option>
+                        </select>
+                    </div>
+
+                    <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="rounded-xl h-12 font-bold">Stay on Job</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="rounded-xl h-12 font-bold bg-destructive hover:bg-destructive/90"
+                            onClick={handleCancelMission}
+                            disabled={!cancelReason || isUpdating}
+                        >
+                            {isUpdating ? <Loader2 className="animate-spin size-4" /> : "Confirm Abort"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div >
     );
 }
