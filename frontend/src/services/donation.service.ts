@@ -49,6 +49,9 @@ interface BackendDonation {
         type?: 'Point';
         coordinates?: [number, number];
     };
+    matchPercentage?: number;
+    urgencyLevel?: Donation['urgencyLevel'];
+    distance?: number;
 }
 
 const mapDonation = (d: BackendDonation): Donation => ({
@@ -123,9 +126,9 @@ const mapDonation = (d: BackendDonation): Donation => ({
     expiryDate: d.expiryDate || d.expiryTime,
     pickupAddress: d.pickupAddress,
     storageReq: d.storageReq,
-    matchPercentage: (d as any).matchPercentage,
-    urgencyLevel: (d as any).urgencyLevel,
-    distance: (d as any).distance,
+    matchPercentage: d.matchPercentage,
+    urgencyLevel: d.urgencyLevel,
+    distance: d.distance,
     donorTrustScore: d.donor?.stats?.trustScore,
 });
 
