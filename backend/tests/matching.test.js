@@ -19,6 +19,12 @@ jest.unstable_mockModule('../config/cloudinary.js', () => ({
     }
 }));
 
+// Mock Geocoder to prevent overwriting test coordinates
+jest.unstable_mockModule('../utils/geocoder.js', () => ({
+    __esModule: true,
+    geocodeAddress: jest.fn().mockResolvedValue(null) // Return null so controller uses provided coordinates
+}));
+
 describe('Intelligent Dispatch - Matching Algorithm Tests', () => {
     let app;
     let ngoToken, donorToken;
@@ -81,8 +87,10 @@ describe('Intelligent Dispatch - Matching Algorithm Tests', () => {
         await User.create({
             name: 'Ideal Volunteer', email: 'ideal@test.com', password: 'password123', role: 'volunteer', isOnline: true, status: 'active',
             volunteerProfile: {
-                currentLocation: { type: 'Point', coordinates: [0.01, 0.01] }, // ~1.5km
-                maxWeight: 100
+                currentLocation: { type: 'Point', coordinates: [0.005, 0.005] }, // ~0.7km
+                maxWeight: 100,
+                vehicleType: 'van',
+                tier: 'champion'
             }
         });
 
@@ -91,7 +99,9 @@ describe('Intelligent Dispatch - Matching Algorithm Tests', () => {
             name: 'Far Volunteer', email: 'far@test.com', password: 'password123', role: 'volunteer', isOnline: true, status: 'active',
             volunteerProfile: {
                 currentLocation: { type: 'Point', coordinates: [0.05, 0.05] }, // ~7.8km
-                maxWeight: 100
+                maxWeight: 100,
+                vehicleType: 'car',
+                tier: 'hero'
             }
         });
 
@@ -99,8 +109,10 @@ describe('Intelligent Dispatch - Matching Algorithm Tests', () => {
         await User.create({
             name: 'Weak Volunteer', email: 'weak@test.com', password: 'password123', role: 'volunteer', isOnline: true, status: 'active',
             volunteerProfile: {
-                currentLocation: { type: 'Point', coordinates: [0.005, 0.005] }, // ~0.7km
-                maxWeight: 5
+                currentLocation: { type: 'Point', coordinates: [0.01, 0.01] }, // ~1.5km
+                maxWeight: 5,
+                vehicleType: 'bicycle',
+                tier: 'rookie'
             }
         });
 
