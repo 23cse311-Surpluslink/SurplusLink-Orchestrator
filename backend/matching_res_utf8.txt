@@ -1,0 +1,161 @@
+﻿node : (node:15676) 
+ExperimentalWarning: VM Modules is 
+an experimental feature and might 
+change at any time
+At line:1 char:1
++ node --experimental-vm-modules 
+node_modules/jest/bin/jest.js 
+tests/ma ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: ((node:15676) Ex...nge a  
+  t any time:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+(Use `node --trace-warnings ...` to 
+show where the warning was created)
+  console.log
+    MOCK EMAIL SENDING (Credentials missing):
+
+      at sendEmail (utils/email.js:5:13)
+
+  console.log
+    To: donor@test.com
+
+      at sendEmail (utils/email.js:6:13)
+
+  console.log
+    Subject: Verify Your Email Address
+
+      at sendEmail (utils/email.js:7:13)
+
+  console.log
+    Message: Your verification code is: 5149
+
+      at sendEmail (utils/email.js:8:13)
+
+  console.log
+    MOCK EMAIL SENDING (Credentials missing):
+
+      at sendEmail (utils/email.js:5:13)
+
+  console.log
+    To: ngo@test.com
+
+      at sendEmail (utils/email.js:6:13)
+
+  console.log
+    Subject: Verify Your Email Address
+
+      at sendEmail (utils/email.js:7:13)
+
+  console.log
+    Message: Your verification code is: 6090
+
+      at sendEmail (utils/email.js:8:13)
+
+  console.log
+    [Notification] To: 698377433a382301bf1f8a45, Msg: New donation available: Heaps of Carrots, Type: donation_created
+
+      at createNotification (utils/notification.js:12:17)
+
+  console.log
+    MOCK EMAIL SENDING (Credentials missing):
+
+      at sendEmail (utils/email.js:5:13)
+
+  console.log
+    To: donor@test.com
+
+      at sendEmail (utils/email.js:6:13)
+
+  console.log
+    Subject: Verify Your Email Address
+
+      at sendEmail (utils/email.js:7:13)
+
+  console.log
+    Message: Your verification code is: 2844
+
+      at sendEmail (utils/email.js:8:13)
+
+  console.log
+    MOCK EMAIL SENDING (Credentials missing):
+
+      at sendEmail (utils/email.js:5:13)
+
+  console.log
+    To: ngo@test.com
+
+      at sendEmail (utils/email.js:6:13)
+
+  console.log
+    Subject: Verify Your Email Address
+
+      at sendEmail (utils/email.js:7:13)
+
+  console.log
+    Message: Your verification code is: 3014
+
+      at sendEmail (utils/email.js:8:13)
+
+  console.log
+    [Notification] To: 698377443a382301bf1f8a60, Msg: New donation available: Heaps of Carrots, Type: donation_created
+
+      at createNotification (utils/notification.js:12:17)
+
+FAIL tests/matching.test.js (15.553 
+s)
+  Intelligent Dispatch - Matching 
+Algorithm Tests
+    ├ù should rank the closest and 
+most capable volunteer at #1 (2552 
+ms)
+    ΓêÜ should return an empty list 
+if no volunteers are online (1202 ms)
+
+  ΓùÅ Intelligent Dispatch - 
+Matching Algorithm Tests ΓÇ║ should 
+rank the closest and most capable 
+volunteer at #1
+
+    expect(received).toBe(expected) 
+// Object.is equality
+
+    Expected: "Ideal Volunteer"
+    Received: "Weak Volunteer"
+
+    [0m [90m 113 |[39m
+     [90m 114 |[39m         
+[90m// Assert Vol 1 (Ideal) is 
+#1[39m
+    [31m[1m>[22m[39m[90m 115 
+|[39m         expect(res[33m.[39mb
+ody[[35m0[39m][33m.[39mname)[33m
+.[39mtoBe([32m'Ideal 
+Volunteer'[39m)[33m;[39m
+     [90m     |[39m                
+                  
+[31m[1m^[22m[39m
+     [90m 116 |[39m     
+})[33m;[39m
+     [90m 117 |[39m
+     [90m 118 |[39m     
+it([32m'should return an empty list 
+if no volunteers are 
+online'[39m[33m,[39m 
+[36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> 
+(tests/matching.test.js:115:34)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 passed, 2 
+total
+Snapshots:   0 total
+Time:        15.794 s, estimated 20 s
+Ran all test suites matching 
+tests/matching.test.js.
