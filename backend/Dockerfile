@@ -1,34 +1,23 @@
-# Stage 1: Build & Dependencies
-FROM node:20-alpine AS builder
+# Production Dockerfile for Backend
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev for building/testing if needed)
-RUN npm ci
+# Install only production dependencies
+RUN npm ci --only=production
 
 # Copy application code
 COPY . .
 
-# Stage 2: Production Runner
-FROM node:20-alpine
+# Expose port 5000 as requested
+EXPOSE 5000
 
-WORKDIR /app
-
-# Copy only production dependencies
-COPY package*.json ./
-RUN npm ci --only=production
-
-# Copy application code from builder
-COPY --from=builder /app .
-
-# Expose port
-EXPOSE 8000
-
-# Set Node environment
+# Set environment
 ENV NODE_ENV=production
+ENV PORT=5000
 
 # Default command
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

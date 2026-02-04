@@ -1,13 +1,6 @@
-# Stage 1: Build the React application
-FROM node:20-alpine AS build
+# Stage 1: Build React with Vite
+FROM node:18-alpine AS build
 
-# Build argument for Google Maps API Key
-ARG VITE_GOOGLE_MAPS_API_KEY
-
-# Set as environment variable for Vite
-ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
-
-# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -22,13 +15,14 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve with Nginx
+# Stage 2: Serve static files using nginx:alpine
 FROM nginx:alpine
 
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx configuration
+# Copy custom nginx configuration if it exists, otherwise default
+# Assuming nginx.conf exists in frontend/ as seen in list_dir
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
