@@ -523,6 +523,7 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
 
         console.log(`[Auto-Dispatch] Dispatching donation ${donationId} to ${priorityVolunteers.length} volunteers.`);
 
+        const isTest = process.env.NODE_ENV === 'test';
         // Tiered Notifications (30s gap)
         priorityVolunteers.forEach((volunteer, index) => {
             const delay = isTest ? 0 : index * 30000; // 0s in test, else 30s, 60s
@@ -886,8 +887,13 @@ export const confirmPickup = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        if (donation.volunteer && donation.volunteer.toString() !== req.user.id) {
-            return res.status(401).json({ message: 'Not authorized for this mission' });
+        // VALIDATION: Ensure strictly assigned and volunteer matches
+        if (!donation.volunteer || donation.volunteer.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized for this mission or mission not accepted' });
+        }
+
+        if (donation.deliveryStatus !== 'pending_pickup') {
+            return res.status(400).json({ message: `Cannot pickup from current status: ${donation.deliveryStatus}` });
         }
 
         donation.deliveryStatus = 'picked_up';
@@ -929,8 +935,8 @@ export const confirmDelivery = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        if (donation.volunteer && donation.volunteer.toString() !== req.user.id) {
-            return res.status(401).json({ message: 'Not authorized for this mission' });
+        if (!donation.volunteer || donation.volunteer.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized for this mission or mission not accepted' });
         }
 
         // Enforce sequence: Can only deliver if picked up (or states after pickup)
@@ -1212,6 +1218,33 @@ export const cancelMission = async (req, res, next) => {
         await reassignMission(donation._id, `Volunteer Emergency: ${reason}`);
 
         res.json({ message: 'Mission cancelled and sent for reassignment.' });
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Get potential volunteers for a donation (Intelligent Dispatch)
+// @route   GET /api/donations/:id/potential-volunteers
+// @access  Private (NGO/Admin)
+export const getPotentialVolunteers = async (req, res, next) => {
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: 'Donation not found' });
+        }
+
+        const volunteers = await findSuitableVolunteers(donation, 15000); // 15km search
+
+        // Map to include relevant match details for testing/UI
+        const response = volunteers.map(v => ({
+            id: v._id,
+            name: v.name,
+            matchScore: v.suitabilityScore,
+            distance: v.distance,
+            tier: v.tier,
+            vehicleType: v.volunteerProfile?.vehicleType
+        }));
+
+        res.json(response);
     } catch (error) {
         next(error);
     }

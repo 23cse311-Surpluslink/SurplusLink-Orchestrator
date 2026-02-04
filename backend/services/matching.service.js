@@ -367,6 +367,17 @@ export const getVolunteerSuitabilityScore = (volunteer, distance, donation) => {
     // Base score = (Distance * 0.5) + (Tier * 0.5)
     let score = (distanceScore * 0.5) + (tierScore * 0.5);
 
+    // CAPACITY CHECK (Requirement 5.8)
+    // Parse donation quantity
+    const quantityStr = String(donation.quantity).toLowerCase();
+    const weightMatch = quantityStr.match(/(\d+(\.\d+)?)/);
+    const estimatedWeight = weightMatch ? parseFloat(weightMatch[0]) : 0;
+
+    if (volunteer.volunteerProfile?.maxWeight > 0 && volunteer.volunteerProfile.maxWeight < estimatedWeight) {
+        // Severe penalty for insufficient capacity (unless it's critical, but we handle that above)
+        score = score * 0.2;
+    }
+
     // VOLUNTEER EQUITY (Round Robin Logic)
     // If standard (>6h), prioritize few recent tasks.
     if (isStandard) {
