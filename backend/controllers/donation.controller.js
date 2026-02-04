@@ -892,7 +892,8 @@ export const confirmPickup = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized for this mission or mission not accepted' });
         }
 
-        if (donation.deliveryStatus !== 'pending_pickup' && donation.deliveryStatus !== 'at_pickup') {
+        const allowedForPickup = ['pending_pickup', 'heading_to_pickup', 'at_pickup'];
+        if (!allowedForPickup.includes(donation.deliveryStatus)) {
             return res.status(400).json({ message: `Cannot pickup from current status: ${donation.deliveryStatus}` });
         }
 
