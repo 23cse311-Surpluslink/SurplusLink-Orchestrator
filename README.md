@@ -1,5 +1,7 @@
 # SurplusLink: Smart Food Redistribution Platform
 
+![Production CI/CD](https://github.com/priyansh-narang2308/23cse311-SurplusLink/actions/workflows/main.yml/badge.svg)
+
 > **"Food waste is a logistical failure. SurplusLink is the solution."**  
 > SurplusLink is a high-performance, real-time platform that bridges the gap between surplus food sources (restaurants, hotels, events) and social impact organizations (NGOs, shelters) using ML-driven matching and transparent tracking.
 

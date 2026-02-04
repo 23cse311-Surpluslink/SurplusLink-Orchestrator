@@ -37,6 +37,15 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to SurplusLink API v1' });
 });
 
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'UP', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV
+    });
+});
+
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);

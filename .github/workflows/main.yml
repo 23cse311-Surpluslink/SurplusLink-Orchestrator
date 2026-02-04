@@ -1,0 +1,71 @@
+name: SurplusLink Production CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Backend Build & Test
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run Backend Tests
+        working-directory: backend
+        run: npm test
+        env:
+          MONGO_URI: mongodb://localhost:27017/surpluslink_test
+          JWT_SECRET: production_secret_for_test
+
+      # Frontend Build & Test
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run Frontend Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run Frontend Tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
+
+  # Bonus: Deploy Job (Placeholder for actual deployment hooks)
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render Deploy
+        if: success()
+        run: |
+          echo "Deploying to Render..."
+          # Example: curl -X POST https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      
+      - name: Trigger Vercel Deploy
+        if: success()
+        run: |
+          echo "Deploying to Vercel..."
+          # Vercel deployment is usually automatic via GitHub integration, 
+          # but can be manually triggered or checked here.
