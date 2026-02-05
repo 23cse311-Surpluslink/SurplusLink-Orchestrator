@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import donationRoutes from './routes/donation.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import reportRoutes from './routes/report.routes.js';
 
 dotenv.config({ path: './.env' });
 
@@ -39,8 +40,8 @@ app.get('/', (req, res) => {
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'UP', 
+    res.status(200).json({
+        status: 'UP',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV
     });
@@ -51,6 +52,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 // Error Handling
 app.use(notFound);
