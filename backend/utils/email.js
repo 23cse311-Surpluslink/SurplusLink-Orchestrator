@@ -8,7 +8,7 @@ const sendEmail = async (options) => {
     return;
   }
 
-  console.log(`[Email Service] Attempting to send email to: ${options.email}`);
+  console.log(`[Email Service] attempting to send email to: ${options.email}`);
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
