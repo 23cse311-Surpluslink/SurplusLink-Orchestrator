@@ -5,9 +5,10 @@ const sendEmail = async (options) => {
     console.log('MOCK EMAIL SENDING (Credentials missing):');
     console.log(`To: ${options.email}`);
     console.log(`Subject: ${options.subject}`);
-    console.log(`Message: ${options.message}`);
     return;
   }
+
+  console.log(`[Email Service] Attempting to send email to: ${options.email}`);
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -18,19 +19,27 @@ const sendEmail = async (options) => {
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,   // 10 seconds
+    connectionTimeout: 10000, 
+    greetingTimeout: 10000,   
   });
 
   const mailOptions = {
-    from: `SurplusLink <${process.env.EMAIL_USERNAME}>`,
+    from: `"SurplusLink" <${process.env.EMAIL_USERNAME}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,
     html: options.html,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[Email Service] SUCCESS: Email sent to ${options.email}. MessageId: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`[Email Service] FAILURE: Could not send email to ${options.email}`);
+    console.error(`[Email Service] Error Details: ${error.message}`);
+    throw error;
+  }
 };
 
 export default sendEmail;
