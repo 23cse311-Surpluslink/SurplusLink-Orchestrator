@@ -91,7 +91,15 @@ const CHART_COLORS = {
 
 // --- Components ---
 
-const StatCard = ({ title, value, subtext, icon: Icon, trend }: any) => (
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    subtext: string;
+    icon: React.ElementType;
+    trend?: number;
+}
+
+const StatCard = ({ title, value, subtext, icon: Icon, trend }: StatCardProps) => (
     <Card className="overflow-hidden border-none shadow-sm bg-white hover:shadow-md transition-shadow duration-300">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
@@ -120,9 +128,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
         return (
             <div className="bg-white p-4 border border-slate-100 shadow-xl rounded-xl">
                 <p className="text-sm font-bold text-slate-900 mb-2">{label}</p>
-                {payload.map((entry: any, index: number) => (
+                {payload.map((entry, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill || entry.color }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color || entry.payload?.fill }} />
                         <span className="text-slate-500">{entry.name}:</span>
                         <span className="font-bold text-slate-900">{entry.value}</span>
                     </div>
