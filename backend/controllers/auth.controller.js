@@ -86,17 +86,12 @@ const signupUser = async (req, res, next) => {
                 </html>
             `;
 
-            try {
-                await sendEmail({
-                    email: user.email,
-                    subject: 'Verify Your Email Address',
-                    message: `Your verification code is: ${otp}`,
-                    html: emailTemplate
-                });
-            } catch (err) {
-                console.error("Failed to send welcome OTP email:", err);
-                // We still proceed, user can request new OTP on login
-            }
+            sendEmail({
+                email: user.email,
+                subject: 'Verify Your Email Address',
+                message: `Your verification code is: ${otp}`,
+                html: emailTemplate
+            }).catch(err => console.error("Failed to send welcome OTP email:", err));
 
             res.status(201).json({
                 success: true,
@@ -241,22 +236,17 @@ const sendOTP = async (req, res, next) => {
                 </html>
             `;
 
-            await sendEmail({
+            sendEmail({
                 email: user.email,
                 subject: 'Your Login Verification Code',
                 message,
                 html: emailTemplate
-            });
+            }).catch(error => console.error("Failed to send OTP email:", error));
 
             res.status(200).json({ success: true, message: 'OTP sent to email', devOtp: otp });
         } catch (error) {
-            console.error("Failed to send OTP email:", error);
-            // Don't fail the request, just return the OTP for dev/fallback
-            res.status(200).json({ 
-                success: true, 
-                message: 'Email failed (SMTP Error), use devOtp', 
-                devOtp: otp 
-            });
+            console.error("Critical error in sendOTP:", error);
+            next(error);
         }
     } catch (error) {
         next(error);
