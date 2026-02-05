@@ -8,7 +8,7 @@
 ---
 
 ## Table of Contents
-1. [Project Overview](#project-overview)
+1. [Project Overvie](#project-overview)
 2. [Detailed Feature Set](#detailed-feature-set)
 3. [Technical Architecture](#technical-architecture)
 4. [API Specification (V1)](#api-specification-v1)
