@@ -23,6 +23,7 @@ import DonorNotifications from "./pages/donor/donor-notifications";
 import DonorImpact from "./pages/donor/donor-impact";
 import AdminDashboard from "./pages/admin/admin-dashboard";
 import UserManagement from "./pages/admin/user-management";
+import DonationAnalytics from "./pages/admin/donation-analytics";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
 import VolunteerSettings from "./pages/volunteer/settings";
@@ -64,6 +65,7 @@ const App = () => (
                   <Route path="donations" element={<DonorDonations />} />
                   <Route path="notifications" element={<DonorNotifications />} />
                   <Route path="impact" element={<DonorImpact />} />
+                  <Route path="reports" element={<DonationAnalytics />} />
                 </Route>
 
                 <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
@@ -81,7 +83,7 @@ const App = () => (
                 <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
-                  <Route path="reports" element={<AdminDashboard />} />
+                  <Route path="reports" element={<DonationAnalytics />} />
                   <Route path="tracking" element={<AdminDashboard />} />
                   <Route path="notifications" element={<AdminDashboard />} />
                   <Route path="moderation" element={<AdminDashboard />} />
