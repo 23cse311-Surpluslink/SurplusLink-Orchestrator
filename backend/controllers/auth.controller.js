@@ -3,9 +3,11 @@ import generateToken from '../utils/generateToken.js';
 import sendEmail from '../utils/email.js';
 import crypto from 'crypto';
 
-// @desc    Register a new user
-// @route   POST /api/v1/auth/signup
-// @access  Public
+/**
+ * @desc    Register a new user (Donor, NGO, or Volunteer)
+ * @route   POST /api/v1/auth/signup
+ * @access  Public
+ */
 const signupUser = async (req, res, next) => {
     const { name, email, password, role, organization } = req.body;
 
@@ -28,9 +30,9 @@ const signupUser = async (req, res, next) => {
             throw new Error('Invalid role');
         }
 
-        // Generate OTP
+        // Generate 4-digit verification OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes validity
 
         const user = await User.create({
             name,
@@ -44,7 +46,7 @@ const signupUser = async (req, res, next) => {
         });
 
         if (user) {
-            // Send OTP Email
+            // Compose email template for account verification
             const emailTemplate = `
                 <!DOCTYPE html>
                 <html>
@@ -86,6 +88,7 @@ const signupUser = async (req, res, next) => {
                 </html>
             `;
 
+            // Ship email asynchronously to prevent request blocking
             sendEmail({
                 email: user.email,
                 subject: 'Verify Your Email Address',
@@ -109,9 +112,11 @@ const signupUser = async (req, res, next) => {
     }
 };
 
-// @desc    Auth user & get token
-// @route   POST /api/v1/auth/login
-// @access  Public
+/**
+ * @desc    Authenticate user and set secure session cookie
+ * @route   POST /api/v1/auth/login
+ * @access  Public
+ */
 const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -126,11 +131,12 @@ const loginUser = async (req, res, next) => {
 
             const token = generateToken(user._id, user.role);
 
+            // Set secure, cross-site HttpOnly cookie
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: true, // Required for sameSite: 'none'
-                sameSite: 'none', // Required for cross-site cookie
-                maxAge: 30 * 24 * 60 * 60 * 1000
+                secure: true, 
+                sameSite: 'none', 
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
             });
 
             res.json({
@@ -154,9 +160,11 @@ const loginUser = async (req, res, next) => {
     }
 };
 
-// @desc    Logout user / clear session
-// @route   POST /api/v1/auth/logout
-// @access  Public
+/**
+ * @desc    Logout user and clear session cookie
+ * @route   POST /api/v1/auth/logout
+ * @access  Public
+ */
 const logoutUser = async (req, res, next) => {
     try {
         res.cookie('token', '', {
@@ -171,9 +179,11 @@ const logoutUser = async (req, res, next) => {
     }
 };
 
-// @desc    Send Login OTP
-// @route   POST /api/v1/auth/send-otp
-// @access  Public
+/**
+ * @desc    Generate and send dynamic Login OTP
+ * @route   POST /api/v1/auth/send-otp
+ * @access  Public
+ */
 const sendOTP = async (req, res, next) => {
     const { email } = req.body;
 
@@ -184,7 +194,6 @@ const sendOTP = async (req, res, next) => {
             throw new Error('User not found');
         }
 
-        // Generate 4 digit numeric OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
@@ -194,68 +203,66 @@ const sendOTP = async (req, res, next) => {
 
         const message = `Your SurplusLink verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
 
-        try {
-            const emailTemplate = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <style>
-                        body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
-                        .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-                        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; color: white; }
-                        .header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 1px; }
-                        .content { padding: 40px 30px; text-align: center; }
-                        .otp-box { background: #f0fdf4; border: 2px dashed #10b981; border-radius: 8px; padding: 20px; margin: 30px 0; display: inline-block; }
-                        .otp-code { font-size: 42px; font-weight: bold; color: #047857; letter-spacing: 5px; margin: 0; }
-                        .message { font-size: 16px; color: #4b5563; margin-bottom: 20px; }
-                        .expiry { color: #6b7280; font-size: 14px; margin-top: 15px; }
-                        .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>SurplusLink</h1>
-                        </div>
-                        <div class="content">
-                            <h2 style="color: #111827; margin-top: 0;">Login Verification</h2>
-                            <p class="message">Enter the following verification code to access your account:</p>
-                            
-                            <div class="otp-box">
-                                <p class="otp-code">${otp}</p>
-                            </div>
-                            
-                            <p class="expiry">This code is valid for <strong>10 minutes</strong>.<br>If you didn't request this, please ignore this email.</p>
-                        </div>
-                        <div class="footer">
-                            &copy; ${new Date().getFullYear()} SurplusLink. All rights reserved.
-                        </div>
+        // Compose OTP notification email
+        const emailTemplate = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+                    .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                    .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; color: white; }
+                    .header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 1px; }
+                    .content { padding: 40px 30px; text-align: center; }
+                    .otp-box { background: #f0fdf4; border: 2px dashed #10b981; border-radius: 8px; padding: 20px; margin: 30px 0; display: inline-block; }
+                    .otp-code { font-size: 42px; font-weight: bold; color: #047857; letter-spacing: 5px; margin: 0; }
+                    .message { font-size: 16px; color: #4b5563; margin-bottom: 20px; }
+                    .expiry { color: #6b7280; font-size: 14px; margin-top: 15px; }
+                    .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>SurplusLink</h1>
                     </div>
-                </body>
-                </html>
-            `;
+                    <div class="content">
+                        <h2 style="color: #111827; margin-top: 0;">Login Verification</h2>
+                        <p class="message">Enter the following verification code to access your account:</p>
+                        
+                        <div class="otp-box">
+                            <p class="otp-code">${otp}</p>
+                        </div>
+                        
+                        <p class="expiry">This code is valid for <strong>10 minutes</strong>.<br>If you didn't request this, please ignore this email.</p>
+                    </div>
+                    <div class="footer">
+                        &copy; ${new Date().getFullYear()} SurplusLink. All rights reserved.
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
 
-            sendEmail({
-                email: user.email,
-                subject: 'Your Login Verification Code',
-                message,
-                html: emailTemplate
-            }).catch(error => console.error("Failed to send OTP email:", error));
+        sendEmail({
+            email: user.email,
+            subject: 'Your Login Verification Code',
+            message,
+            html: emailTemplate
+        }).catch(error => console.error("Failed to send OTP email:", error));
 
-            res.status(200).json({ success: true, message: 'OTP sent to email', devOtp: otp });
-        } catch (error) {
-            console.error("Critical error in sendOTP:", error);
-            next(error);
-        }
+        res.status(200).json({ success: true, message: 'OTP sent to email', devOtp: otp });
     } catch (error) {
         next(error);
     }
 };
 
-// @desc    Verify Login OTP
-// @route   POST /api/v1/auth/verify-otp
-// @access  Public
+/**
+ * @desc    Validate OTP and initiate session
+ * @route   POST /api/v1/auth/verify-otp
+ * @access  Public
+ */
 const verifyOTP = async (req, res, next) => {
     const { email, otp } = req.body;
 
@@ -271,11 +278,9 @@ const verifyOTP = async (req, res, next) => {
             throw new Error('Invalid or expired OTP');
         }
 
+        // Clear OTP after successful verification
         user.otp = undefined;
         user.otpExpires = undefined;
-
-
-
         await user.save();
 
         if (user.status === 'deactivated') {
@@ -310,11 +315,11 @@ const verifyOTP = async (req, res, next) => {
     }
 };
 
-export { signupUser, loginUser, logoutUser, forgotPassword, resetPassword, sendOTP, verifyOTP };
-
-// @desc    Forgot Password
-// @route   POST /api/v1/auth/forgot-password
-// @access  Public
+/**
+ * @desc    Request password reset link
+ * @route   POST /api/v1/auth/forgot-password
+ * @access  Public
+ */
 async function forgotPassword(req, res, next) {
     const { email } = req.body;
     try {
@@ -340,9 +345,11 @@ async function forgotPassword(req, res, next) {
     }
 }
 
-// @desc    Reset Password
-// @route   POST /api/v1/auth/reset-password/:token
-// @access  Public
+/**
+ * @desc    Reset password using valid token
+ * @route   POST /api/v1/auth/reset-password/:token
+ * @access  Public
+ */
 async function resetPassword(req, res, next) {
     const { password } = req.body;
     const { token } = req.params;
@@ -370,3 +377,6 @@ async function resetPassword(req, res, next) {
         next(error);
     }
 }
+
+export { signupUser, loginUser, logoutUser, forgotPassword, resetPassword, sendOTP, verifyOTP };
+

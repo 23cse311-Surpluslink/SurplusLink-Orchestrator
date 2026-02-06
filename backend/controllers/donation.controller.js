@@ -6,9 +6,13 @@ import { geocodeAddress } from '../utils/geocoder.js';
 import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
 import { getOptimalPath, getTravelCost } from '../services/routing.service.js';
 
-// @desc    Create new donation
-// @route   POST /api/donations
-// @access  Private (Donor)
+/**
+ * @desc    Create a new donation posting
+ * @route   POST /api/v1/donations
+ * @access  Private (Donor)
+ * @description Handles food donation creation with image uploads, safety threshold validation, 
+ *              and automatic geocoding of pickup addresses.
+ */
 export const createDonation = async (req, res) => {
     try {
         let {
@@ -70,7 +74,7 @@ export const createDonation = async (req, res) => {
             });
         }
 
-        // Handle photos if uploaded via Multer
+        // Handle photos if uploaded via Multer (Cloudinary)
         const photos = req.files ? req.files.map((file) => file.path) : [];
 
         const donationData = {
@@ -107,9 +111,8 @@ export const createDonation = async (req, res) => {
             }
         }
 
-        // Ensure coordinates are just the [lng, lat] array
+        // Normalized coordinate storage for MongoDB Geospatial indexing
         if (donationData.coordinates.coordinates && Array.isArray(donationData.coordinates.coordinates)) {
-            // Already in the right shape if it was a nested object
         } else if (Array.isArray(donationData.coordinates)) {
             const coordsArray = donationData.coordinates;
             donationData.coordinates = { type: 'Point', coordinates: coordsArray };
@@ -117,7 +120,7 @@ export const createDonation = async (req, res) => {
 
         const donation = await Donation.create(donationData);
 
-        // Notify All Nearby NGOs (Broadcast)
+        // Notify All Nearby NGOs (Global Broadcast)
         try {
             const ngos = await User.find({ role: 'ngo' });
             for (const ngo of ngos) {
@@ -139,9 +142,11 @@ export const createDonation = async (req, res) => {
     }
 };
 
-// @desc    Get donor history
-// @route   GET /api/donations/my-donations
-// @access  Private (Donor)
+/**
+ * @desc    Get donation history for the authenticated donor
+ * @route   GET /api/v1/donations/my-donations
+ * @access  Private (Donor)
+ */
 export const getDonorHistory = async (req, res) => {
     try {
         const donations = await Donation.find({ donor: req.user._id }).sort({ createdAt: -1 });
@@ -151,9 +156,11 @@ export const getDonorHistory = async (req, res) => {
     }
 };
 
-// @desc    Get donor stats
-// @route   GET /api/donations/stats
-// @access  Private (Donor)
+/**
+ * @desc    Calculate and return performance statistics for a donor
+ * @route   GET /api/v1/donations/stats
+ * @access  Private (Donor)
+ */
 export const getDonorStats = async (req, res) => {
     try {
         const totalDonations = await Donation.countDocuments({ donor: req.user._id });
@@ -163,10 +170,6 @@ export const getDonorStats = async (req, res) => {
         });
 
         const acceptanceRate = totalDonations > 0 ? (completedDonations / totalDonations) * 100 : 0;
-
-        // Additional metric: Total meals saved (assuming quantity can be used or just count completed)
-        // For now, let's just use the count of completed donations as "Total Meals Saved" placeholder
-        // or if we had a numeric quantity, we'd sum it.
 
         res.json({
             totalDonations,
