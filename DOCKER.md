@@ -9,7 +9,7 @@ This guide explains how to run the SurplusLink application using Docker.
 
 ## Quick Start
 
-1. **Make sure you have a `.env` file in the `backend` folder** with all required environment variables (MongoDB URI, JWT secrets, Cloudinary credentials, etc.)
+1. **Make sure you have a `.env` file in the `backend` folder** with all required environment variables (MongoDB URI,JWT secrets, Cloudinary credentials, etc.)
 
 2. **Start the application:**
    ```bash
