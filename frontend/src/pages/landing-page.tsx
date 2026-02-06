@@ -61,7 +61,7 @@ export default function LandingPage() {
                             className="max-w-4xl mx-auto rounded-[3rem] bg-foreground text-background p-12 md:p-20 relative overflow-hidden shadow-2xl z-10"
                         >
                             <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-                            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+                            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
 
                             <h2 className="text-3xl md:text-6xl font-black mb-8 leading-tight">
                                 Ready to make <br />
