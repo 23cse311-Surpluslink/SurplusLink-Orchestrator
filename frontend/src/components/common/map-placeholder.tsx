@@ -11,7 +11,6 @@ export function MapPlaceholder({ className, children }: MapPlaceholderProps) {
       "relative overflow-hidden rounded-xl bg-muted border border-border",
       className
     )}>
-      {/* Map grid background */}
       <div className="absolute inset-0 opacity-10">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -23,12 +22,9 @@ export function MapPlaceholder({ className, children }: MapPlaceholderProps) {
         </svg>
       </div>
 
-      {/* Decorative elements */}
       <div className="absolute top-1/4 left-1/4 h-3 w-3 rounded-full bg-primary animate-pulse" />
       <div className="absolute top-1/2 right-1/3 h-3 w-3 rounded-full bg-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
       <div className="absolute bottom-1/3 left-1/2 h-3 w-3 rounded-full bg-success animate-pulse" style={{ animationDelay: '1s' }} />
-
-      {/* Route lines */}
       <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 300" preserveAspectRatio="none">
         <path
           d="M100,75 Q150,100 160,150 T200,200"
@@ -46,7 +42,6 @@ export function MapPlaceholder({ className, children }: MapPlaceholderProps) {
         />
       </svg>
 
-      {/* Center content */}
       <div className="relative flex flex-col items-center justify-center h-full min-h-[300px] p-6 text-center">
         <div className="rounded-full bg-primary/10 p-4 mb-4">
           <svg 

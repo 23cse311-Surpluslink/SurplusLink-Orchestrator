@@ -43,7 +43,6 @@ export function StatCard({ title, value, icon, description, trend, className }: 
         </div>
       </div>
       
-      {/* Decorative gradient */}
       <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl" />
     </div>
   );

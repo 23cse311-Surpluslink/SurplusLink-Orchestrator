@@ -36,7 +36,7 @@ export function RouteMap({ donorCoords, ngoCoords, volunteerCoords, diversionCoo
     const center = useMemo(() => {
         if (volunteerCoords) return volunteerCoords;
         if (donorCoords) return donorCoords;
-        return { lat: 28.6139, lng: 77.2090 }; // Delhi default
+        return { lat: 28.6139, lng: 77.2090 };
     }, [volunteerCoords, donorCoords]);
 
     const polylinePath = useMemo(() => {

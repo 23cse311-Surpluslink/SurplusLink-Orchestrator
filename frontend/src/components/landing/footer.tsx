@@ -20,7 +20,6 @@ export function Footer() {
                         <div className="flex gap-6">
                             <a href="#" className="hover:underline underline-offset-4">Privacy</a>
                             <a href="#" className="hover:underline underline-offset-4">Terms</a>
-                            <a href="#" className="hover:underline underline-offset-4">Cookies</a>
                         </div>
                     </div>
                 </div>

@@ -55,7 +55,6 @@ export function MissionCard({ mission, onAccept, onView, isAccepting, isTooHeavy
             >
                 <div className="p-5 md:p-6">
                     <div className="flex flex-col md:flex-row justify-between gap-4">
-                        {/* Left Info Column */}
                         <div className="flex-1 space-y-4">
                             <div className="flex flex-wrap gap-2">
                                 {isUrgent ? (
@@ -111,7 +110,6 @@ export function MissionCard({ mission, onAccept, onView, isAccepting, isTooHeavy
                             </div>
                         </div>
 
-                        {/* Right CTA/Meta Column */}
                         <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-0 md:pl-8 gap-4 min-w-[140px]">
                             <div className="text-right hidden md:block">
                                 <span className="block text-2xl font-black text-foreground">{distanceText}</span>

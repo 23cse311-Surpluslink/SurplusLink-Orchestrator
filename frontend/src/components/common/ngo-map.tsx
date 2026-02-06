@@ -45,7 +45,6 @@ function NgoMapComponent({ donations, apiKey }: NgoMapProps) {
                 if (d.coordinates) bounds.extend(d.coordinates);
             });
             map.fitBounds(bounds);
-            // Don't zoom in too far if there's only one marker
             if (activeDonationsWithCoords.length === 1) {
                 map.setZoom(14);
             }

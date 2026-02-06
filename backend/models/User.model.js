@@ -116,7 +116,7 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.index({ 'volunteerProfile.currentLocation': '2dsphere' });
-userSchema.index({ 'location': '2dsphere' }); // Index for NGO geospatial queries
+userSchema.index({ 'location': '2dsphere' });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
