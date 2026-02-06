@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import api from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,41 +54,36 @@ import { Input } from '@/components/ui/input';
 
 // --- Types ---
 interface AnalyticsRecord {
-    id: string;
+    donationId: string;
     createdAt: string;
     donorName: string;
+    donorOrg?: string;
     recipientNgo?: string;
     foodType: string;
     quantity: string;
     weightKg: number;
-    status: 'Completed' | 'Pending' | 'Cancelled';
+    status: string;
     expiryDate: string;
 }
 
-// --- Mock Data ---
-const MOCK_DATA: AnalyticsRecord[] = [
-    { id: '1', createdAt: '2026-02-01T10:00:00Z', donorName: 'Green Grocery', recipientNgo: 'Hunger Relief', foodType: 'Vegetables', quantity: '20 kg', weightKg: 20, status: 'Completed', expiryDate: '2026-02-03' },
-    { id: '2', createdAt: '2026-02-01T14:30:00Z', donorName: 'Bake Fresh', recipientNgo: 'City Shelter', foodType: 'Bread', quantity: '15 units', weightKg: 8, status: 'Completed', expiryDate: '2026-02-02' },
-    { id: '3', createdAt: '2026-02-02T09:15:00Z', donorName: 'Super Mart', recipientNgo: 'Food for All', foodType: 'Dairy', quantity: '10 Liters', weightKg: 10, status: 'Completed', expiryDate: '2026-02-04' },
-    { id: '4', createdAt: '2026-02-02T16:45:00Z', donorName: 'City Cafe', foodType: 'Cooked Meal', quantity: '50 plates', weightKg: 25, status: 'Pending', expiryDate: '2026-02-02' },
-    { id: '5', createdAt: '2026-02-03T11:00:00Z', donorName: 'Green Grocery', recipientNgo: 'Hunger Relief', foodType: 'Fruits', quantity: '30 kg', weightKg: 30, status: 'Completed', expiryDate: '2026-02-05' },
-    { id: '6', createdAt: '2026-02-03T13:20:00Z', donorName: 'Organic Bistro', foodType: 'Salads', quantity: '20 packs', weightKg: 10, status: 'Cancelled', expiryDate: '2026-02-03' },
-    { id: '7', createdAt: '2026-02-04T08:30:00Z', donorName: 'Bake Fresh', recipientNgo: 'City Shelter', foodType: 'Pastries', quantity: '5 kg', weightKg: 5, status: 'Completed', expiryDate: '2026-02-05' },
-    { id: '8', createdAt: '2026-02-04T12:00:00Z', donorName: 'Mega Mart', foodType: 'Canned Goods', quantity: '100 cans', weightKg: 40, status: 'Pending', expiryDate: '2026-12-31' },
-    { id: '9', createdAt: '2026-02-05T10:00:00Z', donorName: 'City Cafe', recipientNgo: 'Food for All', foodType: 'Cooked Meal', quantity: '40 plates', weightKg: 20, status: 'Completed', expiryDate: '2026-02-05' },
-    { id: '10', createdAt: '2026-02-05T15:00:00Z', donorName: 'Green Grocery', foodType: 'Vegetables', quantity: '25 kg', weightKg: 25, status: 'Pending', expiryDate: '2026-02-07' },
-];
-
-const STATUS_COLORS = {
-    Completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    Pending: 'bg-amber-100 text-amber-700 border-amber-200',
-    Cancelled: 'bg-rose-100 text-rose-700 border-rose-200',
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
+    completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    active: { label: 'Active', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+    assigned: { label: 'Assigned', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+    picked_up: { label: 'In Transit', color: 'bg-violet-100 text-violet-700 border-violet-200' },
+    cancelled: { label: 'Cancelled', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+    expired: { label: 'Expired', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+    rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700 border-red-200' },
 };
 
-const CHART_COLORS = {
-    Completed: '#10B981', // Emerald 500
-    Pending: '#F59E0B',    // Amber 500
-    Cancelled: '#F43F5E',  // Rose 500
+const CHART_COLORS: Record<string, string> = {
+    completed: '#10B981',
+    active: '#3B82F6',
+    assigned: '#6366F1',
+    picked_up: '#8B5CF6',
+    cancelled: '#F43F5E',
+    rejected: '#EF4444',
+    expired: '#94A3B8'
 };
 
 // --- Components ---
@@ -141,26 +138,57 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
     return null;
 };
 
+interface RawReportItem {
+    donationId: string;
+    createdAt: string;
+    donorName: string;
+    donorOrg?: string;
+    recipientNgo?: string;
+    foodType: string;
+    quantity: string;
+    status: string;
+    expiryDate: string;
+}
+
 export default function DonationAnalytics() {
     const { user } = useAuth();
     const isAdmin = user?.role === 'admin';
-    const isDonor = user?.role === 'donor';
 
     const [dateRange, setDateRange] = useState({
-        from: subDays(new Date(), 7),
+        from: subDays(new Date(), 30),
         to: new Date(),
     });
     const [statusFilter, setStatusFilter] = useState('All');
     const [loading, setLoading] = useState(true);
+    const [reports, setReports] = useState<AnalyticsRecord[]>([]);
 
-    // Simulate loading
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 1200);
-        return () => clearTimeout(timer);
+        const fetchReports = async () => {
+            setLoading(true);
+            try {
+                const response = await api.get('/reports/donations');
+
+                // Helper to estimate weight from quantity string (e.g., "10kg" -> 10)
+                const decorated = response.data.map((item: RawReportItem): AnalyticsRecord => {
+                    const quantityLower = String(item.quantity).toLowerCase();
+                    const weightMatch = quantityLower.match(/(\d+(\.\d+)?)/);
+                    const weight = weightMatch ? parseFloat(weightMatch[0]) : 1; // Fallback to 1
+                    return { ...item, weightKg: weight };
+                });
+
+                setReports(decorated);
+            } catch (error) {
+                console.error('Failed to fetch reports:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReports();
     }, []);
 
     const filteredData = useMemo(() => {
-        return MOCK_DATA.filter(item => {
+        return reports.filter(item => {
             const date = parseISO(item.createdAt);
             const inRange = isWithinInterval(date, {
                 start: startOfDay(dateRange.from),
@@ -169,12 +197,12 @@ export default function DonationAnalytics() {
             const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
             return inRange && matchesStatus;
         });
-    }, [dateRange, statusFilter]);
+    }, [reports, dateRange, statusFilter]);
 
     const stats = useMemo(() => {
         const total = filteredData.length;
-        const completed = filteredData.filter(d => d.status === 'Completed').length;
-        const cancelled = filteredData.filter(d => d.status === 'Cancelled').length;
+        const completed = filteredData.filter(d => d.status === 'completed').length;
+        const cancelled = filteredData.filter(d => d.status === 'cancelled').length;
         const volume = filteredData.reduce((acc, curr) => acc + curr.weightKg, 0);
         const fulfillmentRate = total > 0 ? Math.round(((completed) / (total - cancelled || 1)) * 100) : 0;
 
@@ -191,26 +219,24 @@ export default function DonationAnalytics() {
     }, [filteredData]);
 
     const distributionData = useMemo(() => {
-        const counts = {
-            Completed: filteredData.filter(d => d.status === 'Completed').length,
-            Pending: filteredData.filter(d => d.status === 'Pending').length,
-            Cancelled: filteredData.filter(d => d.status === 'Cancelled').length,
-        };
+        const counts: Record<string, number> = {};
+        filteredData.forEach(d => {
+            counts[d.status] = (counts[d.status] || 0) + 1;
+        });
         return Object.entries(counts)
-            .filter(([_, value]) => value > 0)
             .map(([name, value]) => ({ name, value }));
     }, [filteredData]);
 
     const handleExport = () => {
         const headers = ["ID", "Date", "Organization", "Type", "Quantity", "Weight (kg)", "Status", "Expiry"];
         const rows = filteredData.map(d => [
-            d.id,
+            d.donationId,
             format(parseISO(d.createdAt), 'yyyy-MM-dd HH:mm'),
-            isAdmin ? d.donorName : (d.recipientNgo || 'Unclaimed'),
+            isAdmin ? (d.donorOrg || d.donorName) : (d.recipientNgo || 'Unclaimed'),
             d.foodType,
             d.quantity,
             d.weightKg.toString(),
-            d.status,
+            STATUS_MAP[d.status]?.label || d.status,
             d.expiryDate
         ]);
 
@@ -370,8 +396,8 @@ export default function DonationAnalytics() {
                                     <div className="flex flex-wrap justify-center gap-4 mt-2">
                                         {distributionData.map((entry, index) => (
                                             <div key={index} className="flex items-center gap-1.5">
-                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[entry.name as keyof typeof CHART_COLORS] }} />
-                                                <span className="text-xs font-semibold text-slate-600 uppercase tracking-tighter">{entry.name}</span>
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[entry.name] || '#94A3B8' }} />
+                                                <span className="text-xs font-semibold text-slate-600 uppercase tracking-tighter">{STATUS_MAP[entry.name]?.label || entry.name}</span>
                                                 <span className="text-xs font-bold text-slate-900 border-l pl-1.5 ml-1">{entry.value}</span>
                                             </div>
                                         ))}
@@ -430,24 +456,27 @@ export default function DonationAnalytics() {
                                     ))
                                 ) : filteredData.length > 0 ? (
                                     filteredData.map((record) => (
-                                        <TableRow key={record.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <TableRow key={record.donationId} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                                             <TableCell className="font-medium text-slate-500 text-xs">
                                                 {format(parseISO(record.createdAt), 'MMM dd, HH:mm')}
                                             </TableCell>
                                             <TableCell className="font-bold text-slate-900">
-                                                {isAdmin ? record.donorName : (record.recipientNgo || <span className="text-slate-300 font-normal italic">Not claimed</span>)}
+                                                {isAdmin ? (record.donorOrg || record.donorName) : (record.recipientNgo || <span className="text-slate-300 font-normal italic">Not claimed</span>)}
                                             </TableCell>
                                             <TableCell className="text-slate-600 font-medium">{record.foodType}</TableCell>
                                             <TableCell className="text-slate-600">{record.quantity}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className={`rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${STATUS_COLORS[record.status]}`}>
-                                                    {record.status === 'Completed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                                                    {record.status === 'Pending' && <Clock className="h-3 w-3 mr-1" />}
-                                                    {record.status === 'Cancelled' && <XCircle className="h-3 w-3 mr-1" />}
-                                                    {record.status}
+                                                <Badge variant="outline" className={cn(
+                                                    "rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest",
+                                                    STATUS_MAP[record.status]?.color || "bg-slate-100 text-slate-700"
+                                                )}>
+                                                    {record.status === 'completed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                                                    {['active', 'assigned', 'picked_up'].includes(record.status) && <Clock className="h-3 w-3 mr-1" />}
+                                                    {record.status === 'cancelled' && <XCircle className="h-3 w-3 mr-1" />}
+                                                    {STATUS_MAP[record.status]?.label || record.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-slate-500 text-sm">{record.expiryDate}</TableCell>
+                                            <TableCell className="text-slate-500 text-sm">{format(parseISO(record.expiryDate), 'MMM dd, yyyy')}</TableCell>
                                             <TableCell>
                                                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600">
                                                     <MoreHorizontal className="h-4 w-4" />
