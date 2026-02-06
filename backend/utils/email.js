@@ -33,7 +33,6 @@ const sendEmail = async (options) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`[Email Service] SUCCESS: Email sent to ${options.email}. MessageId: ${info.messageId}`);
     return info;
   } catch (error) {
     console.error(`[Email Service] FAILURE: Could not send email to ${options.email}`);

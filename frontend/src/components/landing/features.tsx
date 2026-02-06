@@ -22,8 +22,8 @@ const features = [
         icon: ShieldCheck,
         title: 'Food Safety First',
         description: 'Integrated hygiene chain validation and timestamp checks ensure all donated food is safe for consumption.',
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10'
+        color: 'text-cyan-500',
+        bg: 'bg-cyan-500/10'
     },
     {
         icon: Truck,
@@ -36,8 +36,8 @@ const features = [
         icon: BarChart3,
         title: 'Impact Analytics',
         description: 'Comprehensive dashboards show meals saved, carbon footprint reduction, and social impact metrics.',
-        color: 'text-purple-500',
-        bg: 'bg-purple-500/10'
+        color: 'text-teal-500',
+        bg: 'bg-teal-500/10'
     },
     {
         icon: MapPin,

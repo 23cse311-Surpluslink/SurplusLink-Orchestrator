@@ -130,18 +130,12 @@ export default function AdminDashboard() {
                                         <span className="truncate">{user.organization || user.role}</span>
                                     </p>
                                 </div>
-                                <Badge variant="secondary" className="h-5 px-1.5 text-[8px] font-black uppercase tracking-tighter shrink-0">
+                                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-black  uppercase shrink-0">
                                     {user.status}
                                 </Badge>
                             </div>
                         ))}
-                        <Button
-                            variant="ghost"
-                            className="w-full text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary mt-2"
-                            onClick={() => navigate('/admin/users')}
-                        >
-                            View Directory <ArrowRight size={12} className="ml-2" />
-                        </Button>
+                    
                     </CardContent>
                 </Card>
             </div>
