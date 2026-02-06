@@ -1,4 +1,5 @@
 import Donation from '../models/Donation.model.js';
+import User from '../models/User.model.js';
 import mongoose from 'mongoose';
 
 /**
@@ -88,4 +89,186 @@ const getDonationReport = async (req, res, next) => {
     }
 };
 
-export { getDonationReport };
+/**
+ * @desc    Generate a detailed NGO utilization and performance report
+ * @route   GET /api/v1/reports/ngo-utilization
+ * @access  Private (Admin, NGO)
+ * @description Aggregates NGO performance metrics including claim rates, success rates, 
+ *              capacity usage, and rejection analysis.
+ */
+const getNgoUtilizationReport = async (req, res, next) => {
+    try {
+        const { ngoId, startDate, endDate } = req.query;
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        // Security Filtering: NGOs only see their own data; Admins see all or filtered
+        let userMatch = { role: 'ngo' };
+        if (req.user.role === 'ngo') {
+            userMatch._id = new mongoose.Types.ObjectId(req.user.id);
+        } else if (req.user.role === 'admin' && ngoId) {
+            userMatch._id = new mongoose.Types.ObjectId(ngoId);
+        }
+
+        // Logic & Aggregation Pipeline
+        // Starting with User (NGOs) to ensure we include those with zero claims
+        const report = await User.aggregate([
+            { $match: userMatch },
+            {
+                $lookup: {
+                    from: 'donations',
+                    localField: '_id',
+                    foreignField: 'claimedBy',
+                    as: 'claims',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$claims',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $addFields: {
+                    // Check if the claim falls within the requested date range
+                    isInRange: {
+                        $and: [
+                            { $ne: ['$claims', null] },
+                            startDate ? { $gte: ['$claims.claimedAt', new Date(startDate)] } : true,
+                            endDate ? { $lte: ['$claims.claimedAt', new Date(endDate)] } : true,
+                        ],
+                    },
+                    // Check if the claim happened in the last 24h for capacity monitoring
+                    isLast24h: {
+                        $and: [
+                            { $ne: ['$claims', null] },
+                            { $gte: ['$claims.claimedAt', oneDayAgo] },
+                        ],
+                    },
+                    // Parse quantity string to numeric value (e.g., "10.5 kg" -> 10.5)
+                    claimQty: {
+                        $convert: {
+                            input: {
+                                $getField: {
+                                    field: "match",
+                                    input: {
+                                        $regexFind: {
+                                            input: { $ifNull: [{ $toString: "$claims.quantity" }, "0"] },
+                                            regex: "[0-9]+(\\.[0-9]+)?"
+                                        }
+                                    }
+                                }
+                            },
+                            to: "double",
+                            onError: 0.0,
+                            onNull: 0.0
+                        }
+                    }
+                },
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    organization: { $first: '$organization' },
+                    dailyCapacity: { $first: '$ngoProfile.dailyCapacity' },
+                    totalClaims: {
+                        $sum: { $cond: ['$isInRange', 1, 0] }
+                    },
+                    completed: {
+                        $sum: { $cond: [{ $and: ['$isInRange', { $eq: ['$claims.status', 'completed'] }] }, 1, 0] }
+                    },
+                    rejected: {
+                        $sum: { $cond: [{ $and: ['$isInRange', { $eq: ['$claims.status', 'rejected'] }] }, 1, 0] }
+                    },
+                    urgentRescues: {
+                        $sum: { $cond: [{ $and: ['$isInRange', { $eq: ['$claims.perishability', 'high'] }] }, 1, 0] }
+                    },
+                    last24hVolume: {
+                        $sum: { $cond: ['$isLast24h', '$claimQty', 0] }
+                    },
+                    rejectionReasons: {
+                        $push: {
+                            $cond: [{ $and: ['$isInRange', { $eq: ['$claims.status', 'rejected'] }, { $ne: ['$claims.rejectionReason', null] }] }, '$claims.rejectionReason', '$$REMOVE']
+                        }
+                    },
+                    dailyStats: {
+                        $push: {
+                            $cond: [
+                                '$isInRange',
+                                {
+                                    date: { $dateToString: { format: '%Y-%m-%d', date: '$claims.claimedAt' } },
+                                    units: '$claimQty'
+                                },
+                                '$$REMOVE'
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    ngoId: '$_id',
+                    organization: 1,
+                    summary: {
+                        totalClaims: '$totalClaims',
+                        completed: '$completed',
+                        rejected: '$rejected',
+                        utilizationRate: {
+                            $cond: [
+                                { $gt: ['$dailyCapacity', 0] },
+                                { $round: [{ $multiply: [{ $divide: ['$last24hVolume', '$dailyCapacity'] }, 100] }, 0] },
+                                0
+                            ]
+                        },
+                        urgentRescues: '$urgentRescues'
+                    },
+                    rejectionReasons: 1,
+                    dailyStats: 1,
+                    dailyCapacity: 1
+                }
+            }
+        ]);
+
+        // Post-aggregation formatting to match standard frontend structures
+        const formattedResults = report.map(r => {
+            // rejectionBreakdown count
+            const reasonsMap = {};
+            r.rejectionReasons?.forEach(reason => {
+                reasonsMap[reason] = (reasonsMap[reason] || 0) + 1;
+            });
+
+            // dailyUtilization group by date
+            const dailyMap = {};
+            r.dailyStats?.forEach(stat => {
+                dailyMap[stat.date] = (dailyMap[stat.date] || 0) + stat.units;
+            });
+
+            return {
+                ngoId: r.ngoId,
+                ngoName: r.organization,
+                summary: r.summary,
+                rejectionBreakdown: Object.entries(reasonsMap).map(([reason, count]) => ({ reason, count })),
+                dailyUtilization: Object.entries(dailyMap).map(([date, units]) => ({
+                    date,
+                    units: parseFloat(units.toFixed(1)),
+                    capacity: r.dailyCapacity
+                })).sort((a, b) => a.date.localeCompare(b.date))
+            };
+        });
+
+        // Return single object for specific NGO, else return array (Master List)
+        if (req.user.role === 'ngo' || (req.user.role === 'admin' && ngoId)) {
+            res.status(200).json(formattedResults[0] || {
+                summary: { totalClaims: 0, completed: 0, rejected: 0, utilizationRate: 0, urgentRescues: 0 },
+                rejectionBreakdown: [],
+                dailyUtilization: []
+            });
+        } else {
+            res.status(200).json(formattedResults);
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getDonationReport, getNgoUtilizationReport };
