@@ -279,7 +279,7 @@ const getNgoUtilizationReport = async (req, res, next) => {
  */
 const getVolunteerPerformanceReport = async (req, res, next) => {
     try {
-        const { period } = req.query;
+        const { period, volunteerId } = req.query;
 
         // Calculate period start date
         let periodStartDate = new Date(0);
@@ -290,8 +290,13 @@ const getVolunteerPerformanceReport = async (req, res, next) => {
             periodStartDate = new Date(now.setDate(now.getDate() - 30));
         }
 
+        const matchQuery = { role: 'volunteer' };
+        if (volunteerId) {
+            matchQuery._id = new mongoose.Types.ObjectId(volunteerId);
+        }
+
         const report = await User.aggregate([
-            { $match: { role: 'volunteer' } },
+            { $match: matchQuery },
             {
                 $lookup: {
                     from: 'donations',
