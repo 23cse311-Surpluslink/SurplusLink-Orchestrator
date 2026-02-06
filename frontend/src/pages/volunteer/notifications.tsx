@@ -4,17 +4,11 @@ import {
     Bell,
     CheckCheck,
     Clock,
-    MapPin,
     Package,
-    Star,
-    AlertCircle,
     ArrowRight,
     ShieldCheck,
     Zap,
     Trash2,
-    Filter,
-    Trophy,
-    Leaf,
     Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +18,7 @@ import { cn } from "@/lib/utils";
 import NotificationService from "@/services/notification.service";
 import { Notification } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -177,7 +172,7 @@ export default function VolunteerNotifications() {
                                                         {n.title}
                                                     </h3>
                                                     <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                                                        {format(new Date(n.createdAt), 'h:mm a')}
+                                                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                                                     </span>
                                                 </div>
                                                 <p className="text-sm font-medium text-muted-foreground leading-relaxed">

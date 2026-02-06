@@ -181,7 +181,6 @@ export default function DonorDonations() {
                     </DialogHeader>
                     {selectedDonation && (
                         <div className="space-y-4">
-                            {/* Status Badge */}
                             <div className="flex justify-between items-center">
                                 <h3 className="font-bold text-lg">{selectedDonation.title}</h3>
                                 <Badge variant={selectedDonation.status === 'active' ? 'default' : 'secondary'} className="capitalize">
@@ -189,7 +188,6 @@ export default function DonorDonations() {
                                 </Badge>
                             </div>
 
-                            {/* Rejection Alert */}
                             {selectedDonation.status === 'rejected' && (
                                 <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex gap-3 text-destructive animate-in slide-in-from-top-2">
                                     <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
@@ -218,7 +216,6 @@ export default function DonorDonations() {
                                 <p className="font-medium">{selectedDonation.pickupAddress || selectedDonation.address}</p>
                             </div>
 
-                            {/* Claimed Info */}
                             {selectedDonation.claimedBy && (
                                 <div className="bg-blue-50 p-3 rounded-lg text-sm border border-blue-100">
                                     <p className="text-black font-medium mb-1">Claimed By</p>
