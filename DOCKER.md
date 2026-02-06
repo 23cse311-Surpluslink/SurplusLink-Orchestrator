@@ -33,7 +33,7 @@ docker-compose down
 ```
 
 ### Rebuild and start services
-```bash
+```bas
 docker-compose up --build
 ```
 
