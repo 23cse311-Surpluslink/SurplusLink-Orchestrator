@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { UtilizationRecord } from '../types';
+import { UtilizationRecord, VolunteerPerformanceReport } from '../types';
 
 class ReportService {
     async getNgoUtilization(ngoId?: string, startDate?: string, endDate?: string): Promise<UtilizationRecord> {
@@ -14,6 +14,11 @@ class ReportService {
 
     async getNgoUtilizationMasterList(): Promise<UtilizationRecord[]> {
         const response = await api.get('/reports/ngo-utilization');
+        return response.data;
+    }
+
+    async getVolunteerPerformance(): Promise<VolunteerPerformanceReport> {
+        const response = await api.get('/reports/volunteer-performance');
         return response.data;
     }
 }

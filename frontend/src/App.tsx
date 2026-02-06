@@ -26,6 +26,7 @@ import UserManagement from "./pages/admin/user-management";
 import DonationAnalytics from "./pages/admin/donation-analytics";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
+import VolunteerPerformance from "./pages/admin/volunteer-performance";
 import VolunteerSettings from "./pages/volunteer/settings";
 import AvailableMissions from "./pages/volunteer/available-missions";
 import ActiveMission from "./pages/volunteer/active-mission";
@@ -86,6 +87,7 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
                   <Route path="reports" element={<DonationAnalytics />} />
+                  <Route path="volunteers" element={<VolunteerPerformance />} />
                   <Route path="impact-report" element={<NgoImpactReport />} />
                   <Route path="tracking" element={<AdminDashboard />} />
                   <Route path="notifications" element={<AdminDashboard />} />

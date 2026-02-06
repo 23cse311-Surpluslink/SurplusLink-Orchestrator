@@ -18,6 +18,7 @@ import {
     Settings,
     Sparkles,
     Circle,
+    Zap,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -87,6 +88,7 @@ const navItemsByRole = {
         { label: "Dashboard", href: "/admin", icon: Home },
         { label: "User Management", href: "/admin/users", icon: Users },
         { label: "System Reports", href: "/admin/reports", icon: FileText },
+        { label: "Volunteer Fleet", href: "/admin/volunteers", icon: Zap },
         { label: "Live Tracking", href: "/admin/tracking", icon: Truck },
         { label: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
     ],
