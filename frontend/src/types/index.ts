@@ -138,3 +138,24 @@ export interface NgoStats {
   totalDistributions: number;
   trend: number;
 }
+
+export interface UtilizationRecord {
+  ngoId?: string;
+  ngoName?: string;
+  summary: {
+    totalClaims: number;
+    completed: number;
+    rejected: number;
+    utilizationRate: number;
+    urgentRescues: number;
+  };
+  rejectionBreakdown: {
+    reason: string;
+    count: number;
+  }[];
+  dailyUtilization: {
+    date: string;
+    units: number;
+    capacity: number;
+  }[];
+}

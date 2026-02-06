@@ -40,6 +40,7 @@ import { NgoFeedbackPage } from "./pages/ngo/feedback-page";
 import { NgoImpactPage } from "./pages/ngo/impact-page";
 import NgoFleetDashboard from "./pages/ngo/fleet";
 import { NgoVolunteersPage } from "./pages/ngo/volunteers-page";
+import NgoImpactReport from "./pages/ngo/impact-report";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
                   <Route path="notifications" element={<DonorNotifications />} />
                   <Route path="feedback" element={<NgoFeedbackPage />} />
                   <Route path="impact" element={<NgoImpactPage />} />
+                  <Route path="impact-report" element={<NgoImpactReport />} />
                   <Route path="settings" element={<NgoSettingsPage />} />
                 </Route>
 
@@ -84,6 +86,7 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
                   <Route path="reports" element={<DonationAnalytics />} />
+                  <Route path="impact-report" element={<NgoImpactReport />} />
                   <Route path="tracking" element={<AdminDashboard />} />
                   <Route path="notifications" element={<AdminDashboard />} />
                   <Route path="moderation" element={<AdminDashboard />} />
