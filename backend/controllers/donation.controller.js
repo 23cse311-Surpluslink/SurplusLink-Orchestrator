@@ -182,31 +182,33 @@ export const getDonorStats = async (req, res) => {
     }
 };
 
-// @desc    Get NGO stats
-// @route   GET /api/donations/ngo/stats
-// @access  Private (NGO)
+/**
+ * @desc    Get performance and impact statistics for an NGO
+ * @route   GET /api/v1/donations/ngo/stats
+ * @access  Private (NGO)
+ */
 export const getNgoStats = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        // 1. Total Distributions (Completed)
+        // Fetch all successful distributions for this NGO
         const completedDonations = await Donation.find({
             claimedBy: userId,
             status: 'completed'
         });
 
-        // 2. Sum up weight/meals
+        // Metric 1: Total volume/meals received
         let mealsReceived = 0;
         completedDonations.forEach(d => {
             const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
             if (match) {
                 mealsReceived += parseFloat(match[0]);
             } else {
-                mealsReceived += 1; // Default increment if no number found
+                mealsReceived += 1; // Default fallback unit
             }
         });
 
-        // 3. Average Delivery Time (Time between pickedUpAt and deliveredAt)
+        // Metric 2: Logistics speed (Pickup-to-Delivery time)
         let totalDeliveryTime = 0;
         let deliveriesWithTime = 0;
 
@@ -224,16 +226,18 @@ export const getNgoStats = async (req, res) => {
             mealsReceived: parseFloat(mealsReceived.toFixed(1)),
             avgDeliveryTime,
             totalDistributions: completedDonations.length,
-            trend: 12
+            trend: 12 // Placeholder for weekly growth
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Cancel donation
-// @route   PATCH /api/donations/:id/cancel
-// @access  Private (Donor)
+/**
+ * @desc    Cancel a donation posting (if not already picked up)
+ * @route   PATCH /api/v1/donations/:id/cancel
+ * @access  Private (Donor)
+ */
 export const cancelDonation = async (req, res) => {
     try {
         const donation = await Donation.findById(req.params.id);
@@ -246,7 +250,7 @@ export const cancelDonation = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
-        // Allow cancellation only if status is 'active' or 'assigned'
+        // Integrity Rule: Cannot cancel if in-transit or completed
         if (!['active', 'assigned'].includes(donation.status)) {
             return res.status(400).json({
                 message: `Cannot cancel donation when it is in status: ${donation.status}`,
@@ -256,7 +260,6 @@ export const cancelDonation = async (req, res) => {
         donation.status = 'cancelled';
         await donation.save();
 
-        // Notify relevant parties
         await createNotification(
             donation.donor,
             `You have cancelled the donation: ${donation.title}`,
@@ -270,9 +273,11 @@ export const cancelDonation = async (req, res) => {
     }
 };
 
-// @desc    View donation details
-// @route   GET /api/donations/:id
-// @access  Private
+/**
+ * @desc    Retrieve full details of a specific donation
+ * @route   GET /api/v1/donations/:id
+ * @access  Private
+ */
 export const getDonationById = async (req, res) => {
     try {
         const donation = await Donation.findById(req.params.id).populate('donor', 'name email organization');
@@ -287,9 +292,11 @@ export const getDonationById = async (req, res) => {
     }
 };
 
-// @desc    Mark donation as completed and provide feedback
-// @route   PATCH /api/donations/:id/complete
-// @access  Private (NGO/Volunteer)
+/**
+ * @desc    Close a mission, set feedback, and update donor trust scores
+ * @route   PATCH /api/v1/donations/:id/complete
+ * @access  Private (NGO/Volunteer)
+ */
 export const completeDonation = async (req, res, next) => {
     try {
         const { rating, comment } = req.body;
@@ -307,10 +314,9 @@ export const completeDonation = async (req, res, next) => {
         donation.feedback = { rating, comment };
         await donation.save();
 
-        // Update Donor Trust Metrics
+        // Engine Update: Recompute Donor Trust Metrics based on feedback
         const donor = await User.findById(donation.donor);
         if (donor) {
-            // Initialize stats if missing (migration safety)
             if (!donor.stats) {
                 donor.stats = { trustScore: 5.0, totalRatings: 0, completedDonations: 0 };
             }
@@ -318,9 +324,6 @@ export const completeDonation = async (req, res, next) => {
             const currentScore = donor.stats.trustScore || 5.0;
             const currentCount = donor.stats.totalRatings || 0;
 
-            // Calculate new Weighted Average
-            // If it's the first real rating, maybe start fresh or blend? 
-            // We use standard cumulative average.
             const newCount = currentCount + 1;
             const newScore = ((currentScore * currentCount) + Number(rating)) / newCount;
 
@@ -331,7 +334,6 @@ export const completeDonation = async (req, res, next) => {
             await donor.save();
         }
 
-        // Notify donor
         await createNotification(
             donation.donor,
             `Your donation "${donation.title}" was completed! You received a ${rating}/5 rating.`,
@@ -345,9 +347,12 @@ export const completeDonation = async (req, res, next) => {
     }
 };
 
-// @desc    Get smart feed for NGOs
-// @route   GET /api/donations/feed
-// @access  Private (NGO)
+/**
+ * @desc    Generate a smart, prioritized feed for NGOs
+ * @route   GET /api/v1/donations/feed
+ * @access  Private (NGO)
+ * @description Ranks donations based on proximity, urgency (expiry), and NGO capacity.
+ */
 export const getSmartFeed = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
@@ -357,14 +362,14 @@ export const getSmartFeed = async (req, res, next) => {
 
         const { storageFacilities, dailyCapacity } = user.ngoProfile;
 
-        // Use the new matching service to find best donations for the NGO
+        // Execute AI-driven matching service
         let donations = [];
         let unmetNeed = 0;
         let capacityWarning = false;
 
         try {
             if (user.coordinates && user.coordinates.lat && user.coordinates.lng) {
-                // Populate location field for geospatial query if not already populated
+                // Background Patch: Ensure legacy location field is populated for geospatial queries
                 if (!user.location || (user.location.coordinates[0] === 0 && user.location.coordinates[1] === 0)) {
                     user.location = {
                         type: 'Point',
@@ -373,16 +378,12 @@ export const getSmartFeed = async (req, res, next) => {
                     await user.save();
                 }
 
-                // Find best donations within 15km radius with suitability scores
+                // Core Logic: Find best donations within 15km
                 donations = await findBestDonationsForNGO(req.user.id);
-
-                // Get unmet need for today
                 unmetNeed = await getUnmetNeed(req.user.id);
-
-                // Capacity warning if claimed donations exceed dailyCapacity
                 capacityWarning = dailyCapacity > 0 && donations.length > 0 && unmetNeed <= 0;
             } else {
-                // Fallback: return all active donations if NGO coordinates are not set
+                // Baseline Fallback: Return simple time-sorted active donations
                 donations = await Donation.find({ status: 'active' })
                     .populate('donor', 'name organization')
                     .sort({ createdAt: -1 })
@@ -390,7 +391,6 @@ export const getSmartFeed = async (req, res, next) => {
             }
         } catch (matchingError) {
             console.error('Matching service error:', matchingError);
-            // Fallback to simple query if matching service fails
             const query = { status: 'active' };
             if (storageFacilities && storageFacilities.length > 0) {
                 query.storageReq = { $in: storageFacilities };
@@ -417,16 +417,19 @@ export const getSmartFeed = async (req, res, next) => {
     }
 };
 
-// @desc    Claim a donation
-// @route   PATCH /api/donations/:id/claim
-// @access  Private (NGO)
+/**
+ * @desc    Claim an active donation for distribution
+ * @route   PATCH /api/v1/donations/:id/claim
+ * @access  Private (NGO)
+ * @description Validates safety thresholds before allowing a claim.
+ */
 export const claimDonation = async (req, res, next) => {
     try {
         const donation = await Donation.findById(req.params.id);
         if (!donation) return res.status(404).json({ message: 'Donation not found' });
         if (donation.status !== 'active') return res.status(400).json({ message: 'Donation is no longer active' });
 
-        // Safety Buffer Logic: Prevent claiming if less than 30 minutes until expiry
+        // Logistic Safety Check: 30-minute buffer before expiry
         const now = new Date();
         const minsRemaining = (new Date(donation.expiryDate) - now) / (1000 * 60);
         if (minsRemaining < 30) {
@@ -447,7 +450,7 @@ export const claimDonation = async (req, res, next) => {
             donation._id
         );
 
-        // Trigger Auto-Dispatch for volunteers
+        // Immediate Dispatch: Alert top suitable volunteers
         initiateAutoDispatch(donation._id);
 
         res.json(donation);
@@ -457,8 +460,10 @@ export const claimDonation = async (req, res, next) => {
 };
 
 /**
- * REASSIGN MISSION (Requirement 5.5)
- * Automatically unassigns current volunteer and triggers new dispatch
+ * @desc    Automated Mission Reassignment (Supervisor Function)
+ * @description Logic to handle stalled or abandoned missions by redistributing tasks.
+ * @param   {string} donationId - The ID of the mission to reassign
+ * @param   {string} reason - Justification for reassignment
  */
 export const reassignMission = async (donationId, reason = 'Stalled or abandoned') => {
     try {
@@ -467,7 +472,7 @@ export const reassignMission = async (donationId, reason = 'Stalled or abandoned
 
         const oldVolunteer = donation.volunteer;
 
-        // Reset Mission
+        // Reset Mission State for New Assignment
         donation.volunteer = undefined;
         donation.deliveryStatus = 'idle';
         donation.status = 'assigned';
@@ -475,9 +480,10 @@ export const reassignMission = async (donationId, reason = 'Stalled or abandoned
         await donation.save();
 
         if (oldVolunteer) {
+            // Adjust volunteer work-load metrics
             await User.findByIdAndUpdate(oldVolunteer._id, {
                 $inc: { currentTaskCount: -1 },
-                $set: { 'volunteerProfile.lastLocationUpdate': new Date(0) } // Reset heartbeat
+                $set: { 'volunteerProfile.lastLocationUpdate': new Date(0) } // Reset heartbeat status
             });
 
             await createNotification(
@@ -487,39 +493,35 @@ export const reassignMission = async (donationId, reason = 'Stalled or abandoned
             );
         }
 
-        // Trigger High-Priority Notification to next 3 volunteers
+        // High-Priority Push to next available tier of volunteers
         console.log(`[Supervisor] Reassigning mission ${donationId} due to ${reason}`);
-        initiateAutoDispatch(donationId, true); // true = high priority reassignment
+        initiateAutoDispatch(donationId, true);
 
     } catch (error) {
         console.error('[Supervisor] Reassignment failed:', error);
     }
 };
 
-
 /**
- * Auto-Dispatch Logic: Finds top 3 volunteers and notifies them with tiered delays.
- * Implements 2-minute "First Right of Refusal" lock.
+ * @desc    Internal Dispatch Logic: Multi-tiered notification engine
+ * @description Implements tiered delays (30s) to give high-suitability volunteers the "First Right of Refusal".
+ * @param   {string} donationId - The mission to dispatch
+ * @param   {boolean} isRetry - Whether this is a high-priority reassignment
  */
-// @desc    Initiate auto-dispatch for a donation
-// @route   Internal
-// @access  Private
 export const initiateAutoDispatch = async (donationId, isRetry = false) => {
     try {
         const donation = await Donation.findById(donationId);
         if (!donation) return;
 
-        // Find top suitable volunteers (10km base)
+        // Discovery: Find volunteers within 10km grid
         const topVolunteers = await findSuitableVolunteers(donation, 10000);
         if (topVolunteers.length === 0) {
             console.log(`[Auto-Dispatch] No volunteers found for donation ${donationId} within 10km.`);
             return;
         }
 
-        // Filter top 3 for priority dispatch
         const priorityVolunteers = topVolunteers.slice(0, 3);
 
-        // Update donation with dispatch info
         donation.dispatchedTo = priorityVolunteers.map(v => v._id);
         donation.dispatchedAt = new Date();
         await donation.save();
@@ -527,12 +529,12 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
         console.log(`[Auto-Dispatch] Dispatching donation ${donationId} to ${priorityVolunteers.length} volunteers.`);
 
         const isTest = process.env.NODE_ENV === 'test';
-        // Tiered Notifications (30s gap)
+        
+        // Strategy: Sequence notifications to prevent multiple volunteers from racing to the same item
         priorityVolunteers.forEach((volunteer, index) => {
-            const delay = isTest ? 0 : index * 30000; // 0s in test, else 30s, 60s
+            const delay = isTest ? 0 : index * 30000; 
 
             setTimeout(async () => {
-                // Double check if mission is still available
                 const freshDonation = await Donation.findById(donationId);
                 if (freshDonation && freshDonation.status === 'assigned' && !freshDonation.volunteer) {
                     const message = isRetry ?
@@ -554,9 +556,11 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
     }
 };
 
-// @desc    Reject a donation (for safety reasons)
-// @route   PATCH /api/donations/:id/reject
-// @access  Private (NGO)
+/**
+ * @desc    Reject a donation due to safety or quality concerns
+ * @route   PATCH /api/v1/donations/:id/reject
+ * @access  Private (NGO)
+ */
 export const rejectDonation = async (req, res, next) => {
     try {
         const { rejectionReason } = req.body;
@@ -571,7 +575,6 @@ export const rejectDonation = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        // Allow rejection if active or assigned (to cancel assignment)
         if (!['active', 'assigned'].includes(donation.status)) {
             return res.status(400).json({ message: 'This donation is already closed or completed.' });
         }
@@ -580,7 +583,6 @@ export const rejectDonation = async (req, res, next) => {
         donation.rejectionReason = rejectionReason;
         await donation.save();
 
-        // Parse Reason for better display
         let formattedReason = rejectionReason;
         const reasonMatch = rejectionReason.match(/^\[(.*?)\]\s*(.*)$/);
         if (reasonMatch) {
@@ -588,7 +590,7 @@ export const rejectDonation = async (req, res, next) => {
             if (reasonMatch[2]) formattedReason += ` - ${reasonMatch[2]}`;
         }
 
-        // 1. App Notification
+        // Notification: App Warning
         if (donation.donor) {
             await createNotification(
                 donation.donor._id || donation.donor,
@@ -598,7 +600,7 @@ export const rejectDonation = async (req, res, next) => {
             );
         }
 
-        // 2. Email Notification (Professional HTML)
+        // Notification: Professional Safety Email
         try {
             const emailHtml = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
@@ -650,7 +652,6 @@ export const rejectDonation = async (req, res, next) => {
             }
         } catch (emailError) {
             console.error('Failed to send rejection email:', emailError);
-            // Don't fail the request, just log it
         }
 
         res.json(donation);
@@ -659,9 +660,11 @@ export const rejectDonation = async (req, res, next) => {
     }
 };
 
-// @desc    Get donations claimed by NGO
-// @route   GET /api/donations/claimed
-// @access  Private (NGO)
+/**
+ * @desc    Get list of all current and historical claims for an NGO
+ * @route   GET /api/v1/donations/claimed
+ * @access  Private (NGO)
+ */
 export const getClaimedDonations = async (req, res, next) => {
     try {
         const donations = await Donation.find({ claimedBy: req.user._id })
@@ -672,42 +675,41 @@ export const getClaimedDonations = async (req, res, next) => {
         next(error);
     }
 };
-// @desc    Get available missions for volunteers
-// @route   GET /api/donations/available-missions
-// @access  Private (Volunteer)
+/**
+ * @desc    Find suitable missions for online volunteers
+ * @route   GET /api/v1/donations/available-missions
+ * @access  Private (Volunteer)
+ * @description Filters by proximity, vehicle capacity, and implementation of the "First Right of Refusal" 2-minute lock.
+ */
 export const getAvailableMissions = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
 
-        // 1. Online Check
+        // State Check: Only online volunteers can receive tasks
         if (!user.isOnline) {
             return res.status(400).json({ message: 'You must be online to find missions.' });
         }
 
         const { maxWeight, currentLocation } = user.volunteerProfile || {};
 
-        // 2. Base Query: Claimed by NGO but waiting for volunteer
-        // We look for status 'assigned' (claimed by NGO) and deliveryStatus 'idle'
         const query = {
             status: 'assigned',
             deliveryStatus: 'idle',
-            volunteer: { $exists: false }, // Double check no volunteer is assigned
+            volunteer: { $exists: false }, 
         };
 
         let donations;
 
-        // 3. Proximity Sort & Safety Filter (Only show items with > 30 mins remaining)
         const now = new Date();
-        const safetyThreshold = new Date(now.getTime() + 30 * 60000);
-        const lockThreshold = new Date(now.getTime() - 2 * 60000); // 2 minutes ago
+        const safetyThreshold = new Date(now.getTime() + 30 * 60000); // Expiry > 30m
+        const lockThreshold = new Date(now.getTime() - 2 * 60000); // 2 minute lock window
 
-        // First Right of Refusal Filter:
-        // if locked (dispatchedAt > 2 mins ago), only show to dispatchedTo volunteers
+        // Logistic Rule: Honor the 2-minute priority period for dispatched volunteers
         const lockFilter = {
             $or: [
-                { dispatchedAt: { $exists: false } }, // Not dispatched
-                { dispatchedAt: { $lt: lockThreshold } }, // Lock expired
-                { dispatchedTo: req.user.id } // User is one of the priority volunteers
+                { dispatchedAt: { $exists: false } }, 
+                { dispatchedAt: { $lt: lockThreshold } }, 
+                { dispatchedTo: req.user.id } 
             ]
         };
 
@@ -733,18 +735,17 @@ export const getAvailableMissions = async (req, res, next) => {
             donations = await Donation.find(baseQuery).populate('donor', 'name address stats.trustScore').populate('claimedBy', 'organization address');
         }
 
-        // 4. Capacity Filter (In-memory)
+        // Capacity Rule: Filter missions based on volunteer vehicle weight limits
         const suitableMissions = donations.filter(donation => {
-            if (!maxWeight) return true; // If no max weight set, show all? Or assume 0? Assuming strict safety, maybe filter. But usually assume capable if undefined. Let's assume passed if undefined for flexibility unless logic requires it.
+            if (!maxWeight) return true; 
 
-            // Parse quantity
             const quantityStr = String(donation.quantity).toLowerCase();
             const match = quantityStr.match(/(\d+(\.\d+)?)/);
             if (match) {
                 const weight = parseFloat(match[0]);
                 return weight <= maxWeight;
             }
-            return true; // If we can't parse, let the volunteer decide (return it)
+            return true; 
         });
 
         res.json(suitableMissions);
@@ -754,9 +755,11 @@ export const getAvailableMissions = async (req, res, next) => {
     }
 };
 
-// @desc    Accept a mission
-// @route   PATCH /api/donations/:id/accept-mission
-// @access  Private (Volunteer)
+/**
+ * @desc    Commit to a specific delivery mission
+ * @route   PATCH /api/v1/donations/:id/accept-mission
+ * @access  Private (Volunteer)
+ */
 export const acceptMission = async (req, res, next) => {
     try {
         const donationId = req.params.id;
@@ -767,7 +770,6 @@ export const acceptMission = async (req, res, next) => {
             return res.status(400).json({ message: 'Mission not found.' });
         }
 
-        // Safety Buffer Logic
         const now = new Date();
         const minsRemaining = (new Date(donation.expiryDate) - now) / (1000 * 60);
         if (minsRemaining < 30) {
@@ -776,20 +778,20 @@ export const acceptMission = async (req, res, next) => {
             });
         }
 
-        // Atomic update to prevent race conditions
+        // Atomic Transaction: Ensure no two volunteers can claim the same mission
         const updatedDonation = await Donation.findOneAndUpdate(
             {
                 _id: donationId,
                 status: 'assigned',
                 deliveryStatus: 'idle',
-                volunteer: { $exists: false } // ensure strictly available
+                volunteer: { $exists: false } 
             },
             {
                 volunteer: volunteerId,
                 deliveryStatus: 'pending_pickup',
                 $set: {
                     status: 'assigned',
-                    estimatedArrivalAt: new Date(Date.now() + 60 * 60000) // Default 1hr ETA
+                    estimatedArrivalAt: new Date(Date.now() + 60 * 60000) // Baseline 1-hour ETA prediction
                 }
             },
             { new: true }
@@ -799,7 +801,7 @@ export const acceptMission = async (req, res, next) => {
             return res.status(400).json({ message: 'Mission already taken.' });
         }
 
-        // Update Volunteer State (Equity & Load Balancing)
+        // Update Volunteer State for Equity & Load Balancing
         await User.findByIdAndUpdate(volunteerId, {
             $inc: { currentTaskCount: 1 },
             $set: {
@@ -809,10 +811,8 @@ export const acceptMission = async (req, res, next) => {
         });
 
         const donationFinal = updatedDonation;
-
         const volunteerName = req.user.name;
 
-        // Notify Donor
         await createNotification(
             donationFinal.donor._id,
             `A volunteer ${volunteerName} is on their way to pick up your donation!`,
@@ -820,7 +820,6 @@ export const acceptMission = async (req, res, next) => {
             donationFinal._id
         );
 
-        // Notify NGO
         if (donationFinal.claimedBy) {
             await createNotification(
                 donationFinal.claimedBy._id,
@@ -836,9 +835,11 @@ export const acceptMission = async (req, res, next) => {
     }
 };
 
-// @desc    Update granular delivery status
-// @route   PATCH /api/donations/:id/delivery-status
-// @access  Private (Volunteer)
+/**
+ * @desc    Update the granular stage of a delivery mission
+ * @route   PATCH /api/v1/donations/:id/delivery-status
+ * @access  Private (Volunteer)
+ */
 export const updateDeliveryStatus = async (req, res, next) => {
     try {
         const { status } = req.body;
@@ -854,7 +855,6 @@ export const updateDeliveryStatus = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        // Verify Volunteer
         if (donation.volunteer && donation.volunteer.toString() !== req.user.id) {
             return res.status(401).json({ message: 'Not authorized for this mission' });
         }
@@ -862,7 +862,7 @@ export const updateDeliveryStatus = async (req, res, next) => {
         donation.deliveryStatus = status;
         await donation.save();
 
-        // Heartbeat: Update volunteer's last location update time
+        // Safety Heartbeat: Update volunteer's activity timestamp
         await User.findByIdAndUpdate(req.user.id, {
             $set: { 'volunteerProfile.lastLocationUpdate': new Date() }
         });
@@ -873,9 +873,11 @@ export const updateDeliveryStatus = async (req, res, next) => {
     }
 };
 
-// @desc    Confirm Pickup with Proof
-// @route   PATCH /api/donations/:id/pickup
-// @access  Private (Volunteer)
+/**
+ * @desc    Confirm food pickup with photo proof
+ * @route   PATCH /api/v1/donations/:id/pickup
+ * @access  Private (Volunteer)
+ */
 export const confirmPickup = async (req, res, next) => {
     try {
         const pickupPhoto = req.file ? req.file.path : null;
@@ -890,9 +892,8 @@ export const confirmPickup = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        // VALIDATION: Ensure strictly assigned and volunteer matches
         if (!donation.volunteer || donation.volunteer.toString() !== req.user.id) {
-            return res.status(401).json({ message: 'Not authorized for this mission or mission not accepted' });
+            return res.status(401).json({ message: 'Not authorized for this mission' });
         }
 
         const allowedForPickup = ['pending_pickup', 'heading_to_pickup', 'at_pickup'];
@@ -905,7 +906,6 @@ export const confirmPickup = async (req, res, next) => {
         donation.pickedUpAt = Date.now();
         await donation.save();
 
-        // Notify NGO
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
@@ -921,9 +921,11 @@ export const confirmPickup = async (req, res, next) => {
     }
 };
 
-// @desc    Confirm Delivery with Proof
-// @route   PATCH /api/donations/:id/deliver
-// @access  Private (Volunteer)
+/**
+ * @desc    Confirm final delivery and upload NGO handoff proof
+ * @route   PATCH /api/v1/donations/:id/deliver
+ * @access  Private (Volunteer)
+ */
 export const confirmDelivery = async (req, res, next) => {
     try {
         const deliveryPhoto = req.file ? req.file.path : null;
@@ -940,10 +942,9 @@ export const confirmDelivery = async (req, res, next) => {
         }
 
         if (!donation.volunteer || donation.volunteer.toString() !== req.user.id) {
-            return res.status(401).json({ message: 'Not authorized for this mission or mission not accepted' });
+            return res.status(401).json({ message: 'Not authorized for this mission' });
         }
 
-        // Enforce sequence: Can only deliver if picked up (or states after pickup)
         const allowedPreviousStates = ['picked_up', 'in_transit', 'arrived_at_delivery'];
         if (!allowedPreviousStates.includes(donation.deliveryStatus)) {
             return res.status(400).json({ message: 'Cannot confirm delivery. Ensure item is picked up first.' });
@@ -955,13 +956,13 @@ export const confirmDelivery = async (req, res, next) => {
         donation.deliveredAt = Date.now();
         await donation.save();
 
-        // Update Volunteer Stats & Tier
+        // Level-Up Engine: Update volunteer rank based on successful completion
         const volunteer = await User.findById(req.user.id);
         if (volunteer) {
             volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
             volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
 
-            // Check Tier Upgrade
+            // Tier Calculation
             const count = volunteer.stats.completedDonations;
             let newTier = volunteer.volunteerProfile.tier;
 
@@ -970,7 +971,6 @@ export const confirmDelivery = async (req, res, next) => {
 
             if (newTier !== volunteer.volunteerProfile.tier) {
                 volunteer.volunteerProfile.tier = newTier;
-                // Notify of validation/upgrade?
                 await createNotification(
                     volunteer._id,
                     `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
@@ -980,7 +980,6 @@ export const confirmDelivery = async (req, res, next) => {
             await volunteer.save();
         }
 
-        // Notify NGO
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
@@ -996,9 +995,11 @@ export const confirmDelivery = async (req, res, next) => {
     }
 };
 
-// @desc    Volunteer fails/drops a mission
-// @route   PATCH /api/donations/:id/fail-mission
-// @access  Private (Volunteer)
+/**
+ * @desc    Volunteer reports a failure or drops an active mission
+ * @route   PATCH /api/v1/donations/:id/fail-mission
+ * @access  Private (Volunteer)
+ */
 export const failMission = async (req, res, next) => {
     try {
         const { failureReason } = req.body;
@@ -1013,22 +1014,19 @@ export const failMission = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        // Verify volunteer assignment
         if (donation.volunteer && donation.volunteer.toString() !== req.user.id) {
-            return res.status(401).json({ message: 'Not authorized. You are not the assigned volunteer.' });
+            return res.status(401).json({ message: 'Not authorized.' });
         }
 
         const volunteerName = req.user.name;
 
-        // Reset Mission (Decrement currentTaskCount is handled in reassignMission)
+        // Reset and Trigger Re-dispatch
         await reassignMission(donation._id, `Volunteer Reported Failure: ${failureReason}`);
 
-        // Update stats for failure
         await User.findByIdAndUpdate(req.user.id, {
             $inc: { 'stats.cancelledDonations': 1 }
         });
 
-        // Notify NGO
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
@@ -1044,9 +1042,11 @@ export const failMission = async (req, res, next) => {
     }
 };
 
-// @desc    Get current active mission for volunteer
-// @route   GET /api/donations/active-mission
-// @access  Private (Volunteer)
+/**
+ * @desc    Get the volunteer's current ongoing mission
+ * @route   GET /api/v1/donations/active-mission
+ * @access  Private (Volunteer)
+ */
 export const getVolunteerActiveMission = async (req, res, next) => {
     try {
         const activeMission = await Donation.findOne({
@@ -1062,9 +1062,11 @@ export const getVolunteerActiveMission = async (req, res, next) => {
     }
 };
 
-// @desc    Get volunteer history
-// @route   GET /api/donations/volunteer/history
-// @access  Private (Volunteer)
+/**
+ * @desc    Retrieve historical log of missions completed by a volunteer
+ * @route   GET /api/v1/donations/volunteer/history
+ * @access  Private (Volunteer)
+ */
 export const getVolunteerHistory = async (req, res, next) => {
     try {
         const history = await Donation.find({
@@ -1080,9 +1082,11 @@ export const getVolunteerHistory = async (req, res, next) => {
     }
 };
 
-// @desc    Admin "Control Tower" - Active Missions
-// @route   GET /api/donations/admin/active-missions
-// @access  Private (Admin)
+/**
+ * @desc    Admin Monitoring: Global view of all missions currently in-transit
+ * @route   GET /api/v1/donations/admin/active-missions
+ * @access  Private (Admin)
+ */
 export const getAdminActiveMissions = async (req, res, next) => {
     try {
         const activeMissions = await Donation.find({
@@ -1097,9 +1101,12 @@ export const getAdminActiveMissions = async (req, res, next) => {
         next(error);
     }
 };
-// @desc    Find best NGOs for a specific donation
-// @route   GET /api/donations/:id/best-ngos
-// @access  Private (Donor)
+
+/**
+ * @desc    Get suitability-ranked list of NGOs for a donation (UI recommendation)
+ * @route   GET /api/v1/donations/:id/best-ngos
+ * @access  Private (Donor)
+ */
 export const getBestNGOs = async (req, res, next) => {
     try {
         const donationId = req.params.id;
@@ -1119,9 +1126,13 @@ export const getBestNGOs = async (req, res, next) => {
         next(error);
     }
 };
-// @desc    Get optimized route for active mission
-// @route   GET /api/donations/:id/optimized-route
-// @access  Private (Volunteer)
+
+/**
+ * @desc    Get dynamic, optimized delivery route from volunteer to donor to NGO
+ * @route   GET /api/v1/donations/:id/optimized-route
+ * @access  Private (Volunteer)
+ * @description Injects "Dynamic Diversions" if a high-priority nearby mission is detected.
+ */
 export const getOptimizedRoute = async (req, res, next) => {
     try {
         const donationId = req.params.id;
@@ -1142,14 +1153,13 @@ export const getOptimizedRoute = async (req, res, next) => {
             return res.status(400).json({ message: 'Volunteer location not available.' });
         }
 
-        // Define primary stops for this mission
         const stops = [
             {
                 id: 'pickup',
                 type: 'pickup',
                 coordinates: donation.coordinates.coordinates,
                 address: donation.pickupAddress,
-                priority: 5 // medium priority base
+                priority: 5 
             },
             {
                 id: 'dropoff',
@@ -1160,10 +1170,9 @@ export const getOptimizedRoute = async (req, res, next) => {
             }
         ];
 
-        // DYNAMIC DIVERSION LOGIC:
-        // Check if there's a nearby high-priority donation that needs pickup
+        // Logic: Diversion Scanner
         const now = new Date();
-        const urgencyThreshold = new Date(now.getTime() + 60 * 60000); // Exiring in < 1hr
+        const urgencyThreshold = new Date(now.getTime() + 60 * 60000); // Items expiring < 1hr
 
         const highPriorityDonations = await Donation.find({
             status: 'assigned',
@@ -1173,7 +1182,7 @@ export const getOptimizedRoute = async (req, res, next) => {
             coordinates: {
                 $near: {
                     $geometry: { type: 'Point', coordinates: volunteerCoords },
-                    $maxDistance: 5000 // Within 5km diversion radius
+                    $maxDistance: 5000 // 5km radius
                 }
             }
         }).limit(1);
@@ -1185,11 +1194,11 @@ export const getOptimizedRoute = async (req, res, next) => {
                 type: 'pickup',
                 coordinates: extra.coordinates.coordinates,
                 address: extra.pickupAddress,
-                priority: 10, // Max priority for diversion
+                priority: 10, // Override base path
                 isDiversion: true,
                 diversionDonationId: extra._id
             });
-            console.log(`[Routing] High-priority diversion detected for donation ${extra._id}`);
+            console.log(`[Routing] High-priority diversion injected for mission ${extra._id}`);
         }
 
         const optimizedResult = await getOptimalPath(volunteerCoords, stops);
@@ -1205,9 +1214,12 @@ export const getOptimizedRoute = async (req, res, next) => {
         next(error);
     }
 };
-// @desc    Volunteer cancels mission (emergency/escape)
-// @route   PATCH /api/donations/:id/cancel-mission
-// @access  Private (Volunteer)
+
+/**
+ * @desc    Abort an accepted mission before pickup
+ * @route   PATCH /api/v1/donations/:id/cancel-mission
+ * @access  Private (Volunteer)
+ */
 export const cancelMission = async (req, res, next) => {
     try {
         const donation = await Donation.findById(req.params.id);
@@ -1226,9 +1238,12 @@ export const cancelMission = async (req, res, next) => {
         next(error);
     }
 };
-// @desc    Get potential volunteers for a donation (Intelligent Dispatch)
-// @route   GET /api/donations/:id/potential-volunteers
-// @access  Private (NGO/Admin)
+
+/**
+ * @desc    Discovery: Locate and rank suitable volunteers for a specific donation
+ * @route   GET /api/v1/donations/:id/potential-volunteers
+ * @access  Private (NGO/Admin)
+ */
 export const getPotentialVolunteers = async (req, res, next) => {
     try {
         const donation = await Donation.findById(req.params.id);
@@ -1236,9 +1251,8 @@ export const getPotentialVolunteers = async (req, res, next) => {
             return res.status(404).json({ message: 'Donation not found' });
         }
 
-        const volunteers = await findSuitableVolunteers(donation, 15000); // 15km search
+        const volunteers = await findSuitableVolunteers(donation, 15000); // 15km search grid
 
-        // Map to include relevant match details for testing/UI
         const response = volunteers.map(v => ({
             id: v._id,
             name: v.name,

@@ -2,12 +2,14 @@ import User from '../models/User.model.js';
 import Donation from '../models/Donation.model.js';
 import { geocodeAddress } from '../utils/geocoder.js';
 
-// @desc    Get user profile
-// @route   GET /api/v1/users/profile
-// @access  Private
+/**
+ * @desc    Fetch authenticated user's full profile data
+ * @route   GET /api/v1/users/profile
+ * @access  Private
+ */
 const getUserProfile = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user) {
             res.json({
@@ -32,9 +34,11 @@ const getUserProfile = async (req, res, next) => {
     }
 };
 
-// @desc    Verify organization credentials
-// @route   PATCH /api/v1/users/verify
-// @access  Admin
+/**
+ * @desc    Approve/Reject organization verification status (Admin Action)
+ * @route   PATCH /api/v1/users/verify
+ * @access  Admin
+ */
 const verifyUser = async (req, res, next) => {
     const { userId, status } = req.body;
 
@@ -58,12 +62,14 @@ const verifyUser = async (req, res, next) => {
     }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/v1/users/profile
-// @access  Private
+/**
+ * @desc    Edit general user profile details (Name, Address, Avatar)
+ * @route   PUT /api/v1/users/profile
+ * @access  Private
+ */
 const updateUserProfile = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user) {
             user.name = req.body.name || user.name;
@@ -111,12 +117,14 @@ const updateUserProfile = async (req, res, next) => {
     }
 };
 
-// @desc    Submit verification documents
-// @route   PUT /api/v1/users/verify-documents
-// @access  Private
+/**
+ * @desc    Submit KYC/Organization documents for verification
+ * @route   PUT /api/v1/users/verify-documents
+ * @access  Private
+ */
 const submitVerification = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user) {
             user.taxId = req.body.taxId || user.taxId;
@@ -157,9 +165,11 @@ const submitVerification = async (req, res, next) => {
     }
 };
 
-// @desc    Get all users
-// @route   GET /api/v1/users/admin/users
-// @access  Admin
+/**
+ * @desc    Get master list of all users on platform
+ * @route   GET /api/v1/users/admin/users
+ * @access  Admin
+ */
 const getUsers = async (req, res, next) => {
     try {
         const users = await User.find({}).sort({ createdAt: -1 });
@@ -169,9 +179,11 @@ const getUsers = async (req, res, next) => {
     }
 };
 
-// @desc    Get pending verifications
-// @route   GET /api/v1/users/admin/pending
-// @access  Admin
+/**
+ * @desc    Retrieve organizations waiting for verification review
+ * @route   GET /api/v1/users/admin/pending
+ * @access  Admin
+ */
 const getPendingVerifications = async (req, res, next) => {
     try {
         const users = await User.find({
@@ -187,12 +199,14 @@ const getPendingVerifications = async (req, res, next) => {
     }
 };
 
-// @desc    Update NGO profile settings
-// @route   PUT /api/v1/users/profile/ngo
-// @access  Private (NGO)
+/**
+ * @desc    Configure NGO-specific settings (Capacity, Storage, etc.)
+ * @route   PUT /api/v1/users/profile/ngo
+ * @access  Private (NGO)
+ */
 const updateNGOSettings = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user && user.role === 'ngo') {
             const { dailyCapacity, storageFacilities, isUrgentNeed } = req.body;
@@ -217,12 +231,14 @@ const updateNGOSettings = async (req, res, next) => {
     }
 };
 
-// @desc    Toggle volunteer online status
-// @route   PATCH /api/v1/users/volunteer/status
-// @access  Private (Volunteer)
+/**
+ * @desc    Toggle volunteer online/offline status for dispatch
+ * @route   PATCH /api/v1/users/volunteer/status
+ * @access  Private (Volunteer)
+ */
 const toggleVolunteerStatus = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user && user.role === 'volunteer') {
             user.isOnline = req.body.isOnline;
@@ -240,12 +256,14 @@ const toggleVolunteerStatus = async (req, res, next) => {
     }
 };
 
-// @desc    Update volunteer profile details
-// @route   PATCH /api/v1/users/volunteer/profile
-// @access  Private (Volunteer)
+/**
+ * @desc    Configure volunteer profile (Vehicle type, max carrying weight)
+ * @route   PATCH /api/v1/users/volunteer/profile
+ * @access  Private (Volunteer)
+ */
 const updateVolunteerProfile = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user && user.role === 'volunteer') {
             const { vehicleType, maxWeight } = req.body;
@@ -270,12 +288,14 @@ const updateVolunteerProfile = async (req, res, next) => {
     }
 };
 
-// @desc    Update volunteer location
-// @route   PATCH /api/v1/users/volunteer/location
-// @access  Private (Volunteer)
+/**
+ * @desc    Real-time GPS update for volunteer tracking and smart routing
+ * @route   PATCH /api/v1/users/volunteer/location
+ * @access  Private (Volunteer)
+ */
 const updateVolunteerLocation = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (user && user.role === 'volunteer') {
             const { lat, lng } = req.body;
@@ -307,12 +327,14 @@ const updateVolunteerLocation = async (req, res, next) => {
     }
 };
 
-// @desc    Get volunteer impact stats
-// @route   GET /api/v1/users/volunteer/stats
-// @access  Private (Volunteer)
+/**
+ * @desc    Get detailed impact metrics and leaderboard stats for a volunteer
+ * @route   GET /api/v1/users/volunteer/stats
+ * @access  Private (Volunteer)
+ */
 const getVolunteerStats = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (!user || user.role !== 'volunteer') {
             return res.status(401).json({ message: 'Not authorized' });
@@ -356,9 +378,11 @@ const getVolunteerStats = async (req, res, next) => {
     }
 };
 
-// @desc    Get volunteers associated with an NGO
-// @route   GET /api/v1/users/ngo/volunteers
-// @access  Private (NGO)
+/**
+ * @desc    Find and manage volunteers associated with an NGO
+ * @route   GET /api/v1/users/ngo/volunteers
+ * @access  Private (NGO)
+ */
 const getNgoVolunteers = async (req, res, next) => {
     try {
         // Find all donations claimed by this NGO that have a volunteer assigned
