@@ -97,7 +97,6 @@ export default function VolunteerSettings() {
                         </Card>
                     </motion.div>
 
-                    {/* Capacity Slider */}
                     <motion.div variants={itemVariants}>
                         <Card className="border-border/50">
                             <CardHeader>
@@ -127,7 +126,6 @@ export default function VolunteerSettings() {
                 </div>
 
                 <div className="space-y-8">
-                    {/* Location Preview */}
                     <motion.div variants={itemVariants} className="h-full">
                         <Card className="h-full border-border/50 flex flex-col">
                             <CardHeader>
@@ -142,7 +140,6 @@ export default function VolunteerSettings() {
                                     <div className="absolute inset-0 bg-[url('https://api.placeholder.com/600/400')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all duration-700" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
 
-                                    {/* Mock Map UI elements */}
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <div className="relative">
                                             <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping scale-150" />

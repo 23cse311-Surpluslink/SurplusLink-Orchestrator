@@ -184,7 +184,6 @@ export default function VolunteerPerformance() {
                 </Button>
             </div>
 
-            {/* A. Network Logistics Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Fleet Delivery Rate"
@@ -213,7 +212,6 @@ export default function VolunteerPerformance() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* B. The "Fleet Leaderboard" */}
                 <Card className="lg:col-span-2 shadow-sm border-none bg-white rounded-2xl overflow-hidden">
                     <CardHeader className="border-b border-slate-50 bg-slate-50/30">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -384,7 +382,6 @@ export default function VolunteerPerformance() {
                 </Card>
 
                 <div className="flex flex-col gap-8">
-                    {/* C. Logistics Efficiency Chart */}
                     <Card className="shadow-sm border-none bg-white rounded-2xl overflow-hidden h-full">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-bold">Logistics Efficiency</CardTitle>
@@ -458,7 +455,6 @@ export default function VolunteerPerformance() {
                         </CardContent>
                     </Card>
 
-                    {/* D. Delivery Proof Audit */}
                     <Card className="shadow-sm border-none bg-white rounded-2xl overflow-hidden">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-bold flex items-center justify-between">

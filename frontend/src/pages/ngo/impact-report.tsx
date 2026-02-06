@@ -302,7 +302,7 @@ export default function NgoImpactReport() {
                         />
                         <Card className="relative overflow-hidden rounded-[2rem] border-none shadow-sm">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px] font-black">Capacity Status</CardTitle>
+                                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">Capacity Status</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center justify-between">
