@@ -102,7 +102,7 @@ describe('Report Analytics Integration Tests', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.length).toBe(2);
         expect(res.body[0]).toHaveProperty('donorName');
-        expect(res.body[0]).toHaveProperty('organization');
+        expect(res.body[0]).toHaveProperty('donorOrg');
     });
 
     it('should only allow Donor to see their own donations', async () => {
