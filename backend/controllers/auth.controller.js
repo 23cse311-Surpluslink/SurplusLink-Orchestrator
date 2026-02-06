@@ -30,9 +30,8 @@ const signupUser = async (req, res, next) => {
             throw new Error('Invalid role');
         }
 
-        // Generate 4-digit verification OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes validity
+        const otpExpires = Date.now() + 10 * 60 * 1000; 
 
         const user = await User.create({
             name,
@@ -46,7 +45,6 @@ const signupUser = async (req, res, next) => {
         });
 
         if (user) {
-            // Compose email template for account verification
             const emailTemplate = `
                 <!DOCTYPE html>
                 <html>
@@ -88,7 +86,6 @@ const signupUser = async (req, res, next) => {
                 </html>
             `;
 
-            // Ship email asynchronously to prevent request blocking
             sendEmail({
                 email: user.email,
                 subject: 'Verify Your Email Address',
@@ -98,7 +95,7 @@ const signupUser = async (req, res, next) => {
 
             res.status(201).json({
                 success: true,
-                message: 'Registration successful! Please verify your email.',
+                message: 'Registration successfull! Please verify your email.',
                 requiresOtp: true,
                 email: user.email,
                 devOtp: otp
@@ -131,12 +128,11 @@ const loginUser = async (req, res, next) => {
 
             const token = generateToken(user._id, user.role);
 
-            // Set secure, cross-site HttpOnly cookie
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true, 
                 sameSite: 'none', 
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+                maxAge: 30 * 24 * 60 * 60 * 1000
             });
 
             res.json({
@@ -203,7 +199,6 @@ const sendOTP = async (req, res, next) => {
 
         const message = `Your SurplusLink verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
 
-        // Compose OTP notification email
         const emailTemplate = `
             <!DOCTYPE html>
             <html>
@@ -278,7 +273,6 @@ const verifyOTP = async (req, res, next) => {
             throw new Error('Invalid or expired OTP');
         }
 
-        // Clear OTP after successful verification
         user.otp = undefined;
         user.otpExpires = undefined;
         await user.save();
@@ -331,13 +325,13 @@ async function forgotPassword(req, res, next) {
 
         const resetToken = crypto.randomBytes(20).toString('hex');
         user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; 
 
         await user.save();
 
         res.json({
             success: true,
-            message: 'Reset link generated (Simulated)',
+            message: 'Reset link generated',
             resetToken: resetToken
         });
     } catch (error) {
@@ -372,7 +366,7 @@ async function resetPassword(req, res, next) {
 
         await user.save();
 
-        res.json({ success: true, message: 'Password reset successful' });
+        res.json({ success: true, message: 'Password reset successfull' });
     } catch (error) {
         next(error);
     }

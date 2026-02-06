@@ -32,20 +32,19 @@ import { deliveryStatusLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// All routes are protected
 router.use(protect);
 
-// Admin Routes
+//admin routes
 router.get('/admin/active-missions', roleBasedAccess(['admin']), getAdminActiveMissions);
 
-// NGO specific routes
+//ngo specific routes
 router.get('/feed', roleBasedAccess(['ngo']), getSmartFeed);
 router.get('/claimed', roleBasedAccess(['ngo']), getClaimedDonations);
 router.get('/ngo/stats', roleBasedAccess(['ngo']), getNgoStats);
 router.patch('/:id/claim', roleBasedAccess(['ngo']), claimDonation);
 router.patch('/:id/reject', roleBasedAccess(['ngo']), rejectDonation);
 
-// Volunteer specific routes
+//volunteer specific routes
 router.get('/available-missions', roleBasedAccess(['volunteer']), getAvailableMissions);
 router.get('/volunteer/history', roleBasedAccess(['volunteer']), getVolunteerHistory);
 router.get('/active-mission', roleBasedAccess(['volunteer']), getVolunteerActiveMission);
@@ -57,7 +56,7 @@ router.patch('/:id/fail-mission', roleBasedAccess(['volunteer']), failMission);
 router.patch('/:id/cancel-mission', roleBasedAccess(['volunteer']), cancelMission);
 router.get('/:id/optimized-route', roleBasedAccess(['volunteer']), getOptimizedRoute);
 
-// Donor specific routes
+//donor sp ecific routes
 router.post('/', roleBasedAccess(['donor']), upload.array('photos', 5), createDonation);
 router.get('/my-donations', roleBasedAccess(['donor']), getDonorHistory);
 router.get('/stats', roleBasedAccess(['donor']), getDonorStats);
@@ -65,7 +64,7 @@ router.patch('/:id/cancel', roleBasedAccess(['donor']), cancelDonation);
 router.get('/:id/best-ngos', roleBasedAccess(['donor']), getBestNGOs);
 router.get('/:id/potential-volunteers', roleBasedAccess(['ngo', 'admin']), getPotentialVolunteers);
 
-// General donation routes
+//general donation routes
 router.get('/:id', getDonationById);
 router.patch('/:id/complete', completeDonation);
 

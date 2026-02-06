@@ -41,10 +41,6 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
 
   const unreadCount = user ? getUnreadCount(user.id) : 0;
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -145,7 +141,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
@@ -156,7 +152,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             ) : (
               <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
             )}
-          </Button>
+          </Button> */}
 
           {isAuthenticated && user ? (
             <Button

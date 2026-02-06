@@ -31,7 +31,6 @@ interface VolunteerTrackerModalProps {
 export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTrackerModalProps) {
     const [eta, setEta] = useState(Math.floor(Math.random() * 15 + 5));
 
-    // Simulate real-time movement
     useEffect(() => {
         if (!isOpen) return;
         const interval = setInterval(() => {
@@ -42,17 +41,13 @@ export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTr
 
     if (!donation) return null;
 
-    const isAtPickup = donation.status === 'at_pickup';
     const isPickedUp = donation.status === 'picked_up' || donation.status === 'at_delivery';
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-xl p-0 overflow-hidden rounded-3xl border-border/50 bg-card">
                 <div className="relative h-64 bg-muted overflow-hidden">
-                    {/* Mock Map Background */}
                     <div className="absolute inset-0 bg-[url('https://api.placeholder.com/1200/600')] bg-cover opacity-50 grayscale" />
-
-                    {/* Map Simulation */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <svg className="absolute inset-0 w-full h-full">
                             <motion.path
@@ -68,7 +63,6 @@ export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTr
                             />
                         </svg>
 
-                        {/* Donor Icon */}
                         <div className="absolute top-[30%] left-[20%] text-center">
                             <div className={cn(
                                 "size-8 rounded-full flex items-center justify-center border-2 border-background shadow-lg",
@@ -79,7 +73,6 @@ export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTr
                             <span className="text-[10px] font-bold uppercase mt-1 block">Donor</span>
                         </div>
 
-                        {/* NGO Icon */}
                         <div className="absolute top-[40%] left-[70%] text-center">
                             <div className="size-8 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-lg text-white">
                                 <CheckCircle2 className="size-4" />
@@ -87,7 +80,6 @@ export function VolunteerTrackerModal({ isOpen, onClose, donation }: VolunteerTr
                             <span className="text-[10px] font-bold uppercase mt-1 block">You</span>
                         </div>
 
-                        {/* Moving Volunteer Icon */}
                         <motion.div
                             className="absolute size-10 rounded-full bg-white flex items-center justify-center shadow-xl border-2 border-primary"
                             animate={{

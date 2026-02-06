@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Notification } from '@/types';
 import { cn } from '@/lib/utils';
 import { Bell, Truck, ShieldCheck, Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { getRelativeTime } from '@/utils/formatters';
 
 interface NotificationItemProps {
-  notification: any; // Allow backend type
+  notification: any; 
   onClick?: () => void;
 }
 

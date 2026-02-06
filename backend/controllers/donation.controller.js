@@ -4,7 +4,7 @@ import { createNotification } from '../utils/notification.js';
 import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
 import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
-import { getOptimalPath, getTravelCost } from '../services/routing.service.js';
+import { getOptimalPath } from '../services/routing.service.js';
 
 /**
  * @desc    Create a new donation posting
@@ -29,7 +29,6 @@ export const createDonation = async (req, res) => {
             dietaryTags,
         } = req.body;
 
-        // Helper to parse JSON fields from multipart/form-data
         const parseJsonField = (val) => {
             if (!val) return null;
             if (typeof val === 'object') return val;
@@ -59,7 +58,7 @@ export const createDonation = async (req, res) => {
         if (isNaN(windowStart.getTime())) return res.status(400).json({ message: 'Invalid pickup window start date.' });
         if (isNaN(windowEnd.getTime())) return res.status(400).json({ message: 'Invalid pickup window end date.' });
 
-        // Safety Rule: Validate that (expiryDate - Date.now()) > 2 hours
+        //safety Rule: validate that (expiryDate - Date.now()) > 2 hours
         const hoursToExpiry = (expiry - now) / (1000 * 60 * 60);
         if (hoursToExpiry < 2) {
             return res.status(400).json({
@@ -67,14 +66,14 @@ export const createDonation = async (req, res) => {
             });
         }
 
-        // Scheduling Rule: Ensure pickupWindow.end < expiryDate
+        //scheduling rule: ensure pickupWindow.end < expiryDate
         if (windowEnd >= expiry) {
             return res.status(400).json({
                 message: 'Pickup window must end before the food expires.',
             });
         }
 
-        // Handle photos if uploaded via Multer (Cloudinary)
+        //handle photos(cloudinary)
         const photos = req.files ? req.files.map((file) => file.path) : [];
 
         const donationData = {
@@ -99,7 +98,7 @@ export const createDonation = async (req, res) => {
             donor: req.user._id,
         };
 
-        // Automated Address-to-Coordinate Conversion (Geocoding)
+        //automated address-to-coordinate conversion (geocoding)
         if (pickupAddress) {
             const geocoded = await geocodeAddress(pickupAddress);
             if (geocoded) {
@@ -111,7 +110,7 @@ export const createDonation = async (req, res) => {
             }
         }
 
-        // Normalized coordinate storage for MongoDB Geospatial indexing
+        //normalized coordinate storage for MongoDB Geospatial indexing
         if (donationData.coordinates.coordinates && Array.isArray(donationData.coordinates.coordinates)) {
         } else if (Array.isArray(donationData.coordinates)) {
             const coordsArray = donationData.coordinates;
@@ -120,7 +119,7 @@ export const createDonation = async (req, res) => {
 
         const donation = await Donation.create(donationData);
 
-        // Notify All Nearby NGOs (Global Broadcast)
+        //notify all nearby ngos brodcast
         try {
             const ngos = await User.find({ role: 'ngo' });
             for (const ngo of ngos) {
@@ -204,7 +203,7 @@ export const getNgoStats = async (req, res) => {
             if (match) {
                 mealsReceived += parseFloat(match[0]);
             } else {
-                mealsReceived += 1; // Default fallback unit
+                mealsReceived += 1;
             }
         });
 
@@ -226,7 +225,7 @@ export const getNgoStats = async (req, res) => {
             mealsReceived: parseFloat(mealsReceived.toFixed(1)),
             avgDeliveryTime,
             totalDistributions: completedDonations.length,
-            trend: 12 // Placeholder for weekly growth
+            trend: 12
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

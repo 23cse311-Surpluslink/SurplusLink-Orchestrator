@@ -3,9 +3,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import NotificationService from '@/services/notification.service';
 import { useAuth } from './auth-context';
 
-// Define Notification Type based on Backend Model
 interface Notification {
-    id: string; // or _id
+    id: string; 
     _id: string;
     message: string;
     type: string;

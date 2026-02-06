@@ -115,10 +115,10 @@ const donationSchema = new mongoose.Schema(
             default: 'idle',
         },
         pickupPhoto: {
-            type: String, // URL for image
+            type: String, 
         },
         deliveryPhoto: {
-            type: String, // URL for image
+            type: String, 
         },
         pickupNotes: {
             type: String,

@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 import User from '../models/User.model.js';
 import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs';
-
 dotenv.config({ path: './.env' });
 
 const seedE2E = async () => {
@@ -13,10 +11,8 @@ const seedE2E = async () => {
         await mongoose.connect(uri);
         console.log('Connected.');
 
-        // Delete existing test users to avoid unique constraint errors
         await User.deleteMany({ email: { $in: ['donor@test.com', 'ngo@test.com'] } });
 
-        // Create Donor
         await User.create({
             name: 'Test Donor',
             email: 'donor@test.com',
@@ -26,7 +22,6 @@ const seedE2E = async () => {
             organization: 'Test Donor Shop'
         });
 
-        // Create NGO
         await User.create({
             name: 'Test NGO',
             email: 'ngo@test.com',
