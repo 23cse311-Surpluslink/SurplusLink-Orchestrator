@@ -159,3 +159,40 @@ export interface UtilizationRecord {
     capacity: number;
   }[];
 }
+export interface VolunteerPerformanceReport {
+  overview: {
+    fleetDeliveryRate: number;
+    avgResponseTime: number; // in minutes
+    complianceScore: number;
+    activeHeroes: number;
+  };
+  leaderboard: {
+    id: string;
+    name: string;
+    avatar?: string;
+    tier: 'rookie' | 'hero' | 'champion';
+    status: 'online' | 'offline' | 'on-delivery';
+    isOnline: boolean;
+    missionsCompleted: number;
+    missionsFailed: number;
+    avgEta: number; // in seconds
+    hasProofCompliance: boolean;
+    vehicleType: 'bicycle' | 'car' | 'scooter' | 'van';
+    history: {
+      id: string;
+      status: 'completed' | 'failed';
+      timestamp: string;
+      photoUrl?: string;
+    }[];
+  }[];
+  efficiencyByTier: {
+    tier: string;
+    avgTime: number;
+  }[];
+  recentProof: {
+    id: string;
+    photoUrl: string;
+    timestamp: string;
+    volunteerName: string;
+  }[];
+}
