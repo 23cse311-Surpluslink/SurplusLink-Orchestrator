@@ -47,12 +47,14 @@ const ngoNavItems: NavItem[] = [
   { label: 'Notifications', href: '/ngo/notifications', icon: Bell },
   { label: 'Feedback', href: '/ngo/feedback', icon: MessageSquare },
   { label: 'Impact Metrics', href: '/ngo/impact', icon: BarChart3 },
+  { label: 'Utilization Report', href: '/ngo/impact-report', icon: FileText },
 ];
 
 const adminNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: Home },
   { label: 'User Management', href: '/admin/users', icon: Users },
   { label: 'System Reports', href: '/admin/reports', icon: FileText },
+  { label: 'Utilization Report', href: '/admin/impact-report', icon: BarChart3 },
   { label: 'Live Tracking', href: '/admin/tracking', icon: Truck },
   { label: 'Notifications', href: '/admin/notifications', icon: Bell },
   { label: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
