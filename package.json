@@ -2,7 +2,8 @@
   "name": "surpluslink-root",
   "private": true,
   "scripts": {
-    "test:all": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+    "test": "npm run test:all",
+    "test:all": "npx concurrently \"npm run test:backend\" \"npm run test:frontend\"",
     "test:backend": "cd backend && npm test -- --coverage",
     "test:frontend": "cd frontend && npm run test -- --coverage"
   },

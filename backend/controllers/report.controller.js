@@ -1,9 +1,12 @@
 import Donation from '../models/Donation.model.js';
 import mongoose from 'mongoose';
 
-// @desc    Get donation report
-// @route   GET /api/v1/reports/donations
-// @access  Private (Admin & Donor)
+/**
+ * @desc    Generate a detailed donation activity report with filtering
+ * @route   GET /api/v1/reports/donations
+ * @access  Private (Admin, Donor)
+ * @description Supports multi-dimensional filtering by date range, status, and donor ID (admin only).
+ */
 const getDonationReport = async (req, res, next) => {
     try {
         const { startDate, endDate, status, donorId } = req.query;
