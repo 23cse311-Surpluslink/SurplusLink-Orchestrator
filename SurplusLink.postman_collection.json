@@ -1,0 +1,428 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-4a5b-8c9d-efff12345678",
+        "name": "SurplusLink API (Sprint 1)",
+        "description": "Standardized API Collection for the SurplusLink Food Rescue Platform. Includes Auth, Donor, NGO, Volunteer, and Admin modules with pre-filled examples.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "User Signup",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Priyansh Narang\",\n    \"email\": \"priyanshnarang23@gmail.com\",\n    \"password\": \"password123\",\n    \"role\": \"donor\",\n    \"organization\": \"Btech Foods\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/signup",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "signup"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"priyanshnarang23@gmail.com\",\n    \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"priyanshnarang23@gmail.com\",\n    \"otp\": \"1234\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-otp"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "2. Donor Module",
+            "item": [
+                {
+                    "name": "Create Donation",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Delicious Surplus Meal",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "10kg",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "expiryDate",
+                                    "value": "2026-02-10T12:00:00Z",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pickupAddress",
+                                    "value": "Near Btech Street, Delhi",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/donations",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "My Donation History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/my-donations",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "my-donations"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Donor Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "stats"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "3. NGO Module",
+            "item": [
+                {
+                    "name": "Smart Feed (AI Match)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/feed",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "feed"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Claim Donation",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/:donationId/claim",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                ":donationId",
+                                "claim"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "donationId",
+                                    "value": "<DONATION_ID_HERE>"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "NGO Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/ngo/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "ngo",
+                                "stats"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "4. Volunteer Module",
+            "item": [
+                {
+                    "name": "Available Missions",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/available-missions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "available-missions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Accept Mission",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/:missionId/accept-mission",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                ":missionId",
+                                "accept-mission"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "missionId",
+                                    "value": "<MISSION_ID_HERE>"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update GPS Location",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lat\": 28.6139,\n    \"lng\": 77.2090\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users/volunteer/location",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "volunteer",
+                                "location"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "5. Admin Module",
+            "item": [
+                {
+                    "name": "All Users Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/admin/users",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "admin",
+                                "users"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Active Missions Monitor",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/donations/admin/active-missions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "donations",
+                                "admin",
+                                "active-missions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Master Donation Report",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/reports/donations",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "reports",
+                                "donations"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://surpluslink-9fq6.onrender.com/api/v1",
+            "type": "string"
+        }
+    ]
+}
