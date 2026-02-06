@@ -45,7 +45,7 @@ export default function VolunteerDashboard() {
             value: user?.stats?.completedDonations || 0,
             icon: Truck,
             description: "Total Successful Rescues",
-            color: "text-blue-500",
+            color: "text-cyan-500",
         },
         {
             label: "CO2 Saved",
@@ -77,7 +77,7 @@ export default function VolunteerDashboard() {
                 if (count < 50) return `${50 - count} more to 'Champion'`;
                 return "Elite 'Champion' Status";
             })(),
-            color: "text-purple-500",
+            color: "text-teal-500",
         },
     ];
 
@@ -135,7 +135,7 @@ export default function VolunteerDashboard() {
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${getTierProgress()}%` }}
-                                                className="h-full bg-gradient-to-r from-purple-500 to-primary rounded-full"
+                                                className="h-full bg-gradient-to-r from-teal-500 to-primary rounded-full"
                                             />
                                         </div>
                                     </div>
@@ -237,8 +237,8 @@ export default function VolunteerDashboard() {
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <div className="size-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                    <Truck className="size-5 text-blue-500" />
+                                <div className="size-10 rounded-full bg-cyan-500/10 flex items-center justify-center">
+                                    <Truck className="size-5 text-cyan-500" />
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-sm font-bold">Reliable Partner</p>

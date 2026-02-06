@@ -70,6 +70,18 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
           <div className="hidden lg:block">
             <h1 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Dashboard</h1>
           </div>
+
+          <nav className="hidden lg:flex items-center gap-1 ml-4">
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => handleNavClick(link.href)}
+                className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors hover:bg-primary/5 rounded-full uppercase tracking-wider"
+              >
+                {link.name}
+              </button>
+            ))}
+          </nav>
         </div>
 
         <div className="flex items-center gap-4">
@@ -117,7 +129,7 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             ? "bg-background/80 backdrop-blur-md border border-border/40 shadow-sm max-w-5xl px-6 py-2.5"
             : "bg-transparent w-full max-w-7xl px-4 lg:px-0 py-4 border border-transparent"
         )}
-    
+
       >
 
         <div className="flex items-center gap-8">
@@ -125,19 +137,17 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             <Logo size={isScrolled ? "sm" : "md"} />
           </Link>
 
-          {!isAuthenticated && (
-            <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <button
-                  key={link.name}
-                  onClick={() => handleNavClick(link.href)}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors hover:bg-primary/5 rounded-full"
-                >
-                  {link.name}
-                </button>
-              ))}
-            </nav>
-          )}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => handleNavClick(link.href)}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors hover:bg-primary/5 rounded-full"
+              >
+                {link.name}
+              </button>
+            ))}
+          </nav>
         </div>
 
         <div className="flex items-center gap-3">
@@ -173,71 +183,84 @@ export function Navbar({ onMenuClick, showMenu = false }: NavbarProps) {
             </div>
           )}
 
-          {!isAuthenticated && (
-            <div className="md:hidden">
-              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <Menu className="h-6 w-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="flex flex-col gap-8 pt-16">
-                  <SheetHeader className="text-left">
-                    <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-                      <Logo size="md" />
-                    </SheetTitle>
-                  </SheetHeader>
-                  <nav className="flex flex-col gap-4">
-                    {isAuthenticated && user && (
-                      <button
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          navigate(`/${user.role}`);
-                        }}
-                        className="flex items-center justify-between px-4 py-4 text-lg font-bold text-primary bg-primary/10 rounded-xl"
-                      >
-                        Go to Dashboard
-                        <ArrowRight className="h-5 w-5" />
-                      </button>
-                    )}
-                    {navLinks.map((link) => (
-                      <button
-                        key={link.name}
-                        onClick={() => handleNavClick(link.href)}
-                        className="flex items-center justify-between px-4 py-4 text-lg font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                      >
-                        {link.name}
-                        <ArrowRight className="h-5 w-5 opacity-50" />
-                      </button>
-                    ))}
-                  </nav>
-                  <div className="mt-auto flex flex-col gap-4">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="rounded-full h-14"
+          <div className="md:hidden">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="flex flex-col gap-8 pt-16">
+                <SheetHeader className="text-left">
+                  <SheetTitle className="text-2xl font-bold flex items-center gap-2">
+                    <Logo size="md" />
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-4">
+                  {isAuthenticated && user && (
+                    <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        navigate('/login');
+                        navigate(`/${user.role}`);
                       }}
+                      className="flex items-center justify-between px-4 py-4 text-lg font-bold text-primary bg-primary/10 rounded-xl"
                     >
-                      Sign In
-                    </Button>
+                      Go to Dashboard
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
+                  )}
+                  {navLinks.map((link) => (
+                    <button
+                      key={link.name}
+                      onClick={() => handleNavClick(link.href)}
+                      className="flex items-center justify-between px-4 py-4 text-lg font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                    >
+                      {link.name}
+                      <ArrowRight className="h-5 w-5 opacity-50" />
+                    </button>
+                  ))}
+                </nav>
+                <div className="mt-auto flex flex-col gap-4">
+                  {!isAuthenticated ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="rounded-full h-14"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          navigate('/login');
+                        }}
+                      >
+                        Sign In
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="rounded-full h-14 shadow-xl shadow-primary/20"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          navigate('/login');
+                        }}
+                      >
+                        Get Started Free
+                      </Button>
+                    </>
+                  ) : (
                     <Button
                       size="lg"
                       className="rounded-full h-14 shadow-xl shadow-primary/20"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        navigate('/login');
+                        logout();
                       }}
                     >
-                      Get Started Free
+                      Log Out
                     </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          )}
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>

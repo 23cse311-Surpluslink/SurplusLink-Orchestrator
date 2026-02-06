@@ -83,10 +83,10 @@ export default function NgoFleetDashboard() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "on_route": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+            case "on_route": return "bg-cyan-500/10 text-cyan-500 border-cyan-500/20";
             case "at_pickup": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
             case "available": return "bg-emerald-500/10 text-emerald-500 border-emerald-200/20";
-            case "busy": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+            case "busy": return "bg-teal-500/10 text-teal-500 border-teal-500/20";
             default: return "bg-muted text-muted-foreground";
         }
     };
@@ -150,7 +150,7 @@ export default function NgoFleetDashboard() {
                                                 <h3 className="text-lg font-black tracking-tight flex items-center gap-2">
                                                     {vol.name}
                                                     {vol.completedTasks > 10 && (
-                                                        <Badge className="bg-purple-500/10 text-purple-600 border-none text-[9px] uppercase font-black tracking-widest">
+                                                        <Badge className="bg-teal-500/10 text-teal-600 border-none text-[9px] uppercase font-black tracking-widest">
                                                             High Load
                                                         </Badge>
                                                     )}
@@ -165,7 +165,7 @@ export default function NgoFleetDashboard() {
                                         {/* Status Pill */}
                                         <div className="flex-1 flex items-center justify-start md:justify-center">
                                             <div className={cn("px-4 py-2 rounded-2xl border font-black text-xs uppercase tracking-widest flex items-center gap-2", getStatusColor(vol.status))}>
-                                                <div className={cn("size-2 rounded-full", vol.status === 'on_route' ? "bg-blue-500" : vol.status === 'at_pickup' ? "bg-amber-500" : "bg-emerald-500")} />
+                                                <div className={cn("size-2 rounded-full", vol.status === 'on_route' ? "bg-cyan-500" : vol.status === 'at_pickup' ? "bg-amber-500" : "bg-emerald-500")} />
                                                 {vol.status.replace('_', ' ')}
                                             </div>
                                         </div>

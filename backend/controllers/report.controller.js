@@ -279,10 +279,10 @@ const getNgoUtilizationReport = async (req, res, next) => {
  */
 const getVolunteerPerformanceReport = async (req, res, next) => {
     try {
-        const { volunteerId, period } = req.query;
+        const { period } = req.query;
 
         // Calculate period start date
-        let periodStartDate = new Date(0); // Default to all time
+        let periodStartDate = new Date(0);
         const now = new Date();
         if (period === 'last_7_days') {
             periodStartDate = new Date(now.setDate(now.getDate() - 7));
@@ -290,13 +290,8 @@ const getVolunteerPerformanceReport = async (req, res, next) => {
             periodStartDate = new Date(now.setDate(now.getDate() - 30));
         }
 
-        let userMatch = { role: 'volunteer' };
-        if (volunteerId) {
-            userMatch._id = new mongoose.Types.ObjectId(volunteerId);
-        }
-
         const report = await User.aggregate([
-            { $match: userMatch },
+            { $match: { role: 'volunteer' } },
             {
                 $lookup: {
                     from: 'donations',
@@ -306,220 +301,187 @@ const getVolunteerPerformanceReport = async (req, res, next) => {
                 },
             },
             {
-                $addFields: {
-                    filteredMissions: {
-                        $filter: {
-                            input: '$missions',
-                            as: 'mission',
-                            cond: { $gte: ['$$mission.createdAt', periodStartDate] },
-                        },
-                    },
-                },
-            },
-            {
-                $addFields: {
-                    stats: {
-                        totalMissions: { $size: '$filteredMissions' },
-                        completed: {
-                            $size: {
-                                $filter: {
-                                    input: '$filteredMissions',
-                                    as: 'm',
-                                    cond: { $eq: ['$$m.status', 'completed'] },
-                                },
-                            },
-                        },
-                        failed: {
-                            $size: {
-                                $filter: {
-                                    input: '$filteredMissions',
-                                    as: 'm',
-                                    cond: { $in: ['$$m.status', ['cancelled', 'rejected']] },
-                                },
-                            },
-                        },
-                        avgDeliveryTimeMs: {
-                            $avg: {
-                                $map: {
-                                    input: {
-                                        $filter: {
-                                            input: '$filteredMissions',
-                                            as: 'm',
-                                            cond: {
-                                                $and: [
-                                                    { $eq: ['$$m.status', 'completed'] },
-                                                    { $ne: [{ $ifNull: ['$$m.pickedUpAt', null] }, null] },
-                                                    { $ne: [{ $ifNull: ['$$m.deliveredAt', null] }, null] },
-                                                ],
-                                            },
-                                        },
-                                    },
-                                    as: 'm',
-                                    in: { $dateDiff: { startDate: '$$m.pickedUpAt', endDate: '$$m.deliveredAt', unit: 'millisecond' } },
-                                },
-                            },
-                        },
-                        proofCompliantMissions: {
-                            $size: {
-                                $filter: {
-                                    input: '$filteredMissions',
-                                    as: 'm',
-                                    cond: {
-                                        $and: [
-                                            { $eq: ['$$m.status', 'completed'] },
-                                            { $ne: [{ $ifNull: ['$$m.pickupPhoto', null] }, null] },
-                                            { $ne: [{ $ifNull: ['$$m.deliveryPhoto', null] }, null] },
-                                        ],
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    currentMission: {
-                        $filter: {
-                            input: '$missions',
-                            as: 'm',
-                            cond: { $in: ['$$m.status', ['assigned', 'picked_up']] },
-                        },
-                    },
-                    historyData: {
-                        $map: {
-                            input: {
-                                $setUnion: {
-                                    $map: {
-                                        input: '$filteredMissions',
+                $facet: {
+                    // 1. Leaderboard (Per-volunteer stats)
+                    leaderboard: [
+                        {
+                            $addFields: {
+                                filteredMissions: {
+                                    $filter: {
+                                        input: '$missions',
                                         as: 'm',
-                                        in: { $dateToString: { format: '%Y-%m-%d', date: '$$m.createdAt' } }
-                                    }
-                                }
+                                        cond: { $gte: ['$$m.createdAt', periodStartDate] },
+                                    },
+                                },
                             },
-                            as: 'date',
-                            in: {
-                                date: '$$date',
-                                missions: {
-                                    $size: {
-                                        $filter: {
-                                            input: '$filteredMissions',
-                                            as: 'm',
-                                            cond: { $eq: [{ $dateToString: { format: '%Y-%m-%d', date: '$$m.createdAt' } }, '$$date'] }
-                                        }
-                                    }
+                        },
+                        {
+                            $project: {
+                                id: '$_id',
+                                name: 1,
+                                avatar: 1,
+                                tier: { $ifNull: ['$volunteerProfile.tier', 'rookie'] },
+                                vehicleType: { $ifNull: ['$volunteerProfile.vehicleType', 'bicycle'] },
+                                isOnline: { $ifNull: ['$isOnline', false] },
+                                status: {
+                                    $cond: [
+                                        { $gt: [{ $size: { $filter: { input: '$missions', as: 'm', cond: { $in: ['$$m.status', ['assigned', 'picked_up']] } } } }, 0] },
+                                        'on-delivery',
+                                        { $cond: [{ $eq: ['$isOnline', true] }, 'online', 'offline'] }
+                                    ]
                                 },
-                                timeSpentMs: {
-                                    $sum: {
-                                        $map: {
-                                            input: {
-                                                $filter: {
-                                                    input: '$filteredMissions',
+                                missionsCompleted: {
+                                    $size: { $filter: { input: '$filteredMissions', as: 'm', cond: { $eq: ['$$m.status', 'completed'] } } }
+                                },
+                                missionsFailed: {
+                                    $size: { $filter: { input: '$filteredMissions', as: 'm', cond: { $in: ['$$m.status', ['cancelled', 'rejected']] } } }
+                                },
+                                avgEta: {
+                                    $ifNull: [
+                                        {
+                                            $avg: {
+                                                $map: {
+                                                    input: { $filter: { input: '$filteredMissions', as: 'm', cond: { $and: [{ $eq: ['$$m.status', 'completed'] }, { $ne: ['$$m.pickedUpAt', null] }, { $ne: ['$$m.deliveredAt', null] }] } } },
                                                     as: 'm',
-                                                    cond: {
-                                                        $and: [
-                                                            { $eq: [{ $dateToString: { format: '%Y-%m-%d', date: '$$m.createdAt' } }, '$$date'] },
-                                                            { $ne: [{ $ifNull: ['$$m.pickedUpAt', null] }, null] },
-                                                            { $ne: [{ $ifNull: ['$$m.deliveredAt', null] }, null] }
-                                                        ]
-                                                    }
+                                                    in: { $dateDiff: { startDate: '$$m.pickedUpAt', endDate: '$$m.deliveredAt', unit: 'second' } }
                                                 }
-                                            },
-                                            as: 'm',
-                                            in: { $dateDiff: { startDate: '$$m.pickedUpAt', endDate: '$$m.deliveredAt', unit: 'millisecond' } }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-            },
-            {
-                $project: {
-                    _id: 0,
-                    volunteerId: '$_id',
-                    name: 1,
-                    stats: {
-                        totalMissions: '$stats.totalMissions',
-                        completed: '$stats.completed',
-                        avgDeliveryTime: {
-                            $concat: [
-                                { $toString: { $ifNull: [{ $round: [{ $divide: ['$stats.avgDeliveryTimeMs', 60000] }, 0] }, 0] } },
-                                ' mins',
-                            ],
-                        },
-                        proofCompliance: {
-                            $concat: [
-                                {
-                                    $toString: {
-                                        $cond: [
-                                            { $gt: ['$stats.completed', 0] },
-                                            { $round: [{ $multiply: [{ $divide: ['$stats.proofCompliantMissions', '$stats.completed'] }, 100] }, 1] },
-                                            0
-                                        ]
-                                    }
+                                            }
+                                        },
+                                        0
+                                    ]
                                 },
-                                '%',
-                            ],
-                        },
-                        successRate: {
-                            $cond: [
-                                { $gt: ['$stats.totalMissions', 0] },
-                                { $round: [{ $multiply: [{ $divide: ['$stats.completed', '$stats.totalMissions'] }, 100] }, 1] },
-                                0
-                            ]
-                        }
-                    },
-                    profile: {
-                        tier: {
-                            $switch: {
-                                branches: [
-                                    { case: { $eq: ['$volunteerProfile.tier', 'champion'] }, then: 'Champion' },
-                                    { case: { $eq: ['$volunteerProfile.tier', 'hero'] }, then: 'Hero' },
-                                ],
-                                default: 'Rookie'
-                            }
-                        },
-                        vehicle: {
-                            $switch: {
-                                branches: [
-                                    { case: { $eq: ['$volunteerProfile.vehicleType', 'bicycle'] }, then: 'Bicycle' },
-                                    { case: { $eq: ['$volunteerProfile.vehicleType', 'scooter'] }, then: 'Scooter' },
-                                    { case: { $eq: ['$volunteerProfile.vehicleType', 'car'] }, then: 'Car' },
-                                    { case: { $eq: ['$volunteerProfile.vehicleType', 'van'] }, then: 'Van' },
-                                ],
-                                default: 'N/A'
-                            }
-                        },
-                        isOnline: { $ifNull: ['$isOnline', false] },
-                        status: {
-                            $cond: [{ $gt: [{ $size: '$currentMission' }, 0] }, 'On Route', 'Available']
-                        }
-                    },
-                    history: {
-                        $slice: [
-                            {
-                                $map: {
-                                    input: '$historyData',
-                                    as: 'h',
-                                    in: {
-                                        date: '$$h.date',
-                                        missions: '$$h.missions',
-                                        timeSpent: {
-                                            $concat: [
-                                                { $toString: { $round: [{ $divide: ['$$h.timeSpentMs', 60000] }, 0] } },
-                                                'm'
+                                hasProofCompliance: {
+                                    $let: {
+                                        vars: {
+                                            completed: { $filter: { input: '$filteredMissions', as: 'm', cond: { $eq: ['$$m.status', 'completed'] } } }
+                                        },
+                                        in: {
+                                            $cond: [
+                                                { $eq: [{ $size: '$$completed' }, 0] },
+                                                true,
+                                                {
+                                                    $eq: [
+                                                        { $size: '$$completed' },
+                                                        { $size: { $filter: { input: '$$completed', as: 'm', cond: { $and: [{ $ne: ['$$m.pickupPhoto', null] }, { $ne: ['$$m.deliveryPhoto', null] }] } } } }
+                                                    ]
+                                                }
                                             ]
                                         }
                                     }
+                                },
+                                history: {
+                                    $slice: [
+                                        {
+                                            $map: {
+                                                input: { $sortArray: { input: '$filteredMissions', sortBy: { createdAt: -1 } } },
+                                                as: 'm',
+                                                in: {
+                                                    id: '$$m._id',
+                                                    status: { $cond: [{ $eq: ['$$m.status', 'completed'] }, 'completed', 'failed'] },
+                                                    timestamp: '$$m.createdAt',
+                                                    photoUrl: { $ifNull: ['$$m.deliveryPhoto', '$$m.pickupPhoto'] }
+                                                }
+                                            }
+                                        },
+                                        5
+                                    ]
                                 }
-                            },
-                            -7 // Last 7 days of activity
-                        ]
-                    }
-                },
-            },
-            { $sort: { 'history.date': -1 } }
+                            }
+                        },
+                        { $sort: { missionsCompleted: -1 } }
+                    ],
+                    // 2. Overview Stats (Global)
+                    overview: [
+                        { $unwind: '$missions' },
+                        { $match: { 'missions.createdAt': { $gte: periodStartDate } } },
+                        {
+                            $group: {
+                                _id: null,
+                                totalAssigned: { $sum: 1 },
+                                completed: { $sum: { $cond: [{ $eq: ['$missions.status', 'completed'] }, 1, 0] } },
+                                proofCompliant: { $sum: { $cond: [{ $and: [{ $eq: ['$missions.status', 'completed'] }, { $ne: ['$missions.deliveryPhoto', null] }] }, 1, 0] } },
+                                avgResponseMs: {
+                                    $avg: {
+                                        $cond: [
+                                            { $and: [{ $ne: ['$missions.pickedUpAt', null] }, { $ne: ['$missions.claimedAt', null] }] },
+                                            { $dateDiff: { startDate: '$missions.claimedAt', endDate: '$missions.pickedUpAt', unit: 'millisecond' } },
+                                            null
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                fleetDeliveryRate: { $round: [{ $multiply: [{ $divide: ['$completed', { $max: [1, '$totalAssigned'] }] }, 100] }, 1] },
+                                avgResponseTime: { $round: [{ $divide: [{ $ifNull: ['$avgResponseMs', 0] }, 60000] }, 0] },
+                                complianceScore: { $round: [{ $multiply: [{ $divide: ['$proofCompliant', { $max: [1, '$completed'] }] }, 100] }, 1] }
+                            }
+                        }
+                    ],
+                    // 3. Efficiency By Tier
+                    efficiencyByTier: [
+                        { $unwind: '$missions' },
+                        { $match: { 'missions.status': 'completed', 'missions.pickedUpAt': { $ne: null }, 'missions.deliveredAt': { $ne: null } } },
+                        {
+                            $group: {
+                                _id: { $ifNull: ['$volunteerProfile.tier', 'rookie'] },
+                                avgTime: { $avg: { $dateDiff: { startDate: '$missions.pickedUpAt', endDate: '$missions.deliveredAt', unit: 'minute' } } }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                tier: { $concat: [{ $toUpper: { $substr: ['$_id', 0, 1] } }, { $substr: ['$_id', 1, -1] }] },
+                                avgTime: { $round: ['$avgTime', 1] }
+                            }
+                        },
+                        { $sort: { avgTime: 1 } }
+                    ],
+                    // 4. Recent Proof Global
+                    recentProof: [
+                        { $unwind: '$missions' },
+                        { $match: { 'missions.deliveryPhoto': { $ne: null } } },
+                        { $sort: { 'missions.deliveredAt': -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                id: '$missions._id',
+                                photoUrl: '$missions.deliveryPhoto',
+                                timestamp: '$missions.deliveredAt',
+                                volunteerName: '$name'
+                            }
+                        }
+                    ],
+                    // 5. Active Count
+                    activeVolunteers: [
+                        { $match: { isOnline: true } },
+                        { $count: 'online' }
+                    ]
+                }
+            }
         ]);
 
-        res.status(200).json(report);
+        const result = report[0];
+
+        // Format and combine
+        const finalResponse = {
+            overview: {
+                ...(result.overview[0] || { fleetDeliveryRate: 0, avgResponseTime: 0, complianceScore: 0 }),
+                activeHeroes: result.activeVolunteers[0]?.online || 0
+            },
+            leaderboard: result.leaderboard,
+            efficiencyByTier: result.efficiencyByTier.length > 0 ? result.efficiencyByTier : [
+                { tier: 'Champion', avgTime: 0 },
+                { tier: 'Hero', avgTime: 0 },
+                { tier: 'Rookie', avgTime: 0 }
+            ],
+            recentProof: result.recentProof
+        };
+
+        res.status(200).json(finalResponse);
     } catch (error) {
         next(error);
     }
