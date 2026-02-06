@@ -100,9 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.data.requiresOtp) {
             toast({
                 title: "Verification Sent",
-                description: response.data.devOtp
-                    ? `Use Code: ${response.data.devOtp}`
-                    : "Please check your email for the verification code.",
+                description: "Please check your email for the verification code.",
             });
             return response.data;
         }
