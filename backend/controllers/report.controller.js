@@ -51,11 +51,26 @@ const getDonationReport = async (req, res, next) => {
             },
             { $unwind: '$donorDetails' },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'claimedBy',
+                    foreignField: '_id',
+                    as: 'ngoDetails',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$ngoDetails',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
                 $project: {
                     _id: 0,
                     donationId: '$_id',
                     donorName: '$donorDetails.name',
-                    organization: '$donorDetails.organization',
+                    donorOrg: '$donorDetails.organization',
+                    recipientNgo: '$ngoDetails.organization',
                     foodType: 1,
                     quantity: 1,
                     status: 1,
@@ -64,7 +79,7 @@ const getDonationReport = async (req, res, next) => {
                     createdAt: 1,
                 },
             },
-            { $sort: { createdAt: -1 } }
+            { $sort: { createdAt: -1 } },
         ]);
 
         res.status(200).json(report);
