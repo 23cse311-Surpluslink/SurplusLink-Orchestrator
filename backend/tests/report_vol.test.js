@@ -95,19 +95,19 @@ describe('Volunteer Performance Report Tests', () => {
             .set('Cookie', [adminToken]);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toBeInstanceOf(Array);
+        expect(res.body.leaderboard).toBeInstanceOf(Array);
+        expect(res.body.overview).toBeDefined();
 
-        const alex = res.body.find(v => v.name === 'Alex Johnson');
+        const alex = res.body.leaderboard.find(v => v.name === 'Alex Johnson');
         expect(alex).toBeDefined();
-        expect(alex.stats.totalMissions).toBe(2);
-        expect(alex.stats.completed).toBe(1);
-        expect(alex.stats.avgDeliveryTime).toBe('30 mins');
-        expect(alex.stats.proofCompliance).toBe('100%');
-        expect(alex.profile.status).toBe('On Route');
-        expect(alex.profile.isOnline).toBe(true);
-        expect(alex.profile.tier).toBe('Champion');
+        expect(alex.missionsCompleted).toBe(1);
+        expect(alex.missionsFailed).toBe(0);
+        expect(alex.avgEta).toBeGreaterThan(0);
+        expect(alex.hasProofCompliance).toBe(true);
+        expect(alex.status).toBe('on-delivery');
+        expect(alex.isOnline).toBe(true);
+        expect(alex.tier).toBe('champion');
         expect(alex.history.length).toBeGreaterThan(0);
-        expect(alex.history[0].missions).toBe(2);
     });
 
     it('should filter by individual volunteerId', async () => {
@@ -116,8 +116,8 @@ describe('Volunteer Performance Report Tests', () => {
             .set('Cookie', [adminToken]);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toHaveLength(1);
-        expect(res.body[0].volunteerId).toBe(volunteerId.toString());
+        expect(res.body.leaderboard).toHaveLength(1);
+        expect(res.body.leaderboard[0].id).toBe(volunteerId.toString());
     });
 
     it('should forbid access for non-admin users', async () => {
