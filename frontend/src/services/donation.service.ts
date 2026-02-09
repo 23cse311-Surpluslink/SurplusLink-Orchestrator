@@ -238,6 +238,11 @@ const DonationService = {
     getOptimizedRoute: async (id: string) => {
         const response = await api.get(`/donations/${id}/optimized-route`);
         return response.data;
+    },
+
+    getAdminStats: async () => {
+        const response = await api.get('/donations/admin/stats');
+        return response.data;
     }
 };
 

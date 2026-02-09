@@ -142,21 +142,15 @@ export default function DonorDashboard() {
                     <CardContent>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={[
-                                    { name: 'Mon', count: 4 },
-                                    { name: 'Tue', count: 7 },
-                                    { name: 'Wed', count: stats?.totalDonations || 0 },
-                                    { name: 'Thu', count: 0 },
-                                    { name: 'Fri', count: 0 },
-                                ]}>
+                                <BarChart data={stats?.monthlyBreakdown || []}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
                                     <YAxis axisLine={false} tickLine={false} />
                                     <ChartTooltip
                                         cursor={{ fill: 'hsl(var(--primary)/0.1)' }}
                                         contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                     />
-                                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                                    <Bar dataKey="meals" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

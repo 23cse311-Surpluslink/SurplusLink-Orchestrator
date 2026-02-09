@@ -30,6 +30,7 @@ const getUserProfile = async (req, res, next) => {
                 createdAt: user.createdAt,
                 ngoProfile: user.ngoProfile,
                 isOnline: user.isOnline,
+                stats: user.stats,
                 volunteerProfile: user.volunteerProfile,
             });
         } else {

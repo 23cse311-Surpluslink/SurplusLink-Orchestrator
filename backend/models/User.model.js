@@ -68,6 +68,8 @@ const userSchema = mongoose.Schema(
       totalRatings: { type: Number, default: 0 },
       completedDonations: { type: Number, default: 0 },
       cancelledDonations: { type: Number, default: 0 },
+      mealsSaved: { type: Number, default: 0 },
+      co2Saved: { type: Number, default: 0 },
     },
     isOnline: {
       type: Boolean,

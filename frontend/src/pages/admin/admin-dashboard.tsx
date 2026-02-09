@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Truck, AlertTriangle, Building2, UserCircle, ArrowRight } from 'lucide-react';
-import { metrics, adminStats } from '@/mockData/metrics';
+import { Users, FileText, Truck, AlertTriangle, Building2, UserCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { PageHeader } from '@/components/common/page-header';
@@ -9,6 +8,7 @@ import { StatCard } from '@/components/common/stat-card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
+import DonationService from '@/services/donation.service';
 import { User } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -18,7 +18,10 @@ export default function AdminDashboard() {
         totalUsers: 0,
         pendingApprovals: 0,
         activeDonors: 0,
-        activeNgos: 0
+        activeNgos: 0,
+        donationsToday: 0,
+        activeRoutes: 0,
+        monthlyData: [] as { month: string; donations: number }[]
     });
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
     const navigate = useNavigate();
@@ -26,7 +29,12 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const { data: users } = await api.get('/users/admin/users');
+                const [userRes, adminRes] = await Promise.all([
+                    api.get('/users/admin/users'),
+                    DonationService.getAdminStats()
+                ]);
+
+                const users = userRes.data;
                 const pending = users.filter((u: User) => u.status === 'pending' && (u.taxId || u.documentUrl));
                 const donors = users.filter((u: User) => u.role === 'donor' && u.status === 'active');
                 const ngos = users.filter((u: User) => u.role === 'ngo' && u.status === 'active');
@@ -35,7 +43,10 @@ export default function AdminDashboard() {
                     totalUsers: users.length,
                     pendingApprovals: pending.length,
                     activeDonors: donors.length,
-                    activeNgos: ngos.length
+                    activeNgos: ngos.length,
+                    donationsToday: adminRes.donationsToday,
+                    activeRoutes: adminRes.activeRoutes,
+                    monthlyData: adminRes.monthlyData
                 });
                 setRecentUsers(users.slice(0, 5));
             } catch (error) {
@@ -47,13 +58,14 @@ export default function AdminDashboard() {
         const interval = setInterval(fetchDashboardData, 10000);
         return () => clearInterval(interval);
     }, []);
+
     return (
         <div className="space-y-8">
             <PageHeader title="Admin Dashboard" description="System overview and real-time monitoring." />
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Donations Today" value={adminStats.donationsToday} icon={<FileText className="h-5 w-5" />} trend={{ value: 8, isPositive: true }} />
-                <StatCard title="Active Routes" value={adminStats.activeRoutes} icon={<Truck className="h-5 w-5" />} />
+                <StatCard title="Donations Today" value={stats.donationsToday} icon={<FileText className="h-5 w-5" />} trend={{ value: stats.donationsToday > 0 ? 100 : 0, isPositive: true }} />
+                <StatCard title="Active Routes" value={stats.activeRoutes} icon={<Truck className="h-5 w-5" />} />
                 <StatCard title="Total Users" value={stats.totalUsers} icon={<Users className="h-5 w-5" />} />
                 <StatCard
                     title="Pending Approvals"
@@ -100,7 +112,7 @@ export default function AdminDashboard() {
                     <CardContent>
                         <div className="h-[300px] mt-4">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={metrics.monthlyData}>
+                                <LineChart data={stats.monthlyData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
@@ -135,7 +147,6 @@ export default function AdminDashboard() {
                                 </Badge>
                             </div>
                         ))}
-                    
                     </CardContent>
                 </Card>
             </div>

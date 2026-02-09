@@ -71,7 +71,7 @@ export function NgoImpactPage() {
                     <CardContent>
                         <div className="h-[350px] w-full pt-4">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={data}>
+                                <AreaChart data={stats?.monthlyData || []}>
                                     <defs>
                                         <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
@@ -102,7 +102,7 @@ export function NgoImpactPage() {
                     <CardContent>
                         <div className="h-[350px] w-full pt-4">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data}>
+                                <BarChart data={stats?.monthlyData || []}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
