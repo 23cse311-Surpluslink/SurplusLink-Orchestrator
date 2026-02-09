@@ -159,7 +159,10 @@ export const createDonation = async (req, res) => {
  */
 export const getDonorHistory = async (req, res) => {
     try {
-        const donations = await Donation.find({ donor: req.user._id }).sort({ createdAt: -1 });
+        const donations = await Donation.find({ donor: req.user._id })
+            .populate('volunteer', 'name')
+            .populate('claimedBy', 'organization name')
+            .sort({ createdAt: -1 });
         res.json(donations);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -290,7 +293,10 @@ export const cancelDonation = async (req, res) => {
  */
 export const getDonationById = async (req, res) => {
     try {
-        const donation = await Donation.findById(req.params.id).populate('donor', 'name email organization');
+        const donation = await Donation.findById(req.params.id)
+            .populate('donor', 'name email organization')
+            .populate('volunteer', 'name')
+            .populate('claimedBy', 'organization name');
 
         if (!donation) {
             return res.status(404).json({ message: 'Donation not found' });
@@ -679,7 +685,8 @@ export const getClaimedDonations = async (req, res, next) => {
     try {
         const donations = await Donation.find({ claimedBy: req.user._id })
             .sort({ updatedAt: -1 })
-            .populate('donor', 'name organization');
+            .populate('donor', 'name organization')
+            .populate('volunteer', 'name');
         res.json(donations);
     } catch (error) {
         next(error);
@@ -1064,7 +1071,8 @@ export const getVolunteerActiveMission = async (req, res, next) => {
             deliveryStatus: { $in: ['pending_pickup', 'heading_to_pickup', 'at_pickup', 'picked_up', 'in_transit', 'arrived_at_delivery'] }
         })
             .populate('donor', 'name address email organization coordinates')
-            .populate('claimedBy', 'organization address email coordinates');
+            .populate('claimedBy', 'organization address email coordinates')
+            .populate('volunteer', 'name');
 
         res.json(activeMission);
     } catch (error) {
@@ -1084,7 +1092,8 @@ export const getVolunteerHistory = async (req, res, next) => {
             status: 'completed'
         }).sort({ updatedAt: -1 })
             .populate('donor', 'name organization')
-            .populate('claimedBy', 'organization');
+            .populate('claimedBy', 'organization')
+            .populate('volunteer', 'name');
 
         res.json(history);
     } catch (error) {

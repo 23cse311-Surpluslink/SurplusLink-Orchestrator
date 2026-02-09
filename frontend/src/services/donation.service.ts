@@ -88,7 +88,7 @@ const mapDonation = (d: BackendDonation): Donation => ({
     })(),
     foodCategory: d.foodCategory,
     deliveryStatus: d.deliveryStatus,
-    assignedVolunteer: typeof d.volunteer === 'object' ? d.volunteer?.id || d.volunteer?._id : d.volunteer,
+    assignedVolunteer: typeof d.volunteer === 'object' ? d.volunteer?.name || d.volunteer?.id || d.volunteer?._id : d.volunteer,
     donorEmail: d.donor?.email,
     ngoEmail: d.claimedBy?.email,
     ngoCoordinates: (function () {

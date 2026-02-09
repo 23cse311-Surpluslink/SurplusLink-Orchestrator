@@ -86,10 +86,7 @@ export function NgoVolunteersPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2 text-sm">
-                                    <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                                        <Phone className="h-3.5 w-3.5" />
-                                        <span>{volunteer.phone}</span>
-                                    </div>
+                            
                                     <div className="flex items-center gap-2 text-muted-foreground font-medium">
                                         <Mail className="h-3.5 w-3.5" />
                                         <span className="truncate">{volunteer.email}</span>
