@@ -1,16 +1,40 @@
-# mobile
+# SurplusLink Mobile: On-Field Logistics App
+**Owner: Bharath G Sec**
 
-A new Flutter project.
+## Overview
+The mobile companion for SurplusLink, built with Flutter. This application is specifically designed for Volunteers and Donors to manage rescues on the move.
+
+---
+
+## Core Features
+- **Real-time Map Integration**: Visualize nearby donations and optimal delivery routes.
+- **Proof of Delivery (POD)**: Built-in camera integration for capturing pickup and delivery photos.
+- **Background Heartbeat**: Securely shares periodic location updates with the backend to enable "Smart Dispatching".
+- **Instant Alerts**: Push notifications for new missions within the volunteer's radius.
+
+---
+
+## Technical Stack
+- **Framework**: Flutter 3.x
+- **Language**: Dart
+- **State Management**: Provider / Bloc
+- **Navigation**: Google Maps Flutter SDK
+- **Communication**: REST API with JWT Auth
+
+---
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### 1. Prerequisites
+- Flutter SDK (v3.19+)
+- Android Studio / Xcode
+- Backend URL configured in `lib/config/api_config.dart`
 
-A few resources to get you started if this is your first Flutter project:
+### 2. Run in Development
+```bash
+flutter pub get
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+*Created for Sprint 1 Review*

@@ -1,3 +1,10 @@
+/**
+ * @module Analytics & reporting Engine
+ * @author Priyansh Narang
+ * @description Generates aggregated metrics for system-wide transparency including
+ * donation activity, NGO utilization, and volunteer performance scoring.
+ */
+
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import mongoose from 'mongoose';

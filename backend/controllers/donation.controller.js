@@ -1,3 +1,14 @@
+/**
+ * @module Logistics & Donation Engine
+ * @description Core coordination logic for the SurplusLink ecosystem.
+ * 
+ * Module Assignments:
+ * - Donor Operations: Arpitha Amrita (createDonation, getDonorStats, getDonorHistory)
+ * - NGO Operations: Sanjay (getSmartFeed, claimDonation, rejectDonation, getClaimedDonations)
+ * - Volunteer Logistics: Bharath G Sec (getAvailableMissions, acceptMission, updateStatus)
+ * - Intelligent Matching Integration: Pragna (initiateAutoDispatch, reassignMission)
+ */
+
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
