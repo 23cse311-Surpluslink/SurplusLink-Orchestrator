@@ -1,11 +1,9 @@
 import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
-  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USERNAME) {
-    console.log('MOCK EMAIL SENDING (Credentials missing):');
-    console.log(`To: ${options.email}`);
-    console.log(`Subject: ${options.subject}`);
-    return;
+  if (process.env.NODE_ENV === 'test' || !process.env.EMAIL_HOST || !process.env.EMAIL_USERNAME) {
+    console.log(`[Email Mock] ${process.env.NODE_ENV === 'test' ? 'Test Mode' : 'Missing Credentials'} - Skipping real send to: ${options.email}`);
+    return { mock: true, to: options.email, subject: options.subject };
   }
 
   console.log(`[Email Service] attempting to send email to: ${options.email}`);
