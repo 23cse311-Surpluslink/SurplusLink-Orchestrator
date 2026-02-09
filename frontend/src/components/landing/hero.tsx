@@ -30,14 +30,14 @@ export function Hero() {
                             Reduce Waste.
                         </h1>
 
-                        <p className="text-xl ml-0 md:ml-10 md:text-2xl text-muted-foreground leading-relaxed max-w-2xl font-medium opacity-90">
+                        <p className="text-xl ml-0 md:ml-10 md:text-2xl text-muted-foreground leading-relaxed max-w-2xl font-medium opacity-90 border-l-2 border-primary/20 pl-6">
                             The intelligent bridge between food generators and those who need it most. Empowering local shelf-life management with <span className="text-foreground underline decoration-primary/30 underline-offset-4">real-time AI matching.</span>
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-5 pt-2">
+                        <div className="flex flex-col sm:flex-row gap-5 pt-4">
                             <button
                                 onClick={() => navigate('/login')}
-                                className="group flex ml-0 md:ml-10 items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/95 active:scale-95"
+                                className="group flex ml-0 md:ml-10 items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/95 hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
                             >
                                 Join the Mission
                                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -59,6 +59,16 @@ export function Hero() {
                             />
                         </div>
 
+                        {/* Live Impact Badge - Moved to right */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="absolute -top-12 left-0 md:left-12 z-20 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/95 backdrop-blur-md border border-primary/20 text-primary font-bold text-xs tracking-wide uppercase shadow-lg"
+                        >
+                            <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            Live Impact Tracking
+                        </motion.div>
 
                         <motion.div
                             animate={{ y: [0, -10, 0] }}
