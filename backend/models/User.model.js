@@ -123,12 +123,46 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
+  // 1. Password Hashing
+  if (this.isModified('password')) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
   }
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  // 2. Geospatial Synchronization & Data Sanitization
+  // Ensure GeoJSON 'location' field stays in sync with 'coordinates' {lat, lng}
+  // Also sanitize 'coordinates' to ensure it's not a legacy array
+  if (Array.isArray(this.coordinates)) {
+    const coordsArray = this.coordinates;
+    this.coordinates = {
+      lng: coordsArray[0] || 0,
+      lat: coordsArray[1] || 0
+    };
+  }
+
+  if (this.coordinates && this.coordinates.lat !== undefined && this.coordinates.lng !== undefined) {
+    // Force numbers to prevent casting issues
+    const lat = Number(this.coordinates.lat);
+    const lng = Number(this.coordinates.lng);
+
+    // Sync Root GeoJSON
+    this.location = {
+      type: 'Point',
+      coordinates: [lng, lat] 
+    };
+
+    // Sync Volunteer Profile GeoJSON
+    if (this.role === 'volunteer') {
+      if (!this.volunteerProfile) this.volunteerProfile = {};
+      this.volunteerProfile.currentLocation = {
+        type: 'Point',
+        coordinates: [lng, lat]
+      };
+      this.volunteerProfile.lastLocationUpdate = new Date();
+    }
+  }
+
+  next();
 });
 
 userSchema.set('toJSON', {
