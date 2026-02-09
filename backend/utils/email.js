@@ -30,11 +30,17 @@ const sendEmail = async (options) => {
   };
 
   try {
+    console.log(`[Email Service] Sending via ${process.env.EMAIL_HOST}...`);
     const info = await transporter.sendMail(mailOptions);
+    console.log(`[Email Service] SUCCESS: Message sent to ${options.email} (ID: ${info.messageId})`);
     return info;
   } catch (error) {
     console.error(`[Email Service] FAILURE: Could not send email to ${options.email}`);
-    console.error(`[Email Service] Error Details: ${error.message}`);
+    console.error(`[Email Service] Error Type: ${error.name}`);
+    console.error(`[Email Service] Error Message: ${error.message}`);
+    if (error.code === 'EAUTH') {
+      console.error(`[Email Service] AUTH ERROR: Check EMAIL_USERNAME and EMAIL_PASSWORD (App Password required for Gmail)`);
+    }
     throw error;
   }
 };
