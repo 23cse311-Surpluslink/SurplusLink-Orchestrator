@@ -1,15 +1,15 @@
 services:
   backend:
     build:
-      context: ./backend
+      context: ../Backend
       dockerfile: Dockerfile
     container_name: surpluslink-backend
     ports:
       - "8000:8000"
     env_file:
-      - ./backend/.env
+      - ../Backend/.env
     volumes:
-      - ./backend:/app
+      - ../Backend:/app
       - /app/node_modules
     command: npm run dev
     restart: unless-stopped
@@ -18,7 +18,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../Frontend
       dockerfile: Dockerfile
     container_name: surpluslink-frontend
     ports:
