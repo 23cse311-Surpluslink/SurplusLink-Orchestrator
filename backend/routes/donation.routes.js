@@ -24,6 +24,7 @@ import {
     getOptimizedRoute,
     cancelMission,
     getPotentialVolunteers,
+    getAdminStats,
 } from '../controllers/donation.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -36,6 +37,7 @@ router.use(protect);
 
 //admin routes
 router.get('/admin/active-missions', roleBasedAccess(['admin']), getAdminActiveMissions);
+router.get('/admin/stats', roleBasedAccess(['admin']), getAdminStats);
 
 //ngo specific routes
 router.get('/feed', roleBasedAccess(['ngo']), getSmartFeed);

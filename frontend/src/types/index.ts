@@ -130,12 +130,25 @@ export interface DonationStats {
   totalDonations: number;
   completedDonations: number;
   acceptanceRate: number;
+  mealsSaved?: number;
+  co2Reduced?: number;
+  monthlyBreakdown?: {
+    month: string;
+    meals: number;
+    co2: number;
+  }[];
 }
 
 export interface NgoStats {
   mealsReceived: number;
   avgDeliveryTime: number;
   totalDistributions: number;
+  monthlyData: {
+    month: string;
+    meals: number;
+    co2: number;
+    distributions: number;
+  }[];
   trend: number;
 }
 

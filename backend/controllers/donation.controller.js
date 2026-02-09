@@ -181,14 +181,42 @@ export const getDonorStats = async (req, res) => {
             donor: req.user._id,
             status: 'completed',
         });
-
         const acceptanceRate = totalDonations > 0 ? (completedDonations / totalDonations) * 100 : 0;
+
+        // Monthly Breakdown
+        const monthlyDataMap = {};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = months[date.getMonth()];
+            monthlyDataMap[m] = { month: m, meals: 0, co2: 0 };
+        }
+
+        const myDonations = await Donation.find({ donor: req.user._id, status: 'completed' });
+        myDonations.forEach(d => {
+            const m = months[new Date(d.createdAt).getMonth()];
+            if (monthlyDataMap[m]) {
+                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+                const weight = match ? parseFloat(match[0]) : 1;
+                monthlyDataMap[m].meals += weight;
+                monthlyDataMap[m].co2 += parseFloat((weight * 2.5).toFixed(1));
+            }
+        });
 
         res.json({
             totalDonations,
             completedDonations,
-            acceptanceRate: acceptanceRate.toFixed(2),
-            totalMealsSaved: completedDonations,
+            acceptanceRate: parseFloat(acceptanceRate.toFixed(2)),
+            mealsSaved: myDonations.reduce((acc, d) => {
+                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+                return acc + (match ? parseFloat(match[0]) : 1);
+            }, 0),
+            co2Reduced: parseFloat((myDonations.reduce((acc, d) => {
+                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+                return acc + (match ? parseFloat(match[0]) : 1);
+            }, 0) * 2.5).toFixed(1)),
+            monthlyBreakdown: Object.values(monthlyDataMap)
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -235,11 +263,36 @@ export const getNgoStats = async (req, res) => {
 
         const avgDeliveryTime = deliveriesWithTime > 0 ? Math.round(totalDeliveryTime / deliveriesWithTime) : 0;
 
+        // Metric 3: Monthly Breakdown for Charts
+        const monthlyDataMap = {};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Initialize last 6 months
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = months[d.getMonth()];
+            monthlyDataMap[m] = { month: m, meals: 0, co2: 0, distributions: 0 };
+        }
+
+        completedDonations.forEach(d => {
+            const date = new Date(d.createdAt);
+            const m = months[date.getMonth()];
+            if (monthlyDataMap[m]) {
+                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+                const weight = match ? parseFloat(match[0]) : 1;
+                monthlyDataMap[m].meals += weight;
+                monthlyDataMap[m].co2 += parseFloat((weight * 2.5).toFixed(1));
+                monthlyDataMap[m].distributions += 1;
+            }
+        });
+
         res.json({
             mealsReceived: parseFloat(mealsReceived.toFixed(1)),
             avgDeliveryTime,
             totalDistributions: completedDonations.length,
-            trend: 12
+            monthlyData: Object.values(monthlyDataMap),
+            trend: completedDonations.length > 5 ? 15 : 0
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -330,24 +383,55 @@ export const completeDonation = async (req, res, next) => {
         donation.feedback = { rating, comment };
         await donation.save();
 
-        // Engine Update: Recompute Donor Trust Metrics based on feedback
+        // --- IMPACT ENGINE ---
+        // Calculate raw metrics based on quantity
+        const match = String(donation.quantity).match(/(\d+(\.\d+)?)/);
+        const weight = match ? parseFloat(match[0]) : 1;
+        const co2Basis = weight * 2.5; // avg 2.5kg CO2 saved per kg food rescue
+
+        // 1. Update Donor (Trust & Impact)
         const donor = await User.findById(donation.donor);
         if (donor) {
-            if (!donor.stats) {
-                donor.stats = { trustScore: 5.0, totalRatings: 0, completedDonations: 0 };
-            }
-
             const currentScore = donor.stats.trustScore || 5.0;
             const currentCount = donor.stats.totalRatings || 0;
-
             const newCount = currentCount + 1;
             const newScore = ((currentScore * currentCount) + Number(rating)) / newCount;
 
             donor.stats.trustScore = parseFloat(newScore.toFixed(2));
             donor.stats.totalRatings = newCount;
             donor.stats.completedDonations = (donor.stats.completedDonations || 0) + 1;
-
+            donor.stats.mealsSaved = (donor.stats.mealsSaved || 0) + weight;
+            donor.stats.co2Saved = (donor.stats.co2Saved || 0) + co2Basis;
             await donor.save();
+        }
+
+        // 2. Update NGO (Utilization & Impact)
+        if (donation.claimedBy) {
+            const ngo = await User.findById(donation.claimedBy);
+            if (ngo) {
+                ngo.stats.completedDonations = (ngo.stats.completedDonations || 0) + 1;
+                ngo.stats.mealsSaved = (ngo.stats.mealsSaved || 0) + weight;
+                ngo.stats.co2Saved = (ngo.stats.co2Saved || 0) + co2Basis;
+                await ngo.save();
+            }
+        }
+
+        // 3. Update Volunteer (Reputation, Impact & Tiers)
+        if (donation.volunteer) {
+            const volunteer = await User.findById(donation.volunteer);
+            if (volunteer) {
+                volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
+                volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + weight;
+                volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
+                volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
+                
+                // Tier Promotion Logic
+                const missions = volunteer.stats.completedDonations;
+                if (missions >= 50) volunteer.volunteerProfile.tier = 'champion';
+                else if (missions >= 10) volunteer.volunteerProfile.tier = 'hero';
+                
+                await volunteer.save();
+            }
         }
 
         await createNotification(
@@ -1282,6 +1366,63 @@ export const getPotentialVolunteers = async (req, res, next) => {
         }));
 
         res.json(response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get system-wide metrics for the Admin dashboard
+ * @route   GET /api/v1/donations/admin/stats
+ * @access  Private (Admin)
+ */
+export const getAdminStats = async (req, res, next) => {
+    try {
+        const donationsToday = await Donation.countDocuments({
+            createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }
+        });
+
+        const activeRoutes = await Donation.countDocuments({
+            status: { $in: ['assigned', 'picked_up'] }
+        });
+
+        const totalUsers = await User.countDocuments();
+
+        const impact = await User.aggregate([
+            { $group: { _id: null, meals: { $sum: "$stats.mealsSaved" }, co2: { $sum: "$stats.co2Saved" } } }
+        ]);
+
+        const monthlyDataMap = {};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = months[date.getMonth()];
+            monthlyDataMap[m] = { month: m, donations: 0, impact: 0 };
+        }
+
+        const recentDonations = await Donation.find({
+            status: 'completed',
+            createdAt: { $gte: new Date(now.getFullYear(), now.getMonth() - 5, 1) }
+        });
+
+        recentDonations.forEach(d => {
+            const m = months[new Date(d.createdAt).getMonth()];
+            if (monthlyDataMap[m]) {
+                monthlyDataMap[m].donations += 1;
+                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
+                monthlyDataMap[m].impact += match ? parseFloat(match[0]) : 1;
+            }
+        });
+
+        res.json({
+            donationsToday,
+            activeRoutes,
+            totalUsers,
+            totalMealsSaved: impact[0]?.meals || 0,
+            totalCo2Saved: impact[0]?.co2 || 0,
+            monthlyData: Object.values(monthlyDataMap)
+        });
     } catch (error) {
         next(error);
     }

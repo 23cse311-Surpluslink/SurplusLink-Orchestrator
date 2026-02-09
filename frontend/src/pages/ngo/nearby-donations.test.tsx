@@ -62,7 +62,7 @@ import { BrowserRouter } from 'react-router-dom';
 describe('NearbyDonationsPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: mockDonations, capacityWarning: false, count: 2 });
+        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: mockDonations, capacityWarning: false, unmetNeed: 0 });
     });
 
     it('renders the feed and loads donations', async () => {
@@ -89,7 +89,7 @@ describe('NearbyDonationsPage', () => {
     });
 
     it('shows empty state when no donations found', async () => {
-        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: [], capacityWarning: false, count: 0 });
+        vi.mocked(DonationService.getSmartFeed).mockResolvedValue({ donations: [], capacityWarning: false, unmetNeed: 0 });
         render(
             <BrowserRouter>
                 <NearbyDonationsPage />
