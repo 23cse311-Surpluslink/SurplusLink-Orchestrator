@@ -170,9 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await api.post('/auth/send-otp', { email });
         toast({
             title: "OTP Sent",
-            description: response.data.devOtp
-                ? `Use Code: ${response.data.devOtp}`
-                : (response.data.message || "Please check your email for the verification code."),
+            description: "Please check your email for the verification code.",
         });
         return response.data;
     }, [toast]);
