@@ -28,12 +28,6 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         return <Navigate to="/unauthorized" replace />;
     }
 
-    const navLinks = [
-        { name: 'Features', href: '/#features', icon: Sparkles },
-        { name: 'How It Works', href: '/#how-it-works', icon: Info },
-        { name: 'FAQ', href: '/#faq', icon: HelpCircle },
-    ];
-
     return (
         <SidebarProvider>
             <div className="flex min-h-screen w-full bg-background font-sans selection:bg-primary/20">
@@ -45,18 +39,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
                             <SidebarTrigger className="-ml-1 hover:bg-white/20" />
                             <Separator orientation="vertical" className="mx-2 h-4 hidden md:block" />
 
-                            <nav className="hidden md:flex items-center gap-1">
-                                {navLinks.map((link) => (
-                                    <button
-                                        key={link.name}
-                                        onClick={() => navigate(link.href)}
-                                        className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors hover:bg-primary/5 rounded-full flex items-center gap-1.5 uppercase tracking-wider"
-                                    >
-                                        <link.icon className="size-3.5" />
-                                        {link.name}
-                                    </button>
-                                ))}
-                            </nav>
+
                         </div>
                         <div className="flex items-center gap-4">
                             {/* <Button

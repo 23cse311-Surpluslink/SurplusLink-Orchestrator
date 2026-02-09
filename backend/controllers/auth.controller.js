@@ -1,3 +1,11 @@
+/**
+ * @module Authentication & Profile Management
+ * @author Priyansh Narang
+ * @description This module handles the registration, login, and secure session management 
+ * for all user roles (Donor, NGO, Volunteer). It includes OTP verification and 
+ * role-based access control initialization.
+ */
+
 import User from '../models/User.model.js';
 import generateToken from '../utils/generateToken.js';
 import sendEmail from '../utils/email.js';

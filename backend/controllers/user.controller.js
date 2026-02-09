@@ -1,3 +1,10 @@
+/**
+ * @module User & Profile Management Logic
+ * @author Priyansh Narang
+ * @description Handles the retrieval and modification of detailed user profiles,
+ * organization settings for NGOs, and real-time logistics state (availability/location) for Volunteers.
+ */
+
 import User from '../models/User.model.js';
 import Donation from '../models/Donation.model.js';
 import { geocodeAddress } from '../utils/geocoder.js';

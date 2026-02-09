@@ -1,3 +1,10 @@
+/**
+ * @module Intelligent Matching & Prioritization Engine
+ * @author Pragna
+ * @description The "Brain" of the platform. This service implements the weighted suitability 
+ * matrix, geospatial NGO discovery, and volunteer equity (Round Robin) logic.
+ */
+
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import mongoose from 'mongoose';

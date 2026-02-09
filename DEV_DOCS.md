@@ -143,4 +143,3 @@ When an NGO claims a donation:
 5.  **Run Production**: `npm start` (Backend), `npm run build` (Frontend).
 
 ---
-*Created for Sprint 1 Review - 06/02/2026*
