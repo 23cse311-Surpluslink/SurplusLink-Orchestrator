@@ -41,7 +41,7 @@ const roleBasedAccess = (roles) => {
             next();
         } else {
             res.status(401);
-            throw new Error('Not authorized as an ' + req.user.role);
+            throw new Error('Not authorized as a ' + req.user.role);
         }
     };
 };
