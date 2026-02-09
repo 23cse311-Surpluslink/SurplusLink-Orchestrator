@@ -49,7 +49,7 @@ export function Process() {
                 </div>
 
                 <div className="relative">
-                   
+
 
                     <div className="grid lg:grid-cols-4 gap-12 relative z-10">
                         {steps.map((step, index) => (
@@ -62,10 +62,10 @@ export function Process() {
                                 className="group"
                             >
                                 <div className="relative mb-8 pt-4">
-                                    <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-3xl font-black shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform relative z-10">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-2xl md:text-3xl font-black shadow-lg shadow-primary/30 group-hover:scale-105 transition-all duration-500 relative z-10">
                                         {step.number}
                                     </div>
-                                    <div className="absolute -top-2 -left-2 w-20 h-20 rounded-2xl border-2 border-primary/20 scale-110 group-hover:rotate-12 transition-transform" />
+                                    <div className="absolute -top-1 -left-1 w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-primary/20 scale-110 group-hover:rotate-6 transition-all duration-700" />
                                 </div>
 
                                 <div className="space-y-4">

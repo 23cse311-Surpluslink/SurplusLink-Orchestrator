@@ -31,40 +31,58 @@ const faqs = [
 
 export function FAQ() {
     return (
-        <section id="faq" className="py-24">
-            <div className="container mx-auto px-4 max-w-4xl">
+        <section id="faq" className="py-20 relative overflow-hidden">
+            {/* Background Decorative Element */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="container mx-auto px-4 max-w-4xl relative z-10">
                 <div className="text-center mb-16">
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        className="text-3xl md:text-5xl font-bold mb-6"
+                        transition={{ duration: 0.5 }}
+                        className="text-3xl md:text-5xl font-bold mb-6 tracking-tight"
                     >
                         Frequently Asked <span className="text-primary">Questions</span>
                     </motion.h2>
-                    <p className="text-xl text-muted-foreground">
-                        Everything you need to know about SurplusLink.
-                    </p>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="text-lg md:text-xl text-muted-foreground font-medium"
+                    >
+                        Everything you need to know about the SurplusLink ecosystem.
+                    </motion.p>
                 </div>
 
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.7 }}
                     viewport={{ once: true }}
-                    className="bg-transparent border border-border/30 rounded-3xl p-8 backdrop-blur-sm"
+                    className="relative group"
                 >
-                    <Accordion type="single" collapsible className="w-full">
-                        {faqs.map((faq, index) => (
-                            <AccordionItem key={index} value={`item-${index}`} className="border-b border-border/50 py-2 last:border-0">
-                                <AccordionTrigger className="text-left text-lg font-bold hover:no-underline hover:text-primary transition-colors py-4">
-                                    {faq.question}
-                                </AccordionTrigger>
-                                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-4">
-                                    {faq.answer}
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
+                    {/* Container Glow */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+
+                    <div className="relative bg-card/40 border border-border/50 rounded-[2.5rem] p-6 md:p-10 backdrop-blur-xl shadow-2xl shadow-primary/5">
+                        <Accordion type="single" collapsible className="w-full space-y-2">
+                            {faqs.map((faq, index) => (
+                                <AccordionItem
+                                    key={index}
+                                    value={`item-${index}`}
+                                    className="border-none px-4 rounded-xl hover:bg-primary/[0.03] data-[state=open]:bg-primary/[0.04] transition-all duration-300"
+                                >
+                                    <AccordionTrigger className="text-left text-lg md:text-xl font-bold hover:no-underline hover:text-primary transition-all py-5">
+                                        {faq.question}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="text-muted-foreground text-base md:text-lg leading-relaxed pb-6 font-medium">
+                                        {faq.answer}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </div>
                 </motion.div>
             </div>
         </section>
