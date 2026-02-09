@@ -167,12 +167,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [toast]);
 
     const sendOTP = useCallback(async (email: string) => {
-        const response = await api.post('/auth/send-otp', { email });
-        toast({
-            title: "OTP Sent",
-            description: "Please check your email for the verification code.",
-        });
-        return response.data;
+        try {
+            const response = await api.post('/auth/send-otp', { email });
+            toast({
+                title: "OTP Sent",
+                description: "Please check your email for the verification code.",
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error('sendOTP error details:');
+            console.dir(error);
+            throw error;
+        }
     }, [toast]);
 
     const verifyOTP = useCallback(async (email: string, otp: string) => {
