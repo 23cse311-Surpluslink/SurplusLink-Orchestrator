@@ -10,7 +10,7 @@ The system is deployed across a multi-cloud architecture to ensure high availabi
 
 | Component | Provider | URL | Purpose |
 | :--- | :--- | :--- | :--- |
-| **API Backend** | Render | `https://surpluslink-api.render.com` | Core logic, DB connectivity, Cron jobs. |
+| **API Backend** | Render | `https://surpluslink-9fq6.onrender.com` | Core logic, DB connectivity, Cron jobs. |
 | **Dashboard** | Vercel | `https://surpluslink.vercel.app` | Donor/NGO/Admin web interface. |
 | **Database** | MongoDB Atlas | Cluster (AWS/GCP) | Scalable Document store with Geospatial support. |
 | **Asset Storage** | Cloudinary | CDN | Secure storage for food/verification images. |
