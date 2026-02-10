@@ -24,13 +24,27 @@ const itemVariants = {
 
 export default function VolunteerSettings() {
     const { user, updateVolunteerVehicle } = useAuth();
+    const [isSaving, setIsSaving] = React.useState(false);
     const [capacity, setCapacity] = React.useState([user?.volunteerProfile?.maxWeight || 50]);
     const [vehicle, setVehicle] = React.useState<'bicycle' | 'scooter' | 'car' | 'van'>(
         (user?.volunteerProfile?.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle"
     );
 
+    // Sync state when user data arrives/changes
+    React.useEffect(() => {
+        if (user?.volunteerProfile) {
+            setCapacity([user.volunteerProfile.maxWeight || 50]);
+            setVehicle((user.volunteerProfile.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle");
+        }
+    }, [user]);
+
     const handleSave = async () => {
-        await updateVolunteerVehicle(vehicle, capacity[0]);
+        setIsSaving(true);
+        try {
+            await updateVolunteerVehicle(vehicle, capacity[0]);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -137,8 +151,8 @@ export default function VolunteerSettings() {
                             </CardHeader>
                             <CardContent className="flex-1">
                                 <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden border border-border/50 group">
-                                    <div className="absolute inset-0 bg-[url('https://api.placeholder.com/600/400')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=800')] bg-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
 
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <div className="relative">
@@ -148,17 +162,38 @@ export default function VolunteerSettings() {
                                     </div>
 
                                     <div className="absolute bottom-4 left-4 right-4 bg-card/90 backdrop-blur-md p-3 rounded-xl border border-border/50 shadow-lg">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-4 w-4 text-primary" />
-                                            <span className="text-xs font-bold truncate">Koramangala, Bangalore (1.2km radius)</span>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="h-4 w-4 text-primary" />
+                                                <span className="text-xs font-bold truncate">
+                                                    {user?.address || "Location not set"}
+                                                </span>
+                                            </div>
+                                            {user?.volunteerProfile?.currentLocation?.coordinates && (
+                                                <div className="text-[10px] text-muted-foreground font-mono ml-6">
+                                                    {user.volunteerProfile.currentLocation.coordinates[1].toFixed(4)}°N, {user.volunteerProfile.currentLocation.coordinates[0].toFixed(4)}°E
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full font-bold group" onClick={handleSave}>
-                                    <Save className="mr-2 h-4 w-4" />
-                                    Save Configuration
+                                <Button
+                                    className="w-full font-bold group"
+                                    onClick={handleSave}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? (
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            className="mr-2 h-4 w-4 border-2 border-white/30 border-t-white rounded-full"
+                                        />
+                                    ) : (
+                                        <Save className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isSaving ? "Saving..." : "Save Configuration"}
                                 </Button>
                             </CardFooter>
                         </Card>
