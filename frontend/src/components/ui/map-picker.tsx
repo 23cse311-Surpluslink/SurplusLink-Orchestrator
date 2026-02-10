@@ -32,7 +32,7 @@ export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-        libraries: ['places'] as any
+        libraries: ['places'] as ("places" | "drawing" | "geometry" | "visualization")[]
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
