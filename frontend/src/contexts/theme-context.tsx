@@ -11,7 +11,11 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const stored = localStorage.getItem('surpluslink_theme');
+    if (stored === 'dark' || stored === 'light') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -21,11 +25,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const toggleTheme = () => {
-    // Theme is fixed to dark
+    setThemeState(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  const setTheme = () => {
-    // Theme is fixed to dark
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
   };
 
   return (
