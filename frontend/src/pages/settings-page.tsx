@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Save, ArrowLeft, Loader2, Navigation, CheckCircle2 } from 'lucide-react';
+import { MapPin, Save, ArrowLeft, Loader2, Navigation, CheckCircle2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import { MapPicker } from '@/components/ui/map-picker';
+import { cn } from '@/lib/utils';
 
 export function SettingsPage() {
     const { user, refreshUser } = useAuth();
@@ -65,137 +66,162 @@ export function SettingsPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-3xl mx-auto space-y-8 pb-24 px-4 sm:px-6"
+            className="max-w-6xl mx-auto space-y-8 animate-fade-in px-4"
         >
-            <div className="flex items-center justify-between">
-                <div>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="mb-4 -ml-2 text-muted-foreground hover:text-primary transition-colors"
+                        className="mb-4 -ml-2 text-muted-foreground hover:text-primary transition-colors font-bold uppercase tracking-widest text-[10px]"
                         onClick={() => navigate('/account')}
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Account
+                        Back to Profile
                     </Button>
-                    <h1 className="text-3xl font-black tracking-tight">Location Settings</h1>
-                    <p className="text-muted-foreground font-medium">Configure your base of operations</p>
+                    <h1 className="text-4xl font-black tracking-tight">Location <span className="text-primary">Intelligence</span></h1>
+                    <p className="text-muted-foreground font-medium text-lg text-balance">Configure your high-precision distribution coordinates.</p>
                 </div>
-            </div>
-
-            <Card className="rounded-[2.5rem] border-none shadow-2xl bg-card overflow-hidden">
-                <div className="h-32 w-full bg-gradient-to-r from-emerald-500 to-primary opacity-20" />
-                <CardHeader className="px-8 -mt-12">
-                    <div className="h-16 w-16 rounded-3xl bg-card border-4 border-background flex items-center justify-center shadow-lg mb-4">
-                        <MapPin className="h-8 w-8 text-primary" />
-                    </div>
-                    <CardTitle className="text-2xl font-black">Base Location</CardTitle>
-                    <CardDescription className="text-base font-medium">
-                        This address is used to match you with nearby {user?.role === 'ngo' ? 'donations' : user?.role === 'donor' ? 'NGOs' : 'missions'}.
-                    </CardDescription>
-                </CardHeader>
-
-                <CardContent className="px-8 py-6 space-y-8">
-                    <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                            Base Coordinates & Area
-                        </Label>
-                        <MapPicker
-                            initialCenter={user?.coordinates?.lat ? user.coordinates : undefined}
-                            onLocationSelect={async (newLocation) => {
-                                setCoords(newLocation);
-                                // Reverse geocode to get a readable address
-                                try {
-                                    const geocoder = new google.maps.Geocoder();
-                                    const response = await geocoder.geocode({ location: newLocation });
-                                    if (response.results[0]) {
-                                        setAddress(response.results[0].formatted_address);
-                                    }
-                                } catch (error) {
-                                    console.error("Reverse geocoding failed:", error);
-                                }
-                            }}
-                        />
-                        <p className="text-xs text-muted-foreground px-1 font-medium italic">
-                            Tip: Drag the pin or tap the map to precisely mark your organization's entrance.
-                        </p>
-                    </div>
-
-                    <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                            Readable Address
-                        </Label>
-                        <div className="relative group">
-                            <Input
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                                placeholder="Enter your full street address, city, and zip"
-                                className="h-14 rounded-2xl pl-12 font-bold focus-visible:ring-primary shadow-sm border-border/40 transition-all group-hover:border-primary/30"
-                            />
-                            <MapPin className="absolute left-4 top-4 h-6 w-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        </div>
-                    </div>
-
-                    <div className="p-6 rounded-3xl bg-muted/30 border border-border/40 space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${coords ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
-                                {coords ? <CheckCircle2 className="h-6 w-6" /> : <Navigation className="h-6 w-6" />}
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-black text-sm uppercase tracking-tight">
-                                    {coords ? "Geocoded Successfully" : "Status: Address Required"}
-                                </h3>
-                                <p className="text-xs text-muted-foreground font-medium">
-                                    {coords
-                                        ? `Verified Position: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
-                                        : "Select a location on the map or enter an address above."}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-
-                <CardFooter className="px-8 pb-8 flex justify-end gap-4">
+                <div className="flex gap-4">
                     <Button
-                        variant="ghost"
-                        className="rounded-2xl h-14 px-8 font-bold text-muted-foreground"
+                        variant="outline"
+                        className="rounded-2xl h-12 px-8 font-bold border-border/50 hover:bg-muted"
                         onClick={() => navigate('/account')}
                     >
                         Discard
                     </Button>
                     <Button
-                        className="rounded-2xl h-14 px-10 font-black uppercase text-[12px] gap-2 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="rounded-2xl h-12 px-10 font-black uppercase text-[12px] gap-2 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         onClick={handleSave}
                         disabled={isSaving || !address.trim()}
                     >
                         {isSaving ? (
                             <>
                                 <Loader2 className="h-5 w-5 animate-spin" />
-                                Saving...
+                                Syncing...
                             </>
                         ) : (
                             <>
                                 <Save className="h-5 w-5" />
-                                Save Location
+                                Save Configuration
                             </>
                         )}
                     </Button>
-                </CardFooter>
-            </Card>
-
-            <Card className="rounded-[2.5rem] border-none bg-primary/5 p-8 border border-primary/10">
-                <div className="flex gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Navigation className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-black text-sm uppercase tracking-tight text-primary">Why is this important?</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                            SurplusLink uses high-precision Geospatial Intelligence to minimize the time food spends in transit. By setting a permanent base location, we can prioritize the closest available resources to your organization, drastically reducing fuel waste and ensuring food safety.
-                        </p>
-                    </div>
                 </div>
-            </Card>
+            </div>
+
+            <div className="grid lg:grid-cols-5 gap-8 items-start">
+                {/* Left Column: Map (Wide) */}
+                <Card className="lg:col-span-3 rounded-[2.5rem] border-none shadow-2xl bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col min-h-[600px]">
+                    <div className="h-1.5 w-full bg-gradient-to-r from-primary via-emerald-500 to-teal-500" />
+                    <CardHeader className="px-8 pt-8">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <CardTitle className="text-2xl font-black flex items-center gap-3">
+                                    <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
+                                        <Navigation className="h-6 w-6" />
+                                    </div>
+                                    Geospatial Mapping
+                                </CardTitle>
+                                <CardDescription className="text-base font-medium">
+                                    Drag the pin to your precise entrance location.
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 p-0 relative">
+                        <div className="absolute inset-x-8 inset-b-8 top-0 bottom-8">
+                            <div className="h-full w-full rounded-[2rem] overflow-hidden border-4 border-card shadow-inner relative group">
+                                <MapPicker
+                                    initialCenter={user?.coordinates?.lat ? user.coordinates : undefined}
+                                    onLocationSelect={async (newLocation) => {
+                                        setCoords(newLocation);
+                                        try {
+                                            const geocoder = new google.maps.Geocoder();
+                                            const response = await geocoder.geocode({ location: newLocation });
+                                            if (response.results[0]) {
+                                                setAddress(response.results[0].formatted_address);
+                                                toast({
+                                                    title: "Location Verified",
+                                                    description: response.results[0].formatted_address,
+                                                });
+                                            }
+                                        } catch (error) {
+                                            console.error("Reverse geocoding failed:", error);
+                                        }
+                                    }}
+                                />
+                                <div className="absolute top-4 right-4 z-10 p-3 bg-card/90 backdrop-blur-md rounded-2xl border border-border/50 shadow-xl pointer-events-none">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Live Coordinates</p>
+                                    <p className="text-xs font-mono font-bold">
+                                        {coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "Positioning..."}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Right Column: Information */}
+                <div className="lg:col-span-2 space-y-8">
+                    <Card className="rounded-[2.5rem] border-none shadow-2xl bg-card overflow-hidden">
+                        <CardHeader className="px-8 pt-8">
+                            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                                Verified Address
+                            </Label>
+                        </CardHeader>
+                        <CardContent className="px-8 pb-8 space-y-6">
+                            <div className="relative group">
+                                <Input
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    placeholder="Enter your full street address"
+                                    className="h-16 rounded-2xl pl-14 font-bold text-lg focus-visible:ring-primary shadow-sm border-border/40 transition-all group-hover:border-primary/30"
+                                />
+                                <MapPin className="absolute left-5 top-5 h-6 w-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            </div>
+
+                            <div className={cn(
+                                "p-6 rounded-3xl border transition-all duration-500",
+                                coords ? "bg-emerald-500/5 border-emerald-500/20" : "bg-amber-500/5 border-amber-500/20"
+                            )}>
+                                <div className="flex items-center gap-4">
+                                    <div className={cn(
+                                        "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                        coords ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-amber-500 text-white shadow-amber-500/20'
+                                    )}>
+                                        {coords ? <CheckCircle2 className="h-6 w-6" /> : <Loader2 className="h-6 w-6 animate-spin" />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-black text-sm uppercase tracking-tight">
+                                            {coords ? "High-Precision Lock" : "Acquiring Signal..."}
+                                        </h3>
+                                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                            {coords
+                                                ? "Our AI matching engine has locked onto your specific GPS coordinates for optimized routing."
+                                                : "Tap the map or type an address to enable geospatial intelligence."}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="rounded-[2.5rem] border-none bg-primary/5 p-8 border border-primary/10 shadow-inner">
+                        <div className="flex gap-5">
+                            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary shadow-sm">
+                                <Sparkles className="h-6 w-6 fill-primary/20" />
+                            </div>
+                            <div className="space-y-3">
+                                <h4 className="font-black text-xs uppercase tracking-[0.2em] text-primary">Operational Intelligence</h4>
+                                <p className="text-[13px] text-muted-foreground leading-relaxed font-semibold">
+                                    By setting a precise base location, you minimize "Cold-Chain Gap" time. We prioritize donors within your thermal capability zone to ensure food safety and zero-waste logistics.
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </div>
         </motion.div>
     );
 }

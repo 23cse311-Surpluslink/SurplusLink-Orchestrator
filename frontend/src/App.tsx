@@ -1,6 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -40,8 +38,9 @@ import { NearbyDonationsPage } from "./pages/ngo/nearby-donations";
 import { NgoFeedbackPage } from "./pages/ngo/feedback-page";
 import { NgoImpactPage } from "./pages/ngo/impact-page";
 import NgoFleetDashboard from "./pages/ngo/fleet";
-import { NgoVolunteersPage } from "./pages/ngo/volunteers-page";
 import NgoImpactReport from "./pages/ngo/impact-report";
+import { Toaster } from "./components/ui/toaster";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +51,6 @@ const App = () => (
         <NotificationProvider>
           <TooltipProvider>
             <Toaster />
-            <Sonner />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
@@ -75,7 +73,6 @@ const App = () => (
                   <Route path="nearby" element={<NearbyDonationsPage />} />
                   <Route path="accepted" element={<MyClaimsPage />} />
                   <Route path="fleet" element={<NgoFleetDashboard />} />
-                  <Route path="volunteers" element={<NgoVolunteersPage />} />
                   <Route path="notifications" element={<DonorNotifications />} />
                   <Route path="feedback" element={<NgoFeedbackPage />} />
                   <Route path="impact" element={<NgoImpactPage />} />

@@ -162,7 +162,7 @@ const DonationService = {
     },
 
     // Epic 5: Smart Feed
-    getSmartFeed: async (): Promise<{ donations: Donation[], capacityWarning: boolean, unmetNeed: number }> => {
+    getSmartFeed: async (): Promise<{ donations: Donation[], capacityWarning: boolean, unmetNeed: number, count: number }> => {
         const response = await api.get('/donations/feed');
         return {
             ...response.data,

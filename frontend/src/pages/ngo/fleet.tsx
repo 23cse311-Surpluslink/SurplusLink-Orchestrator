@@ -100,7 +100,7 @@ export default function NgoFleetDashboard() {
         >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-4xl font-black tracking-tight">Fleet <span className="text-primary">Control</span></h1>
+                    <h1 className="text-4xl font-black tracking-tight">Volunteer <span className="text-primary">Activity</span></h1>
                     <p className="text-muted-foreground font-medium">Real-time logistics and volunteer deployment monitoring.</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -137,10 +137,9 @@ export default function NgoFleetDashboard() {
                                 <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <CardContent className="p-6">
                                     <div className="flex flex-col md:flex-row items-center gap-8">
-                                        {/* Avatar & Basic Info */}
                                         <div className="flex items-center gap-4 min-w-[240px]">
                                             <div className="relative">
-                                                <img src={vol.avatar} alt={vol.name} className="size-16 rounded-2xl object-cover ring-2 ring-border/50 group-hover:ring-primary/30 transition-all" />
+                                                <img src={vol.avatar} alt={vol.name} className="size-16 rounded-2xl object-cover group-hover:ring-primary/30 transition-all" />
                                                 <div className={cn(
                                                     "absolute -bottom-1 -right-1 size-5 rounded-full border-4 border-card",
                                                     vol.status === 'offline' ? "bg-muted" : "bg-emerald-500 animate-pulse"
@@ -162,7 +161,6 @@ export default function NgoFleetDashboard() {
                                             </div>
                                         </div>
 
-                                        {/* Status Pill */}
                                         <div className="flex-1 flex items-center justify-start md:justify-center">
                                             <div className={cn("px-4 py-2 rounded-2xl border font-black text-xs uppercase tracking-widest flex items-center gap-2", getStatusColor(vol.status))}>
                                                 <div className={cn("size-2 rounded-full", vol.status === 'on_route' ? "bg-cyan-500" : vol.status === 'at_pickup' ? "bg-amber-500" : "bg-emerald-500")} />
@@ -170,7 +168,6 @@ export default function NgoFleetDashboard() {
                                             </div>
                                         </div>
 
-                                        {/* Current Task */}
                                         <div className="flex-[2] text-left">
                                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Current Activity</p>
                                             <div className="flex items-center gap-3">
@@ -180,17 +177,10 @@ export default function NgoFleetDashboard() {
                                                 </p>
                                             </div>
                                         </div>
-
-                                        {/* Action */}
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10 hover:text-primary" asChild>
-                                                <a href={`tel:${vol.phone}`}><Phone className="size-5" /></a>
-                                            </Button>
+
                                             <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10 hover:text-primary" asChild>
                                                 <a href={`mailto:${vol.email}`}><Mail className="size-5" /></a>
-                                            </Button>
-                                            <Button size="icon" className="rounded-xl ml-2 shadow-lg shadow-primary/10">
-                                                <ChevronRight className="size-5" />
                                             </Button>
                                         </div>
                                     </div>

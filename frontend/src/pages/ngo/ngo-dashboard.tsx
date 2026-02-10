@@ -134,43 +134,14 @@ export default function NgoDashboard() {
         </div>
 
         <div className="space-y-6">
-          <Card className="bg-slate-900 border-none text-white overflow-hidden relative">
-            <div className="absolute -right-8 -bottom-8 opacity-20">
-              <MapPin className="h-32 w-32" />
-            </div>
-            <CardHeader>
-              <CardTitle className="text-lg">Nearby Live Feed</CardTitle>
-              <CardDescription className="text-slate-400">Real-time opportunities</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 relative z-10">
-              <div className="text-3xl font-black">
-                {nearbyCount} Items
-              </div>
-              <p className="text-sm text-slate-400">
-                There are {nearbyCount} donations within your operating radius waiting to be claimed.
-              </p>
-              <Button asChild className="w-full bg-white text-slate-900 hover:bg-slate-100">
-                <Link to="/ngo/nearby">View Live Map</Link>
-              </Button>
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Recent Feedback</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">S</div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">Sunlight Cafe</p>
-                  <p className="text-xs text-muted-foreground">"Prompt pickup, thanks!"</p>
-                </div>
-                <div className="text-xs font-bold text-yellow-500">★ 5.0</div>
-              </div>
-              <Button asChild variant="ghost" className="w-full text-xs" size="sm">
-                <Link to="/ngo/feedback">View Feedback History</Link>
-              </Button>
+
             </CardContent>
           </Card>
         </div>

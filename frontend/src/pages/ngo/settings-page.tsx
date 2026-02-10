@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import NgoService, { NgoProfile } from '@/services/ngo.service';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function NgoSettingsPage() {
     const { toast } = useToast();
@@ -18,6 +19,7 @@ export function NgoSettingsPage() {
     const [isUrgent, setIsUrgent] = useState(false);
     const [address, setAddress] = useState('');
     const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
+    const [fetchingLocation, setFetchingLocation] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -51,6 +53,56 @@ export function NgoSettingsPage() {
         }
     };
 
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            toast({
+                title: "Not Supported",
+                description: "Geolocation is not supported by your browser.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setFetchingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const newCoords = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                setCoords(newCoords);
+
+                // New: Reverse Geocode to get the real address
+                const fetchAddress = async () => {
+                    try {
+                        const { data } = await api.post('/users/reverse-geocode', newCoords);
+                        if (data.address) {
+                            setAddress(data.address);
+                            toast({
+                                title: "Address Found!",
+                                description: data.address,
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Reverse geocoding failed", err);
+                    }
+                };
+                fetchAddress();
+
+                setFetchingLocation(false);
+            },
+            (error) => {
+                setFetchingLocation(false);
+                console.error("Error fetching location", error);
+                toast({
+                    title: "Location Error",
+                    description: "Please allow location access to fetch coordinates.",
+                    variant: "destructive",
+                });
+            }
+        );
+    };
+
     const handleSave = async () => {
         setLoading(true);
         try {
@@ -60,8 +112,8 @@ export function NgoSettingsPage() {
                 isUrgentNeed: isUrgent
             };
 
-            // First update the user profile (address)
-            await api.put('/users/profile', { address });
+            // First update the user profile (address and coordinates)
+            await api.put('/users/profile', { address, coordinates: coords });
 
             // Then update the NGO-specific settings
             await NgoService.updateNgoProfile(profile);
@@ -83,118 +135,172 @@ export function NgoSettingsPage() {
     };
 
     return (
-        <div className="container mx-auto py-8 max-w-2xl animate-fade-in">
-            <h1 className="text-3xl font-bold mb-6">NGO Settings</h1>
+        <div className="space-y-8 animate-fade-in max-w-6xl mx-auto">
+            <div className="flex flex-col gap-1">
+                <h1 className="text-4xl font-black tracking-tight">Organization <span className="text-primary">Settings</span></h1>
+                <p className="text-muted-foreground font-medium">Configure your operational capacity and logistics preferences.</p>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Operational Capabilities</CardTitle>
-                    <CardDescription>
-                        Configure your capacity and facilities to match with appropriate donations.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-8">
-
-                    <div className="space-y-4">
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="address">Permanent Office Address</Label>
-                            <p className="text-sm text-muted-foreground">This location will be used to calculate distances for donation matching.</p>
-                            <div className="relative">
-                                <Input
-                                    id="address"
-                                    placeholder="Enter your NGO's main location"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                    className="pr-10"
-                                />
-                                <div className="absolute right-3 top-3">
-                                    {coords ? "📍" : "❓"}
+            <div className="grid lg:grid-cols-2 gap-8 items-start">
+                {/* Left Column: Location & Core Info */}
+                <div className="space-y-8">
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5 overflow-hidden">
+                        <div className="h-1.5 w-full bg-gradient-to-r from-primary to-primary/40" />
+                        <CardHeader>
+                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                <MapPin className="h-5 w-5 text-primary" />
+                                Base of Operations
+                            </CardTitle>
+                            <CardDescription>
+                                Set your primary distribution center location.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-4">
+                                <Label htmlFor="address" className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Office Address</Label>
+                                <div className="relative group">
+                                    <Input
+                                        id="address"
+                                        placeholder="Enter your NGO's main location"
+                                        value={address}
+                                        onChange={(e) => setAddress(e.target.value)}
+                                        className="pr-12 h-12 rounded-xl bg-background/50 border-border/50 group-hover:border-primary/30 transition-all font-medium"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg hover:bg-primary/10 transition-colors"
+                                        onClick={handleGetLocation}
+                                        disabled={fetchingLocation}
+                                    >
+                                        {fetchingLocation ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                        ) : (
+                                            <MapPin className={coords ? "h-4 w-4 text-emerald-500" : "h-4 w-4 text-muted-foreground"} />
+                                        )}
+                                    </Button>
                                 </div>
+                                {coords && (
+                                    <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-widest">
+                                            GPS Locked: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                            {coords && (
-                                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
-                                    Verified Coordinates: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+
+                            <div className="space-y-4">
+                                <Label htmlFor="capacity" className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Daily Distribution Capacity</Label>
+                                <div className="relative group">
+                                    <Input
+                                        id="capacity"
+                                        type="number"
+                                        value={capacity}
+                                        onChange={(e) => setCapacity(parseInt(e.target.value) || 0)}
+                                        min={0}
+                                        className="h-12 rounded-xl bg-background/50 border-border/50 group-hover:border-primary/30 transition-all font-bold text-lg"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">Meals / Day</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground font-medium italic">
+                                    This helps our AI prioritize donations you can actually handle.
                                 </p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="capacity">Daily Meal Capacity</Label>
-                            <p className="text-sm text-muted-foreground">Approximate number of meals you can distribute/store per day.</p>
-                            <Input
-                                id="capacity"
-                                type="number"
-                                value={capacity}
-                                onChange={(e) => setCapacity(parseInt(e.target.value) || 0)}
-                                min={0}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Label>Storage Facilities</Label>
-                        <p className="text-sm text-muted-foreground mb-2">Select all that apply to your facility.</p>
-                        <div className="grid gap-3 border rounded-lg p-4">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="cold"
-                                    checked={facilities.includes('cold')}
-                                    onCheckedChange={(c) => handleFacilityChange('cold', c as boolean)}
-                                />
-                                <Label htmlFor="cold" className="flex items-center gap-2 cursor-pointer">
-                                    ❄️ Cold Storage <span className="text-xs text-muted-foreground">(Refrigeration)</span>
-                                </Label>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="dry"
-                                    checked={facilities.includes('dry')}
-                                    onCheckedChange={(c) => handleFacilityChange('dry', c as boolean)}
-                                />
-                                <Label htmlFor="dry" className="flex items-center gap-2 cursor-pointer">
-                                    🍞 Dry Storage <span className="text-xs text-muted-foreground">(Shelves, Pantry)</span>
-                                </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="frozen"
-                                    checked={facilities.includes('frozen')}
-                                    onCheckedChange={(c) => handleFacilityChange('frozen', c as boolean)}
-                                />
-                                <Label htmlFor="frozen" className="flex items-center gap-2 cursor-pointer">
-                                    🧊 Frozen Storage <span className="text-xs text-muted-foreground">(Deep Freezers)</span>
-                                </Label>
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    <div className="flex items-center justify-between space-x-2 border border-red-200 bg-red-50 p-4 rounded-lg my-6">
-                        <div className="flex flex-col space-y-1">
-                            <Label htmlFor="urgency-mode" className="text-red-900 font-semibold flex items-center gap-2">
-                                🔴 Urgent Help Needed
-                            </Label>
-                            <span className="text-sm text-red-700">
-                                Turn this on to flag your NGO for priority donations locally.
-                            </span>
-                        </div>
-                        <Switch
-                            id="urgency-mode"
-                            checked={isUrgent}
-                            onCheckedChange={setIsUrgent}
-                            className="data-[state=checked]:bg-red-600"
-                        />
-                    </div>
+                {/* Right Column: Facilities & Urgency */}
+                <div className="space-y-8">
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5 overflow-hidden">
+                        <div className="h-1.5 w-full bg-gradient-to-r from-teal-500 to-emerald-400" />
+                        <CardHeader>
+                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                <Save className="h-5 w-5 text-teal-500" />
+                                Storage Capabilities
+                            </CardTitle>
+                            <CardDescription>
+                                Match with food that requires specific handling.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid gap-3 p-1">
+                                {[
+                                    { id: 'dry', label: 'Dry Storage', icon: '🍞', desc: 'Pantry, Shelves, Room Temp' },
+                                    { id: 'cold', label: 'Cold Storage', icon: '❄️', desc: 'Refrigerators' },
+                                    { id: 'frozen', label: 'Frozen Storage', icon: '🧊', desc: 'Deep Freezers' },
+                                ].map((facility) => (
+                                    <label
+                                        key={facility.id}
+                                        htmlFor={facility.id}
+                                        className={cn(
+                                            "flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
+                                            facilities.includes(facility.id)
+                                                ? "border-primary/40 bg-primary/5 shadow-inner"
+                                                : "border-border/50 bg-background/30 hover:border-border"
+                                        )}
+                                    >
+                                        <Checkbox
+                                            id={facility.id}
+                                            checked={facilities.includes(facility.id)}
+                                            onCheckedChange={(c) => handleFacilityChange(facility.id, c as boolean)}
+                                            className="size-5 rounded-md"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{facility.icon}</span>
+                                                <span className="font-bold text-sm tracking-tight">{facility.label}</span>
+                                            </div>
+                                            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{facility.desc}</p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                    <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto">
-                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Save Changes
+                    <Card className={cn(
+                        "border-none transition-all duration-500",
+                        isUrgent ? "bg-red-500 shadow-2xl shadow-red-500/20" : "bg-card/50 backdrop-blur-sm border-border/50"
+                    )}>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between gap-6">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="urgency-mode" className={cn("text-lg font-black uppercase tracking-tighter", isUrgent ? "text-white" : "text-yellow-400")}>
+                                            Urgent Need Mode
+                                        </Label>
+                                    </div>
+                                    <p className={cn("text-xs font-semibold max-w-[280px]", isUrgent ? "text-red-50" : "text-yellow-400/70")}>
+                                        Turn this on to flag your NGO for priority donations in your local area during crises.
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="urgency-mode"
+                                    checked={isUrgent}
+                                    onCheckedChange={setIsUrgent}
+                                    className={cn(
+                                        "scale-125",
+                                        isUrgent ? "data-[state=checked]:bg-white data-[state=checked]:text-red-600" : "data-[state=checked]:bg-red-600"
+                                    )}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                        variant="hero"
+                        className="w-full h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all gap-3"
+                    >
+                        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                        Commit Changes
                     </Button>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }

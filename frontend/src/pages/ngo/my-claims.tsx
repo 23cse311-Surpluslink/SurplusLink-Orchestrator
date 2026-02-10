@@ -61,7 +61,7 @@ export function MyClaimsPage() {
             await DonationService.completeDonation(selectedDonation.id, parseInt(rating), comment);
             toast({
                 title: "Delivery Completed Successfully! 🎉",
-                description: "Thank you for confirming receipt. The loop is closed.",
+                description: "Thank you for confirming receipt.",
                 className: "bg-emerald-600 text-white border-none shadow-xl"
             });
             setSelectedDonation(null);
