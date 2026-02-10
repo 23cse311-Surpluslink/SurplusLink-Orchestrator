@@ -4,6 +4,8 @@ Welcome to the **SurplusLink** GitHub Organization. This repository serves as th
 
 ---
 
+# The link for multirepo organization - [**Organization**](https://github.com/23cse311-Surpluslink) 
+
 ## Sprint 1: Review 1 Submission
 
 This repository contains the full source code and documentation for the first sprint of the Software Engineering project.
