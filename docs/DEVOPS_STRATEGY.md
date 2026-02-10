@@ -37,12 +37,15 @@ To ensure a "Works on my machine" experience, we provide a unified Docker orches
 
 ## 4. Detailed CI/CD Workflow
 
-Our automated workflow (`.github/workflows/main.yml`) is the guardian of production stability.
+Our automated architecture ensures that every push to the **Monorepo** or the **Standalone Repositories** is verified before production.
 
 ### **Phase 1: Validation (Continuous Integration)**
-1.  **Linting**: Static analysis of JavaScript and TypeScript files to ensure adherence to team standards.
-2.  **Unit Testing**: Isolated tests for matching logic and utility functions using **Vitest**.
-3.  **Security Audit**: Automated `npm audit` scans to identify and block vulnerable package dependencies before they reach the build stage.
+1.  **Monorepo CI**: Global checks and cross-service integration tests.
+2.  **Service CI**: Individual workflows (e.g., `backend/.github/workflows/ci.yml`) that run within the standalone organization repos to gate the deployment.
+3.  **Core Checks**:
+    - **Linting**: Static analysis of JavaScript and TypeScript files.
+    - **Unit Testing**: Isolated tests for matching logic using **Vitest**.
+    - **Security Audit**: Automated `npm audit` scans to identify vulnerable dependencies.
 
 ### **Phase 2: Build & Deployment (Continuous Deployment)**
 1.  **Build Verification**: Components are built into production bundles. Any build warning on the frontend cancels the deployment.
