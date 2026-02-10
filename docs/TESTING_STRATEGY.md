@@ -1,54 +1,65 @@
 # SurplusLink Testing Strategy
 
-Quality assurance in SurplusLink is built on the principle of "Safety-Critical Logistics." Since our system manages human consumption (food), the test suite focuses heavily on time-based logic and geospatial accuracy.
+This document defines the comprehensive quality assurance framework for the SurplusLink ecosystem, ensuring that every layer of the multi-role platform (Donor, NGO, Volunteer, Admin) is verified for correctness, security, and reliability.
 
 ---
 
-## 1. Testing Hierarchy
+## 1. Component-Specific Testing Matrix
 
-### **A. Unit Testing (Logical Isolation)**
-- **Backend**: Uses **Vitest** for blistering fast execution of core logic.
-  - *Focus*: Suitability scoring formulas, trust score updates, and date/time buffer calculations.
-  - *Location*: `backend/tests/*.test.js`
-- **Frontend**: Uses **Vitest** + **React Testing Library**.
-  - *Focus*: Form validation, role-based component rendering, and UI utility functions.
+This matrix identifies how each architectural tier is tested and the specific properties verified.
 
-### **B. Integration Testing (Component Interaction)**
-- **API Simulation**: Uses **Supertest** to mock HTTP requests to the Express server.
-  - *Scenario*: Posting a donation → Claiming it as an NGO → Confirming its status in the donor's history.
-- **Geospatial Tests**: Validates that MongoDB's `$near` and `$geoWithin` queries correctly return donors within the specified 15km radius.
-
-### **C. End-to-End (Workflow) Testing**
-- **Manual Verification**: Systematic walkthroughs of the 5 core Epics (Auth → Post → Match → Mission → Review).
-- **Edge Case Testing**: 
-  - *Concurrency*: Two volunteers clicking "Accept" at the same millisecond (Testing atomic locks).
-  - *Expirations*: Setting food to expire 1 hour from now and ensuring the NGO feed does NOT show it.
+| Component | Test Level | Properties Tested | Tools & Libraries |
+| :--- | :--- | :--- | :--- |
+| **Backend API** | Unit & Integration | Matching Logic Correctness, Transaction Integrity (Atomicity), Security (RBAC), API Contract Compliance. | Vitest, Supertest, Mongoose, npm audit |
+| **Frontend Web** | Unit & Functional | UI Consistency, Form Validation, Role-Based Access Control, State Management. | Vitest, React Testing Library, MSW |
+| **Mobile App** | Widget & Unit | State Management (Riverpod), Location Permission Handling, Smooth Navigation, Camera Integration. | Flutter Test, Widget Testing, Mockito |
+| **Database** | Integration | Geospatial Indexing (`2dsphere`), Schema Constraints, Query Performance. | MongoDB, Mongoose, Vitest |
 
 ---
 
-## 2. Tools & Libraries
+## 2. Testing Levels & Methodologies
 
-| Category | Tool | Purpose |
-| :--- | :--- | :--- |
-| **Test Runner** | Vitest | Extremely fast, ESM-native unit testing. |
-| **API Testing**| Supertest | Testing REST endpoints without a browser. |
-| **Mocking** | MSW (Mock Service Worker) | Intercepting network requests in frontend tests. |
-| **Reports** | LCOV | Visualizing code coverage statistics. |
+### **A. Unit Testing (Isolated Logic)**
+*   **Backend**: Focuses on core algorithms such as the **Intelligent Matching Engine** (Priority scoring based on 40% distance/60% urgency).
+*   **Frontend**: Verifies that components (like the `DonationCard`) render correctly across Light/Dark modes.
+*   **Mobile**: Validates utility functions for distance calculation and timestamp formatting.
+
+### **B. Integration Testing (Service Interoperability)**
+*   **REST API Level**: Using **Supertest** to verify the end-to-end flow of a donation from "Post Request" to "Ready for Pickup" status.
+*   **Auth Flow**: Verifies that JWT cookies are correctly issued, stored as `HttpOnly`, and rejected when expired.
+*   **Geospatial Logic**: Validates that the search engine correctly excludes donations outside the volunteer's active radius.
+
+### **C. System & E2E Testing (User Workflows)**
+*   **The Happy Path**: Manual and automated walkthroughs verifying the sequence:  
+    `Donor Posts` -> `Matching Engine Prioritizes` -> `NGO Claims` -> `Volunteer Accepts` -> `Delivery Verified`.
+*   **Concurrency Handling**: Testing the system under simulated race conditions (multi-click scenarios) to ensure a mission is never double-assigned.
+
+---
+
+## 3. Properties Verified per Component
+
+### **1. 🔐 Security & Access Control**
+*   **Frontend/Mobile**: Verification that users cannot navigate to unauthorized screens (e.g., Volunteer accessing Admin Analytics).
+*   **Backend**: Ensuring all restricted endpoints require a valid, non-expired JWT.
+
+### **2. 📍 Reliability (Geospatial & Timing)**
+*   **Backend**: Accuracy of the matching algorithm within a 15km precision.
+*   **System**: Verification that the **Cron Supervisor** correctly unassigns "stalled" missions every 15 minutes.
+
+### **3. ✅ Transactional Integrity (Correctness)**
+*   **Backend**: Atomic mission claiming using MongoDB's unique indexing and conditional updates to prevent data corruption.
+*   **Mobile**: Verification that location updates are correctly transmitted to the backend at specified intervals.
 
 ---
 
-## 3. Key Properties Tested
+## 4. Test Infrastructure & Automations
 
-1.  **Safety Thresholds**: Ensuring no donation is acceptable if within 30 minutes of expiration.
-2.  **Role Guarding**: Verifying that a `volunteer` cannot access `/admin/users`.
-3.  **Atomic Consistency**: Ensuring a donation can only be claimed by ONE NGO or Volunteer.
-4.  **Geocoding Reliability**: Handling cases where Google Maps might return an invalid location for a given address.
+| Platform | Role |
+| :--- | :--- |
+| **GitHub Actions** | Automated CI runner that executes all JS/TS and Flutter tests on every PR. |
+| **Vitest** | Primary test runner for the monorepo; used for its native ESM support and performance. |
+| **React Testing Library** | Used to simulate user interactions (clicks, typing) in the web dashboard. |
+| **Flutter Test** | Validates cross-platform UI behavior for the volunteer experience. |
 
----
-
-## 4. Continuous Quality (CI)
-
-Our GitHub Actions pipeline (`main.yml`) runs the entire test suite on every pull request. A "Passing" status is **required** before code can be merged into the `main` branch.
-
----
-*Created for the SE Sprint Review 1*
+--- 
+*Last Updated: February 10, 2026*
