@@ -4,7 +4,7 @@ Welcome to the **SurplusLink** GitHub Organization. This repository serves as th
 
 ---
 
-# The link for multirepo organization - [**Organization**](https://github.com/23cse311-Surpluslink) 
+## The link for multirepo organization - [**Organization**](https://github.com/23cse311-Surpluslink) 
 
 ## Sprint 1: Review 1 Submission
 
