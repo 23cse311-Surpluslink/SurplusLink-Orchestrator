@@ -399,7 +399,17 @@ export function NearbyDonationsPage() {
 
                         <div className="mt-8 flex justify-end gap-3 pt-6 border-t">
                             <Button variant="outline" onClick={() => setViewDonation(null)}>Close</Button>
-
+                            {viewDonation && (viewDonation.status === 'active' || !viewDonation.status) && (
+                                <Button
+                                    variant="hero"
+                                    onClick={() => {
+                                        handleClaim(viewDonation.id);
+                                        setViewDonation(null);
+                                    }}
+                                >
+                                    Claim Donation
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </DialogContent>

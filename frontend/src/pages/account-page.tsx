@@ -255,7 +255,12 @@ export default function AccountPage() {
                                 </p>
                             </div>
                             <Button
-                                onClick={() => navigate('/settings')}
+                                onClick={() => {
+                                    const path = user.role === 'ngo' ? '/ngo/settings' :
+                                        user.role === 'volunteer' ? '/volunteer/settings' :
+                                            user.role === 'donor' ? '/donor/settings' : '/settings';
+                                    navigate(path);
+                                }}
                                 className="w-full rounded-2xl h-14 font-semibold uppercase  text-[14px] gap-3 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 Update Location

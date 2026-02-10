@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-import { Loader2, Crosshair, MapPin } from 'lucide-react';
+import { GoogleMap, Marker, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { Loader2, Crosshair, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface MapPickerProps {
     initialCenter?: { lat: number; lng: number };
@@ -30,10 +31,12 @@ const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi
 export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+        libraries: ['places'] as any
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number }>(initialCenter || defaultCenter);
     const [isLocating, setIsLocating] = useState(false);
 
@@ -70,6 +73,25 @@ export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
             fetchCurrentLocation();
         }
     }, [initialCenter, fetchCurrentLocation]);
+
+    const onAutocompleteLoad = useCallback((autocompleteInstance: google.maps.places.Autocomplete) => {
+        setAutocomplete(autocompleteInstance);
+    }, []);
+
+    const onPlaceChanged = useCallback(() => {
+        if (autocomplete !== null) {
+            const place = autocomplete.getPlace();
+            if (place.geometry && place.geometry.location) {
+                const newPos = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng(),
+                };
+                setMarkerPos(newPos);
+                map?.panTo(newPos);
+                onLocationSelect({ ...newPos, address: place.formatted_address });
+            }
+        }
+    }, [autocomplete, map, onLocationSelect]);
 
     const onLoad = useCallback(function callback(m: google.maps.Map) {
         setMap(m);
@@ -129,14 +151,31 @@ export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
                 />
             </GoogleMap>
 
-            <div className="absolute top-4 right-4 flex flex-col gap-2">
+            <div className="absolute top-4 left-4 right-4 z-20 flex gap-2">
+                <div className="flex-1 relative group">
+                    <Autocomplete
+                        onLoad={onAutocompleteLoad}
+                        onPlaceChanged={onPlaceChanged}
+                    >
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Input
+                                type="text"
+                                placeholder="Search for your location..."
+                                className="h-11 w-full pl-10 pr-4 rounded-xl border-none bg-background/90 backdrop-blur-md shadow-2xl font-bold text-sm focus-visible:ring-primary/50"
+                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                            />
+                        </div>
+                    </Autocomplete>
+                </div>
                 <Button
                     size="icon"
                     variant="secondary"
-                    className="size-10 rounded-xl shadow-xl backdrop-blur-md bg-white/10 border-white/20 hover:bg-white/20 text-white"
+                    className="size-11 rounded-xl shadow-xl backdrop-blur-md bg-background/90 border-none hover:bg-background text-primary shrink-0"
                     onClick={fetchCurrentLocation}
                     disabled={isLocating}
                     type="button"
+                    title="Detect My Location"
                 >
                     {isLocating ? <Loader2 className="size-5 animate-spin" /> : <Crosshair className="size-5" />}
                 </Button>

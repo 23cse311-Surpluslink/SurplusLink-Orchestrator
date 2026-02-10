@@ -135,19 +135,27 @@ export function SettingsPage() {
                                 <MapPicker
                                     initialCenter={user?.coordinates?.lat ? user.coordinates : undefined}
                                     onLocationSelect={async (newLocation) => {
-                                        setCoords(newLocation);
-                                        try {
-                                            const geocoder = new google.maps.Geocoder();
-                                            const response = await geocoder.geocode({ location: newLocation });
-                                            if (response.results[0]) {
-                                                setAddress(response.results[0].formatted_address);
-                                                toast({
-                                                    title: "Location Verified",
-                                                    description: response.results[0].formatted_address,
-                                                });
+                                        setCoords({ lat: newLocation.lat, lng: newLocation.lng });
+                                        if (newLocation.address) {
+                                            setAddress(newLocation.address);
+                                            toast({
+                                                title: "Location Verified",
+                                                description: newLocation.address,
+                                            });
+                                        } else {
+                                            try {
+                                                const geocoder = new google.maps.Geocoder();
+                                                const response = await geocoder.geocode({ location: newLocation });
+                                                if (response.results[0]) {
+                                                    setAddress(response.results[0].formatted_address);
+                                                    toast({
+                                                        title: "Location Verified",
+                                                        description: response.results[0].formatted_address,
+                                                    });
+                                                }
+                                            } catch (error) {
+                                                console.error("Reverse geocoding failed:", error);
                                             }
-                                        } catch (error) {
-                                            console.error("Reverse geocoding failed:", error);
                                         }
                                     }}
                                 />

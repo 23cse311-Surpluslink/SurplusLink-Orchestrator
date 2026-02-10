@@ -269,9 +269,15 @@ export const findBestDonationsForNGO = async (ngoId) => {
                     allergens: 1,
                     dietaryTags: 1,
                     storageReq: 1,
+                    status: 1,
+                    photos: 1,
                     distance: 1,
-                    'donorInfo.name': 1,
-                    'donorInfo.organization': 1,
+                    donor: {
+                        _id: '$donorInfo._id',
+                        name: '$donorInfo.name',
+                        organization: '$donorInfo.organization',
+                        email: '$donorInfo.email'
+                    },
                     createdAt: 1,
                 },
             },

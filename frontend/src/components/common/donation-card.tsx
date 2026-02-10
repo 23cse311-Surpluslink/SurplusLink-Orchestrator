@@ -66,8 +66,8 @@ export function DonationCard({
             <h3 className="font-semibold text-lg">{donation.title}</h3>
             <p className="text-sm text-muted-foreground">{donation.donorName}</p>
           </div>
-          <Badge className={cn("capitalize border", statusColors[donation.status])}>
-            {statusLabels[donation.status]}
+          <Badge className={cn("capitalize border", donation.status ? statusColors[donation.status] : statusColors.active)}>
+            {donation.status ? statusLabels[donation.status] : "Pending"}
           </Badge>
         </div>
 
@@ -204,7 +204,7 @@ export function DonationCard({
 
       {showActions && (
         <CardFooter className="gap-2 pt-0">
-          {onAccept && donation.status === 'active' && (
+          {onAccept && (donation.status?.toLowerCase() === 'active' || !donation.status) && (
             <Button
               variant={disabled ? "secondary" : "hero"}
               size="sm"
@@ -215,7 +215,7 @@ export function DonationCard({
               Claim
             </Button>
           )}
-          {onReject && donation.status === 'active' && (
+          {onReject && (donation.status?.toLowerCase() === 'active' || !donation.status) && (
             <Button
               variant="outline"
               size="sm"
@@ -236,7 +236,7 @@ export function DonationCard({
               View
             </Button>
           )}
-          {onEdit && donation.status === 'active' && (
+          {onEdit && (donation.status?.toLowerCase() === 'active' || !donation.status) && (
             <Button
               variant="outline"
               size="sm"
@@ -246,7 +246,7 @@ export function DonationCard({
               Edit
             </Button>
           )}
-          {onCancel && donation.status === 'active' && (
+          {onCancel && (donation.status?.toLowerCase() === 'active' || !donation.status) && (
             <Button
               variant="destructive"
               size="sm"

@@ -278,7 +278,15 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                         <UserIcon className="mr-2 size-4" />
                                         Account
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            const path = user?.role === 'ngo' ? '/ngo/settings' :
+                                                user?.role === 'volunteer' ? '/volunteer/settings' :
+                                                    user?.role === 'donor' ? '/donor/settings' : '/settings';
+                                            navigate(path);
+                                        }}
+                                        className="cursor-pointer"
+                                    >
                                         <Settings className="mr-2 size-4" />
                                         Settings
                                     </DropdownMenuItem>
