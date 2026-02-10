@@ -4,16 +4,14 @@ Welcome to the **SurplusLink** GitHub Organization. This repository serves as th
 
 ---
 
-## 🚀 Sprint 1: Review 1 Submission
+## Sprint 1: Review 1 Submission
 
 This repository contains the full source code and documentation for the first sprint of the Software Engineering project.
 
 ### **Core Documentation (Mandatory)**
-- [**API Reference**](./backend/docs/API_REFERENCE.md): Detailed endpoint specifications with request/response payloads.
-- [**DevOps Strategy**](./backend/docs/DEVOPS_STRATEGY.md): Cloud architecture, CI/CD, and deployment details.
-- [**Testing Strategy**](./backend/docs/TESTING_STRATEGY.md): Unit, Integration, and E2E testing procedures.
-- [**Minutes of the Meetings**](./backend/docs/MEETING_MINUTES.md): Weekly synchronization history and action items.
-- [**Monorepo Justification**](./MONOREPO_JUSTIFICATION.md): Rationale for the current repository structure.
+- [**API Reference**](./docs/API_REFERENCE.md): Detailed endpoint specifications with request/response payloads.
+- [**DevOps Strategy**](./docs/DEVOPS_STRATEGY.md): Cloud architecture, CI/CD, and deployment details.
+- [**Testing Strategy**](./docs/TESTING_STRATEGY.md): Unit, Integration, and E2E testing procedures.
 
 ### **Diagrams (High-Level Design)**
 *The following diagrams are located in the `docs/diagrams` directory:*
@@ -24,14 +22,14 @@ This repository contains the full source code and documentation for the first sp
 
 ---
 
-## 🛠 Organization Repositories
+## Organization Repositories
 - [**Frontend**](https://github.com/23cse311-Surpluslink/Frontend): The React and Vite dashboard and landing page.
 - [**Backend**](https://github.com/23cse311-Surpluslink/Backend): The Node.js matching engine and API core.
 - [**Mobile**](https://github.com/23cse311-Surpluslink/Mobile): The Flutter application for on-field volunteers.
 
 ---
 
-## 🐳 System Orchestration (Docker)
+## System Orchestration (Docker)
 
 To run the entire ecosystem locally:
 
@@ -50,7 +48,7 @@ To run the entire ecosystem locally:
 
 ---
 
-## 👥 The Team
+## The Team
 - **Priyansh Narang**: Project Lead / Architecture
 - **Bala Bharath**: Lead Frontend / UI
 - **Arpitha Shri**: Backend Logic / Database
@@ -58,4 +56,5 @@ To run the entire ecosystem locally:
 - **Sri Pragna**: DevOps / Deployment
 
 ---
-*Created for the Software Engineering 2025-26 Review.*
+
+> Created for the Software Engineering 2025-26 Review.
