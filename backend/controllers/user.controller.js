@@ -7,7 +7,7 @@
 
 import User from '../models/User.model.js';
 import Donation from '../models/Donation.model.js';
-import { geocodeAddress } from '../utils/geocoder.js';
+import { geocodeAddress, reverseGeocode } from '../utils/geocoder.js';
 
 /**
  * @desc    Fetch authenticated user's full profile data
@@ -405,6 +405,29 @@ const getNgoVolunteers = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Reverse geocode coordinates to address
+ * @route   POST /api/v1/users/reverse-geocode
+ * @access  Private
+ */
+const getAddressFromCoords = async (req, res, next) => {
+    try {
+        const { lat, lng } = req.body;
+        if (!lat || !lng) {
+            return res.status(400).json({ message: 'Latitude and Longitude are required' });
+        }
+
+        const address = await reverseGeocode(lat, lng);
+        if (address) {
+            res.json({ address });
+        } else {
+            res.status(404).json({ message: 'Address not found for these coordinates' });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     getUserProfile,
     verifyUser,
@@ -417,5 +440,6 @@ export {
     updateVolunteerProfile,
     updateVolunteerLocation,
     getVolunteerStats,
-    getNgoVolunteers
+    getNgoVolunteers,
+    getAddressFromCoords
 };

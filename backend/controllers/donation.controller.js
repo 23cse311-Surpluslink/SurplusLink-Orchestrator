@@ -38,6 +38,8 @@ export const createDonation = async (req, res) => {
             coordinates,
             allergens,
             dietaryTags,
+            storageReq,
+            foodCategory,
         } = req.body;
 
         const parseJsonField = (val) => {
@@ -107,6 +109,8 @@ export const createDonation = async (req, res) => {
             allergens,
             dietaryTags,
             donor: req.user._id,
+            storageReq,
+            foodCategory,
         };
 
         //automated address-to-coordinate conversion (geocoding)
@@ -478,8 +482,17 @@ export const getSmartFeed = async (req, res, next) => {
                     await user.save();
                 }
 
-                // Core Logic: Find best donations within 15km
+                // Core Logic: Find best donations within radius
                 donations = await findBestDonationsForNGO(req.user.id);
+                
+                // Global Fallback for Testing / Low Density areas
+                if (donations.length === 0) {
+                    donations = await Donation.find({ status: 'active' })
+                        .populate('donor', 'name organization')
+                        .sort({ createdAt: -1 })
+                        .limit(10);
+                }
+
                 unmetNeed = await getUnmetNeed(req.user.id);
                 capacityWarning = dailyCapacity > 0 && donations.length > 0 && unmetNeed <= 0;
             } else {

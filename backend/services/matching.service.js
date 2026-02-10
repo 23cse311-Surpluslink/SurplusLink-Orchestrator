@@ -100,7 +100,7 @@ export const findBestNGOsForDonation = async (donationId) => {
                         coordinates: [lng, lat],
                     },
                     distanceField: 'distance',
-                    maxDistance: 15000, // 15km in meters
+                    maxDistance: 100000, // 100km in meters (was 15km)
                     spherical: true,
                     key: 'location', // Explicitly use the NGO location index
                     query: {
@@ -206,16 +206,21 @@ export const findBestDonationsForNGO = async (ngoId) => {
         if (ngo.ngoProfile && ngo.ngoProfile.storageFacilities && ngo.ngoProfile.storageFacilities.length > 0) {
             storageFilter = {
                 $or: [
+                    { storageReq: { $exists: false } },
                     { storageReq: null },
+                    { storageReq: "dry" }, // "dry" is always safe
                     { storageReq: { $in: ngo.ngoProfile.storageFacilities } },
                 ],
             };
         } else {
-            // If NGO has NO storage facilities listed, can they take anything?
-            // Usually NGOs specify what they CAN handle. If empty, maybe only 'dry' or nothing.
-            // Requirement says: "Filter: Ensure the NGO has the required storageFacilities"
-            // Let's assume they can only take what matches or if donation has no requirement.
-            storageFilter = { storageReq: { $exists: false } };
+            // New NGOs or unconfigured profiles should at least see dry food and unspecified ones
+            storageFilter = {
+                $or: [
+                    { storageReq: { $exists: false } },
+                    { storageReq: null },
+                    { storageReq: "dry" }
+                ]
+            };
         }
 
         // Use MongoDB aggregation pipeline for efficient geospatial calculations
@@ -227,7 +232,7 @@ export const findBestDonationsForNGO = async (ngoId) => {
                         coordinates: [lng, lat],
                     },
                     distanceField: 'distance',
-                    maxDistance: 15000, // 15km in meters
+                    maxDistance: 100000, // Increased to 100km for flexibility (was 15km)
                     spherical: true,
                     query: {
                         status: 'active',

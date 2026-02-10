@@ -42,3 +42,42 @@ export const geocodeAddress = async (address) => {
         });
     });
 };
+
+/**
+ * Reverse geocode coordinates using Google Maps Geocoding API
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {Promise<string | null>}
+ */
+export const reverseGeocode = async (lat, lng) => {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+        console.warn('GEOCODER: GOOGLE_MAPS_API_KEY is missing');
+        return null;
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                try {
+                    const result = JSON.parse(data);
+                    if (result.status === 'OK' && result.results.length > 0) {
+                        // Return the first formatted address
+                        resolve(result.results[0].formatted_address);
+                    } else {
+                        console.warn(`GEOCODER: No results for coordinates: ${lat}, ${lng}. Status: ${result.status}`);
+                        resolve(null);
+                    }
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }).on('error', (err) => {
+            reject(err);
+        });
+    });
+};

@@ -12,6 +12,7 @@ import {
     updateVolunteerLocation,
     getVolunteerStats,
     getNgoVolunteers,
+    getAddressFromCoords,
 } from '../controllers/user.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 import upload from '../config/cloudinary.js';
@@ -30,5 +31,6 @@ userRouter.patch('/volunteer/profile', protect, roleBasedAccess(['volunteer']), 
 userRouter.patch('/volunteer/location', protect, roleBasedAccess(['volunteer']), updateVolunteerLocation); // Updates dynamic location
 userRouter.get('/volunteer/stats', protect, roleBasedAccess(['volunteer']), getVolunteerStats);
 userRouter.get('/ngo/volunteers', protect, roleBasedAccess(['ngo']), getNgoVolunteers);
+userRouter.post('/reverse-geocode', protect, getAddressFromCoords);
 
 export default userRouter;
