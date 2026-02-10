@@ -70,14 +70,15 @@ const updateUserProfile = async (req, res, next) => {
             user.name = req.body.name || user.name;
             user.address = req.body.address || user.address;
 
-            // Automated Address-to-Coordinate Conversion
-            if (req.body.address && req.body.address !== user.address) {
+            // Priority 1: Explicitly provided coordinates (Map Pin)
+            // Priority 2: Automated geocoding from address string
+            if (req.body.coordinates) {
+                user.coordinates = req.body.coordinates;
+            } else if (req.body.address && req.body.address !== user.address) {
                 const geocoded = await geocodeAddress(req.body.address);
                 if (geocoded) {
                     user.coordinates = geocoded;
                 }
-            } else {
-                user.coordinates = req.body.coordinates || user.coordinates;
             }
 
             if (req.file) {
