@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MapPin, Save, ArrowLeft, Loader2, Navigation, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
+import { MapPicker } from '@/components/ui/map-picker';
 
 export function SettingsPage() {
     const { user, refreshUser } = useAuth();
@@ -29,11 +30,14 @@ export function SettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await api.put('/users/profile', { address });
+            await api.put('/users/profile', {
+                address,
+                coordinates: coords
+            });
             await refreshUser();
             toast({
                 title: "Location Updated",
-                description: "Your permanent address and coordinates have been updated.",
+                description: "Your permanent address and precise coordinates have been updated.",
             });
         } catch (error) {
             console.error('Failed to update settings:', error);
@@ -94,7 +98,32 @@ export function SettingsPage() {
                 <CardContent className="px-8 py-6 space-y-8">
                     <div className="space-y-3">
                         <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                            Permanent Address
+                            Base Coordinates & Area
+                        </Label>
+                        <MapPicker
+                            initialCenter={user?.coordinates?.lat ? user.coordinates : undefined}
+                            onLocationSelect={async (newLocation) => {
+                                setCoords(newLocation);
+                                // Reverse geocode to get a readable address
+                                try {
+                                    const geocoder = new google.maps.Geocoder();
+                                    const response = await geocoder.geocode({ location: newLocation });
+                                    if (response.results[0]) {
+                                        setAddress(response.results[0].formatted_address);
+                                    }
+                                } catch (error) {
+                                    console.error("Reverse geocoding failed:", error);
+                                }
+                            }}
+                        />
+                        <p className="text-xs text-muted-foreground px-1 font-medium italic">
+                            Tip: Drag the pin or tap the map to precisely mark your organization's entrance.
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                            Readable Address
                         </Label>
                         <div className="relative group">
                             <Input
@@ -105,9 +134,6 @@ export function SettingsPage() {
                             />
                             <MapPin className="absolute left-4 top-4 h-6 w-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         </div>
-                        <p className="text-xs text-muted-foreground px-1 font-medium italic">
-                            Tip: Be specific (including city and postal code) for the most accurate geocoding.
-                        </p>
                     </div>
 
                     <div className="p-6 rounded-3xl bg-muted/30 border border-border/40 space-y-4">
@@ -122,7 +148,7 @@ export function SettingsPage() {
                                 <p className="text-xs text-muted-foreground font-medium">
                                     {coords
                                         ? `Verified Position: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
-                                        : "Enter an address above to verify your coordinates on the global map."}
+                                        : "Select a location on the map or enter an address above."}
                                 </p>
                             </div>
                         </div>
