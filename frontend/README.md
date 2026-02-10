@@ -32,7 +32,7 @@ SurplusLink's frontend is the operational interface for our three primary user g
 - **Volunteers**: Manage rescue missions, track routes, and verify deliveries.
 * **Admins**: Oversight of the entire network with real-time analytics and user management.
 
-It features a premium "Sustainable Green" aesthetic with fluid animations, glassmorphism, and a robust dual-theme system.
+It features a premium "Sustainable Green" aesthetic with fluid animations, glassmorphism, and a robust dual-theme system. The platform includes **Smart Logic Validation** to ensure food safety by cross-referencing pickup windows with expiry times.
 
 ---
 
