@@ -37,11 +37,39 @@ export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
     const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number }>(initialCenter || defaultCenter);
     const [isLocating, setIsLocating] = useState(false);
 
+    const fetchCurrentLocation = useCallback(() => {
+        setIsLocating(true);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const newPos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    setMarkerPos(newPos);
+                    map?.panTo(newPos);
+                    onLocationSelect(newPos);
+                    setIsLocating(false);
+                },
+                (error) => {
+                    console.error("Error fetching location:", error);
+                    setIsLocating(false);
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            setIsLocating(false);
+        }
+    }, [map, onLocationSelect]);
+
     useEffect(() => {
         if (initialCenter) {
             setMarkerPos(initialCenter);
+        } else if (!initialCenter && navigator.geolocation) {
+            // Auto-locate if no initial center is provided
+            fetchCurrentLocation();
         }
-    }, [initialCenter]);
+    }, [initialCenter, fetchCurrentLocation]);
 
     const onLoad = useCallback(function callback(m: google.maps.Map) {
         setMap(m);
@@ -66,31 +94,6 @@ export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
             onLocationSelect(newPos);
         }
     }, [onLocationSelect]);
-
-    const fetchCurrentLocation = () => {
-        setIsLocating(true);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const newPos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    };
-                    setMarkerPos(newPos);
-                    map?.panTo(newPos);
-                    onLocationSelect(newPos);
-                    setIsLocating(false);
-                },
-                (error) => {
-                    console.error("Error fetching location:", error);
-                    setIsLocating(false);
-                },
-                { enableHighAccuracy: true }
-            );
-        } else {
-            setIsLocating(false);
-        }
-    };
 
     if (!isLoaded) {
         return (
