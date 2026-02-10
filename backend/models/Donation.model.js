@@ -115,10 +115,10 @@ const donationSchema = new mongoose.Schema(
             default: 'idle',
         },
         pickupPhoto: {
-            type: String, 
+            type: String,
         },
         deliveryPhoto: {
-            type: String, 
+            type: String,
         },
         pickupNotes: {
             type: String,
@@ -150,11 +150,40 @@ const donationSchema = new mongoose.Schema(
     }
 );
 
+donationSchema.virtual('coordinatesObj').get(function () {
+    if (this.coordinates && this.coordinates.coordinates) {
+        return {
+            lat: this.coordinates.coordinates[1],
+            lng: this.coordinates.coordinates[0]
+        };
+    }
+    return undefined;
+});
+
 donationSchema.set('toJSON', {
     virtuals: true,
     versionKey: false,
     transform: function (doc, ret) {
         ret.id = ret._id;
+
+        // Add coordinates in {lat, lng} format for frontend ease
+        if (doc.coordinates && doc.coordinates.coordinates) {
+            ret.coordinates = {
+                lat: doc.coordinates.coordinates[1],
+                lng: doc.coordinates.coordinates[0]
+            };
+        }
+
+        // Handle populated donor location if needed
+        if (doc.donor && doc.donor.coordinates) {
+            ret.donorCoordinates = doc.donor.coordinates;
+        }
+
+        // Handle populated claimedBy (NGO) location
+        if (doc.claimedBy && doc.claimedBy.coordinates) {
+            ret.ngoCoordinates = doc.claimedBy.coordinates;
+        }
+
         delete ret._id;
     },
 });

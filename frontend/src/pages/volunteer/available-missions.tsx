@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MissionCard } from "@/components/volunteer/mission-card";
+import { MissionsMap } from "@/components/volunteer/missions-map";
 import {
     Sheet,
     SheetContent,
@@ -265,29 +266,16 @@ export default function AvailableMissions() {
                         key="map"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="rounded-3xl border border-border/50 aspect-[16/9] md:aspect-[21/9] w-full bg-muted overflow-hidden relative"
+                        className="rounded-3xl border border-border/50 aspect-[16/9] md:aspect-[21/9] w-full bg-muted overflow-hidden relative shadow-2xl"
                     >
-                        <div className="absolute inset-0 bg-[url('https://api.placeholder.com/1200/600')] bg-cover opacity-40 grayscale pointer-events-none" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-background/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-border/50 text-center">
-                                <p className="font-black">Map View is restricted to browser only.</p>
-                                <p className="text-sm text-muted-foreground">Detailed markers for {filteredMissions.length} active jobs are ready.</p>
-                            </div>
-                        </div>
-                        {/* Simple visual markers simulation */}
-                        {filteredMissions.map((m, i) => (
-                            <div key={m.id} className="absolute hidden md:block" style={{ top: `${30 + i * 15}%`, left: `${40 + i * 10}%` }}>
-                                <div className="relative group cursor-pointer" onClick={() => setSelectedMission(m)}>
-                                    <div className="absolute inset-0 size-8 bg-primary/30 rounded-full animate-ping -translate-x-1/2 -translate-y-1/2" />
-                                    <div className="relative size-8 rounded-full bg-primary border-4 border-background flex items-center justify-center shadow-lg -translate-x-1/2 -translate-y-1/2">
-                                        <div className="size-2 bg-background rounded-full" />
-                                    </div>
-                                    <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity border border-border/50">
-                                        {m.title}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                        <MissionsMap
+                            missions={filteredMissions}
+                            userCoords={user?.coordinates?.lat ? user.coordinates : (user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
+                                lat: user.volunteerProfile.currentLocation.coordinates[1],
+                                lng: user.volunteerProfile.currentLocation.coordinates[0]
+                            } : undefined)}
+                            onSelectMission={setSelectedMission}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>
