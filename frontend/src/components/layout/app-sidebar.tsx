@@ -71,8 +71,8 @@ const navItemsByRole = {
         { label: "Post Donation", href: "/donor/post", icon: PlusCircle },
         { label: "My Donations", href: "/donor/donations", icon: List },
         { label: "Notifications", href: "/donor/notifications", icon: Bell },
-        { label: "Impact Summary", href: "/donor/impact", icon: BarChart3 },
         { label: "Reports", href: "/donor/reports", icon: FileText },
+        { label: "Impact Summary", href: "/donor/impact", icon: BarChart3 },
     ],
     ngo: [
         { label: "Dashboard", href: "/ngo", icon: Home },

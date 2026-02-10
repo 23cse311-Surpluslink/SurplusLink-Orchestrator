@@ -227,31 +227,6 @@ export default function DonationAnalytics() {
         <div className="max-w-[1400px] mx-auto  space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <PageHeader title="Impact Analytics" description="Monitoring sustainability and rescue efficiency across the network." />
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="bg-muted/50 p-1 rounded-xl shadow-sm flex items-center gap-1">
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-[140px] border-none shadow-none focus:ring-0 text-xs font-bold text-muted-foreground">
-                                <Filter className="h-4 w-4 mr-2 text-primary" />
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl ">
-                                <SelectItem value="All">All Statuses</SelectItem>
-                                <SelectItem value="Completed">Completed</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <Button
-                        onClick={handleExport}
-                        className="rounded-xl "
-                    >
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate CSV
-                    </Button>
-                </div>
             </div>
 
             {loading ? (

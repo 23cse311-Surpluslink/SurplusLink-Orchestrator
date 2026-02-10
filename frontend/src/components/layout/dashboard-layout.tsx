@@ -36,13 +36,13 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
                 <SidebarInset className="flex flex-col flex-1 min-w-0">
                     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 sticky top-0 bg-background/80 backdrop-blur-md z-10">
                         <div className="flex items-center gap-2">
-                            <SidebarTrigger className="-ml-1 hover:bg-white/20" />
+                            <SidebarTrigger className="-ml-1 " />
                             <Separator orientation="vertical" className="mx-2 h-4 hidden md:block" />
 
 
                         </div>
                         <div className="flex items-center gap-4">
-                            {/* <Button
+                            <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={toggleTheme}
@@ -53,7 +53,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
                                 ) : (
                                     <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
                                 )}
-                            </Button> */}
+                            </Button>
                             <h1 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{requiredRole} workspace</h1>
                         </div>
                     </header>
