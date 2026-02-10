@@ -250,10 +250,10 @@ export default function ActiveMission() {
 
     const donorPos = mission?.coordinates;
     const ngoPos = mission?.ngoCoordinates;
-    const volunteerPos = user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
+    const volunteerPos = user?.coordinates?.lat ? user.coordinates : (user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
         lat: user.volunteerProfile.currentLocation.coordinates[1],
         lng: user.volunteerProfile.currentLocation.coordinates[0]
-    } : undefined;
+    } : undefined);
 
     const mapCenter = currentStepIndex < 2 ? (donorPos || ngoPos || { lat: 28.6139, lng: 77.2090 }) : (ngoPos || donorPos || { lat: 28.6139, lng: 77.2090 });
 

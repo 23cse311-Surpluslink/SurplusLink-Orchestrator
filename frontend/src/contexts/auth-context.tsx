@@ -64,9 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (authState.isAuthenticated && authState.role === 'volunteer' && authState.user?.isOnline) {
             const sendLocation = () => {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
+                    async (position) => {
                         const { latitude, longitude } = position.coords;
-                        updateVolunteerLocation(latitude, longitude).catch(console.error);
+                        try {
+                            const updatedUser = await updateVolunteerLocation(latitude, longitude);
+                            setAuthState(prev => ({
+                                ...prev,
+                                user: updatedUser
+                            }));
+                        } catch (error) {
+                            console.error('Failed to update volunteer location:', error);
+                        }
                     },
                     (error) => console.error('Location error:', error),
                     { enableHighAccuracy: true }

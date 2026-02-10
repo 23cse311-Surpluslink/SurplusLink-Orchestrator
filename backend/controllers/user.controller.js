@@ -284,13 +284,7 @@ const updateVolunteerLocation = async (req, res, next) => {
             }
 
             const updatedUser = await user.save();
-            res.json({
-                message: 'Location updated',
-                location: {
-                    coordinates: updatedUser.volunteerProfile.currentLocation.coordinates,
-                    timestamp: new Date()
-                }
-            });
+            res.json(updatedUser);
         } else {
             res.status(404);
             throw new Error('User not found or not a volunteer');
