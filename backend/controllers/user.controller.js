@@ -227,8 +227,18 @@ const updateNGOSettings = async (req, res, next) => {
 
             const updatedUser = await user.save();
             res.json({
-                message: 'NGO profile updated successfully',
-                ngoProfile: updatedUser.ngoProfile
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                organization: updatedUser.organization,
+                status: updatedUser.status,
+                avatar: updatedUser.avatar,
+                createdAt: updatedUser.createdAt,
+                ngoProfile: updatedUser.ngoProfile,
+                isOnline: updatedUser.isOnline,
+                stats: updatedUser.stats,
+                volunteerProfile: updatedUser.volunteerProfile,
             });
         } else {
             res.status(404);
@@ -252,8 +262,18 @@ const toggleVolunteerStatus = async (req, res, next) => {
             user.isOnline = req.body.isOnline;
             const updatedUser = await user.save();
             res.json({
-                message: `Volunteer status updated to ${updatedUser.isOnline ? 'online' : 'offline'}`,
-                isOnline: updatedUser.isOnline
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                organization: updatedUser.organization,
+                status: updatedUser.status,
+                avatar: updatedUser.avatar,
+                createdAt: updatedUser.createdAt,
+                ngoProfile: updatedUser.ngoProfile,
+                isOnline: updatedUser.isOnline,
+                stats: updatedUser.stats,
+                volunteerProfile: updatedUser.volunteerProfile,
             });
         } else {
             res.status(404);
@@ -284,8 +304,18 @@ const updateVolunteerProfile = async (req, res, next) => {
 
             const updatedUser = await user.save();
             res.json({
-                message: 'Volunteer profile updated successfully',
-                volunteerProfile: updatedUser.volunteerProfile
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                organization: updatedUser.organization,
+                status: updatedUser.status,
+                avatar: updatedUser.avatar,
+                createdAt: updatedUser.createdAt,
+                ngoProfile: updatedUser.ngoProfile,
+                isOnline: updatedUser.isOnline,
+                stats: updatedUser.stats,
+                volunteerProfile: updatedUser.volunteerProfile,
             });
         } else {
             res.status(404);
