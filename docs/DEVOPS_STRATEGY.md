@@ -1,60 +1,88 @@
 # SurplusLink DevOps Strategy
 
-This document outlines the infrastructure, deployment pipeline, and operational procedures for the SurplusLink ecosystem.
+This document outlines the infrastructure, deployment pipeline, and operational procedures for the SurplusLink ecosystem, fulfilling the requirements for official architectural review.
 
 ---
 
-## 1. Environment Architecture
+## 1. System Infrastructure Diagram
 
-The system is deployed across a multi-cloud architecture to ensure high availability and separation of concerns.
+The following Mermaid diagram visualizes the flow from development to high-availability production environments.
 
-| Component | Provider | URL | Purpose |
-| :--- | :--- | :--- | :--- |
-| **API Backend** | Render | `https://surpluslink-9fq6.onrender.com` | Core logic, DB connectivity, Cron jobs. |
-| **Dashboard** | Vercel | `https://surpluslink.vercel.app` | Donor/NGO/Admin web interface. |
-| **Database** | MongoDB Atlas | Cluster (AWS/GCP) | Scalable Document store with Geospatial support. |
-| **Asset Storage** | Cloudinary | CDN | Secure storage for food/verification images. |
+```mermaid
+graph TD
+    subgraph "Development Source Control"
+        Monorepo[Monorepo: Central Development Hub]
+    end
+
+    subgraph "CI/CD Pipeline (GitHub Actions)"
+        Monorepo -->|Push to main| GHA[GitHub Actions Runner]
+        subgraph "Quality & Safety Checks"
+            GHA --> Lint[Linting: ESLint / Flutter Analyze]
+            GHA --> Test[Testing: Vitest / Supertest / Flutter Test]
+            GHA --> Build[Production Build & Bundling]
+        end
+    end
+
+    subgraph "Production Deployment"
+        Build -->|Automated Deploy| Vercel[Vercel Serverless Hosting]
+        Build -->|Automated Deploy| Render[Render Web Service]
+        Build -->|Signed Artifact| AppStore[App Store / Play Store Distribution]
+    end
+
+    subgraph "External Cloud Infrastructure"
+        Render <--> DB[MongoDB Atlas: Geospatial DB]
+        Render <--> CDN[Cloudinary: Media CDN]
+        Vercel <--> CDN
+    end
+```
 
 ---
 
-## 2. Infrastructure as Code (Docker)
+## 2. Component Deployment Matrix
 
-To ensure a "Works on my machine" experience, we provide a unified Docker orchestration.
+The following table identifies each component, its source code repository, deployment environment, and mandatory safety checks.
 
-- **`backend/Dockerfile`**: Optimized Node.js environment (Alpine base).
-- **`frontend/Dockerfile`**: Vite build pipeline with Nginx for serving assets.
-- **`docker-compose.yml`**: Links the Backend, Frontend, and a local MongoDB instance for offline development.
+| Component | Source Code Repository | Deployment Location | Pre-Deployment Checks | Tools & Libraries |
+| :--- | :--- | :--- | :--- | :--- |
+| **Frontend Dashboard** | [SurplusLink-Frontend](https://github.com/23cse311-Surpluslink/Frontend) | **Vercel** (`https://surpluslink.vercel.app`) | ESLint, TS Compiler, Vitest Unit Tests | React, Vite, Framer Motion, Axios, Shadcn UI |
+| **API Backend** | [SurplusLink-Backend](https://github.com/23cse311-Surpluslink/Backend) | **Render** (`https://surpluslink-9fq6.onrender.com`) | Supertest Integration, Vitest, npm audit | Node.js, Express, Mongoose, JWT, Nodemailer |
+| **Volunteer Mobile App** | [SurplusLink-Mobile](https://github.com/23cse311-Surpluslink/Mobile) | **App Store / Play Store** | Flutter Analyze, Flutter Test, Widget Testing | Flutter, Dart, Riverpod, Google Maps API |
+| **Database Cluster** | Managed via Backend | **MongoDB Atlas (AWS)** | Schema Validation, IP Whitelisting | Mongoose, GeoJSON, 2dsphere indexing |
 
 ---
 
-## 3. CI/CD Pipeline (GitHub Actions)
+## 3. Infrastructure as Code (Docker)
 
-Our automated workflow (`.github/workflows/main.yml`) triggers on every push to the `main` branch.
+To ensure a "Works on my machine" experience, we provide a unified Docker orchestration for local development and staging simulation.
+
+- **`backend/Dockerfile`**: Multi-stage Node.js build (Alpine base) for minimal footprint.
+- **`frontend/Dockerfile`**: Static asset generation using Vite, served via Nginx.
+- **`docker-compose.yml`**: Links the Backend, Frontend, and a local MongoDB instance to simulate the full multi-cloud production environment locally.
+
+---
+
+## 4. Detailed CI/CD Workflow
+
+Our automated workflow (`.github/workflows/main.yml`) is the guardian of production stability.
 
 ### **Phase 1: Validation (Continuous Integration)**
-- **Linting**: Checks for code style and potential errors in the React frontend.
-- **Backend Tests**: Executes the full Vitest/Jest suite against a temporary MongoDB memory server.
-- **Security Audit**: Scans for compromised dependencies using `npm audit`.
+1.  **Linting**: Static analysis of JavaScript and TypeScript files to ensure adherence to team standards.
+2.  **Unit Testing**: Isolated tests for matching logic and utility functions using **Vitest**.
+3.  **Security Audit**: Automated `npm audit` scans to identify and block vulnerable package dependencies before they reach the build stage.
 
 ### **Phase 2: Build & Deployment (Continuous Deployment)**
-- **Auto-Sync**: On a successful test pass, GitHub triggers individual webhooks for Vercel and Render.
-- **Rollback Policy**: If a build fails, the previous production release remains active (Zero-Downtime Deployment).
+1.  **Build Verification**: Components are built into production bundles. Any build warning on the frontend cancels the deployment.
+2.  **Auto-Sync**: On a successful test pass, GitHub Actions triggers direct deployment hooks for Vercel and Render.
+3.  **Zero-Downtime Migration**: Render and Vercel manage green-blue deployments, keeping the old version active until the new version passes health checks.
 
 ---
 
-## 4. Operational Monitoring
+## 5. Security & Operational Policy
 
-1.  **Safety Supervisor (Cron)**: A background worker runs every 15 minutes to scan for "Stalled Missions" and automatically unassigns inactive volunteers.
-2.  **Expiration Watchdog**: Marks donations as `expired` the moment they pass their safety threshold, removing them from the feed instantly.
-3.  **Logs**: Real-time logging via Render/Vercel dashboard for debugging production issues.
+- **SSL/TLS**: Mandatory HTTPS (TLS 1.3) for all communication.
+- **CORS Policy**: Restrictive origin-locking allowing only the production frontend to communicate with the API.
+- **Secret Management**: API Keys, Database Connection URIs, and Cloudinary secrets are injected at runtime via encrypted environment variables (Github Secrets -> Render/Vercel Env).
+- **Watchdog Services (Cron)**: Backend task workers run every 15 minutes to scan for stalled rescue missions and stale donation data.
 
----
-
-## 5. Security Strategy
-
-- **SSL/TLS**: Mandatory HTTPS for all communication.
-- **CORS Policy**: Strict origin-locking to allow only the `surpluslink.vercel.app` domain to communicate with the API.
-- **Secret Management**: All keys (API Keys, DB URIs) are stored in encrypted environment variables, never hardcoded.
-
----
-*Created for the SE Sprint Review 1*
+--- 
+*Last Updated: February 10, 2026*
