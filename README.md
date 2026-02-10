@@ -12,8 +12,6 @@ This repository contains the full source code and documentation for the first sp
 - [**API Reference**](./docs/API_REFERENCE.md): Detailed endpoint specifications with request/response payloads.
 - [**DevOps Strategy**](./docs/DEVOPS_STRATEGY.md): Cloud architecture, CI/CD, and deployment details.
 - [**Testing Strategy**](./docs/TESTING_STRATEGY.md): Unit, Integration, and E2E testing procedures.
-- [**Meeting Minutes**](./docs/MEETING_MINUTES.md): Documentation of team coordination and decision-making.
-- [**Monorepo Justification**](./docs/MONOREPO_JUSTIFICATION.md): Rationale for our architectural repository structure.
 
 ### **Diagrams (High-Level Design)**
 *The following diagrams are located in the `docs/diagrams` directory:*
