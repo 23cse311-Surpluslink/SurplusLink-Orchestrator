@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Truck, Bike, Car, HardHat, MapPin, Save, Navigation } from "lucide-react";
 import * as React from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { MapPicker } from "@/components/ui/map-picker";
+import api from "@/lib/api";
 
 const containerVariants = {
     hidden: { opacity: 0, x: 20 },
@@ -23,25 +25,40 @@ const itemVariants = {
 };
 
 export default function VolunteerSettings() {
-    const { user, updateVolunteerVehicle } = useAuth();
+    const { user, updateVolunteerVehicle, refreshUser } = useAuth();
     const [isSaving, setIsSaving] = React.useState(false);
     const [capacity, setCapacity] = React.useState([user?.volunteerProfile?.maxWeight || 50]);
     const [vehicle, setVehicle] = React.useState<'bicycle' | 'scooter' | 'car' | 'van'>(
         (user?.volunteerProfile?.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle"
     );
+    const [address, setAddress] = React.useState(user?.address || '');
+    const [coords, setCoords] = React.useState(user?.coordinates || null);
 
     // Sync state when user data arrives/changes
     React.useEffect(() => {
-        if (user?.volunteerProfile) {
-            setCapacity([user.volunteerProfile.maxWeight || 50]);
-            setVehicle((user.volunteerProfile.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle");
+        if (user) {
+            setCapacity([user.volunteerProfile?.maxWeight || 50]);
+            setVehicle((user.volunteerProfile?.vehicleType as 'bicycle' | 'scooter' | 'car' | 'van') || "bicycle");
+            setAddress(user.address || '');
+            setCoords(user.coordinates || null);
         }
     }, [user]);
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            // Update Vehicle info
             await updateVolunteerVehicle(vehicle, capacity[0]);
+
+            // Update Location if changed
+            await api.put('/users/profile', {
+                address,
+                coordinates: coords
+            });
+
+            await refreshUser();
+        } catch (error) {
+            console.error("Failed to save settings:", error);
         } finally {
             setIsSaving(false);
         }
@@ -147,40 +164,47 @@ export default function VolunteerSettings() {
                                     <Navigation className="h-5 w-5 text-primary" />
                                     Positioning
                                 </CardTitle>
-                                <CardDescription>Your current operational zone.</CardDescription>
+                                <CardDescription>Set your operational base for mission routing.</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-1">
-                                <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden border border-border/50 group">
-                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=800')] bg-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                            <CardContent className="flex-1 space-y-4">
+                                <div className="h-80 w-full relative group">
+                                    <MapPicker
+                                        initialCenter={user?.coordinates?.lat ? user.coordinates : undefined}
+                                        onLocationSelect={async (newLocation) => {
+                                            setCoords(newLocation);
+                                            // Reverse geocode to get a readable address
+                                            try {
+                                                const geocoder = new google.maps.Geocoder();
+                                                const response = await geocoder.geocode({ location: newLocation });
+                                                if (response.results[0]) {
+                                                    setAddress(response.results[0].formatted_address);
+                                                }
+                                            } catch (error) {
+                                                console.error("Reverse geocoding failed:", error);
+                                            }
+                                        }}
+                                    />
+                                </div>
 
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping scale-150" />
-                                            <div className="relative bg-primary h-4 w-4 rounded-full border-2 border-white shadow-xl" />
+                                <div className="p-4 rounded-xl bg-muted/50 border border-border/40">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                                            <span className="text-xs font-bold truncate">
+                                                {address || "Location not set"}
+                                            </span>
                                         </div>
-                                    </div>
-
-                                    <div className="absolute bottom-4 left-4 right-4 bg-card/90 backdrop-blur-md p-3 rounded-xl border border-border/50 shadow-lg">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-primary" />
-                                                <span className="text-xs font-bold truncate">
-                                                    {user?.address || "Location not set"}
-                                                </span>
+                                        {coords && (
+                                            <div className="text-[10px] text-muted-foreground font-mono ml-6">
+                                                {coords.lat.toFixed(4)}°N, {coords.lng.toFixed(4)}°E
                                             </div>
-                                            {user?.volunteerProfile?.currentLocation?.coordinates && (
-                                                <div className="text-[10px] text-muted-foreground font-mono ml-6">
-                                                    {user.volunteerProfile.currentLocation.coordinates[1].toFixed(4)}°N, {user.volunteerProfile.currentLocation.coordinates[0].toFixed(4)}°E
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
                                 <Button
-                                    className="w-full font-bold group"
+                                    className="w-full font-bold group h-12 rounded-xl"
                                     onClick={handleSave}
                                     disabled={isSaving}
                                 >
