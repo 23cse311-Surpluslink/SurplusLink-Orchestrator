@@ -32,6 +32,12 @@ export default function AccountPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
+    React.useEffect(() => {
+        if (user?.name) {
+            setEditName(user.name);
+        }
+    }, [user?.name]);
+
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -104,7 +110,7 @@ export default function AccountPage() {
                         <div className="px-8 pb-8 -mt-20 flex flex-col md:flex-row items-center md:items-end gap-6 relative z-10">
                             <div className="relative group p-1 bg-card rounded-full shadow-2xl">
                                 <Avatar className="h-40 w-40 rounded-full  shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                    <AvatarImage src={user.avatar ? `${user.avatar}${user.avatar.includes('?') ? '&' : '?'}t=${Date.now()}` : undefined} alt={user.name} />
                                     <AvatarFallback className="text-4xl font-black bg-muted">
                                         {user.name.substring(0, 2).toUpperCase()}
                                     </AvatarFallback>

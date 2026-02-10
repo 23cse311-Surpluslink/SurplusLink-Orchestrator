@@ -14,13 +14,13 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
-    // Determine the folder based on the field name or role
+    const isAvatar = file.fieldname === 'avatar';
     const isDocument = file.fieldname === 'verificationDoc' || file.mimetype === 'application/pdf';
-    
+
     return {
-      folder: 'surplus-link-verifications',
-      format: isDocument ? 'pdf' : undefined, // Explicitly keep pdf for docs
-      resource_type: 'auto', // Cloudinary will decide if it's an image or raw (pdf is usually auto/image)
+      folder: isAvatar ? 'surplus-link-avatars' : 'surplus-link-verifications',
+      format: isDocument ? 'pdf' : undefined,
+      resource_type: 'auto',
       public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
     };
   },
