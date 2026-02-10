@@ -22,7 +22,8 @@ jest.unstable_mockModule('../config/cloudinary.js', () => ({
 // Mock Geocoder to prevent overwriting test coordinates
 jest.unstable_mockModule('../utils/geocoder.js', () => ({
     __esModule: true,
-    geocodeAddress: jest.fn().mockResolvedValue(null) // Return null so controller uses provided coordinates
+    geocodeAddress: jest.fn().mockResolvedValue(null), // Return null so controller uses provided coordinates
+    reverseGeocode: jest.fn().mockResolvedValue('Mock Address')
 }));
 
 describe('Intelligent Dispatch - Matching Algorithm Tests', () => {
