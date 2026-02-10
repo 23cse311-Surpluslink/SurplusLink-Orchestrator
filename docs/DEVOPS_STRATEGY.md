@@ -8,33 +8,7 @@ This document outlines the infrastructure, deployment pipeline, and operational 
 
 The following Mermaid diagram visualizes the flow from development to high-availability production environments.
 
-```mermaid
-graph TD
-    subgraph "Development Source Control"
-        Monorepo[Monorepo: Central Development Hub]
-    end
-
-    subgraph "CI/CD Pipeline (GitHub Actions)"
-        Monorepo -->|Push to main| GHA[GitHub Actions Runner]
-        subgraph "Quality & Safety Checks"
-            GHA --> Lint[Linting: ESLint / Flutter Analyze]
-            GHA --> Test[Testing: Vitest / Supertest / Flutter Test]
-            GHA --> Build[Production Build & Bundling]
-        end
-    end
-
-    subgraph "Production Deployment"
-        Build -->|Automated Deploy| Vercel[Vercel Serverless Hosting]
-        Build -->|Automated Deploy| Render[Render Web Service]
-        Build -->|Signed Artifact| AppStore[App Store / Play Store Distribution]
-    end
-
-    subgraph "External Cloud Infrastructure"
-        Render <--> DB[MongoDB Atlas: Geospatial DB]
-        Render <--> CDN[Cloudinary: Media CDN]
-        Vercel <--> CDN
-    end
-```
+[**Devops Diagram**](./diagrams/devopsdiag.png)
 
 ---
 
