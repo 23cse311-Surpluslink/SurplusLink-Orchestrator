@@ -20,7 +20,7 @@ This repository contains the full source code and documentation for the first sp
 - [**Use Case Diagram**](./docs/diagrams/use-case.png)
 - [**Sequence Diagram**](./docs/diagrams/sequence.png)
 - [**Architecture Diagram**](./docs/diagrams/architecture.png)
-- [**ER / Schema Diagram**](./docs/diagrams/schema.png)
+- [**ER / Schema Diagram**](./docs/diagrams/er.jpeg)
 
 ---
 
