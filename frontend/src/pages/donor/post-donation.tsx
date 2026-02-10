@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import DonationService from '@/services/donation.service';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { MapPicker } from '@/components/ui/map-picker';
 
 const foodTypes = [
   'Prepared Meals',
@@ -568,6 +569,28 @@ export default function PostDonation() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Precise Location</Label>
+                <div className="h-64 w-full relative rounded-xl overflow-hidden border border-border/50 mb-4">
+                  <MapPicker
+                    initialCenter={coords ? { lat: coords[1], lng: coords[0] } : undefined}
+                    onLocationSelect={async (newLocation) => {
+                      setCoords([newLocation.lng, newLocation.lat]);
+                      // Reverse geocode to get a readable address
+                      try {
+                        const geocoder = new google.maps.Geocoder();
+                        const response = await geocoder.geocode({ location: newLocation });
+                        if (response.results[0]) {
+                          form.setValue('pickupAddress', response.results[0].formatted_address);
+                        }
+                      } catch (error) {
+                        console.error("Reverse geocoding failed:", error);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pickup Address</Label>
                 <div className="relative">
                   <Input
@@ -590,7 +613,7 @@ export default function PostDonation() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-bold">{coords ? "Precise Location Secured" : "Location Access Required"}</p>
-                  <p className="text-xs text-muted-foreground">{coords ? `Coordinates: ${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}` : "Please allow location access in your browser"}</p>
+                  <p className="text-xs text-muted-foreground">{coords ? `Coordinates: ${coords[1].toFixed(4)}, ${coords[0].toFixed(4)}` : "Please allow location access or select on map"}</p>
                 </div>
               </div>
             </CardContent>

@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import NgoService, { NgoProfile } from '@/services/ngo.service';
 import { Loader2, Save, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MapPicker } from '@/components/ui/map-picker';
 
 export function NgoSettingsPage() {
     const { toast } = useToast();
@@ -157,6 +158,29 @@ export function NgoSettingsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-4">
+                                <Label>Base Location & Area</Label>
+                                <p className="text-xs text-muted-foreground font-medium">Select your organization's precise location on the map.</p>
+                                <div className="h-80 w-full relative rounded-xl overflow-hidden border border-border/50">
+                                    <MapPicker
+                                        initialCenter={coords || undefined}
+                                        onLocationSelect={async (newLocation) => {
+                                            setCoords(newLocation);
+                                            // Reverse geocode to get a readable address
+                                            try {
+                                                const geocoder = new google.maps.Geocoder();
+                                                const response = await geocoder.geocode({ location: newLocation });
+                                                if (response.results[0]) {
+                                                    setAddress(response.results[0].formatted_address);
+                                                }
+                                            } catch (error) {
+                                                console.error("Reverse geocoding failed:", error);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
                                 <Label htmlFor="address" className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Office Address</Label>
                                 <div className="relative group">
                                     <Input
@@ -164,28 +188,14 @@ export function NgoSettingsPage() {
                                         placeholder="Enter your NGO's main location"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        className="pr-12 h-12 rounded-xl bg-background/50 border-border/50 group-hover:border-primary/30 transition-all font-medium"
+                                        className="h-12 rounded-xl bg-background/50 border-border/50 group-hover:border-primary/30 transition-all font-medium"
                                     />
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg hover:bg-primary/10 transition-colors"
-                                        onClick={handleGetLocation}
-                                        disabled={fetchingLocation}
-                                    >
-                                        {fetchingLocation ? (
-                                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                        ) : (
-                                            <MapPin className={coords ? "h-4 w-4 text-emerald-500" : "h-4 w-4 text-muted-foreground"} />
-                                        )}
-                                    </Button>
                                 </div>
                                 {coords && (
                                     <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                                         <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                                         <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-widest">
-                                            GPS Locked: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                                            GPS Locked: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
                                         </p>
                                     </div>
                                 )}

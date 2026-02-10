@@ -73,6 +73,7 @@ const navItemsByRole = {
         { label: "Notifications", href: "/donor/notifications", icon: Bell },
         { label: "Reports", href: "/donor/reports", icon: FileText },
         { label: "Impact Summary", href: "/donor/impact", icon: BarChart3 },
+        { label: "Location Settings", href: "/donor/settings", icon: Settings },
     ],
     ngo: [
         { label: "Dashboard", href: "/ngo", icon: Home },
