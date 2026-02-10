@@ -29,10 +29,12 @@ import {
     Trophy,
     PartyPopper,
     Loader2,
-    Mail
+    Mail,
+    ExternalLink
 } from "lucide-react";
 import { RouteMap } from "@/components/volunteer/route-map";
 import { cn } from "@/lib/utils";
+import { updateVolunteerLocation } from "@/services/user.service";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -93,6 +95,7 @@ export default function ActiveMission() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
     const [optimizedStops, setOptimizedStops] = useState<MissionStop[]>([]);
+    const [activeVolunteerPos, setActiveVolunteerPos] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const { toast } = useToast();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -116,11 +119,39 @@ export default function ActiveMission() {
     const fetchOptimizedRoute = useCallback(async (id: string) => {
         try {
             const extra = await DonationService.getOptimizedRoute(id);
-            if (extra.stops) setOptimizedStops(extra.stops);
+            // The backend returns 'path' in the optimized result from getOptimalPath
+            if (extra.path) setOptimizedStops(extra.path);
+            else if (extra.stops) setOptimizedStops(extra.stops); // Fallback
         } catch (error) {
             console.error("Failed to fetch optimized route", error);
         }
     }, []);
+
+    // Heartbeat: Update volunteer location every 30 seconds
+    useEffect(() => {
+        if (!mission) return;
+
+        const updateLocation = () => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setActiveVolunteerPos({ lat: latitude, lng: longitude });
+                        updateVolunteerLocation(latitude, longitude).catch(err =>
+                            console.error("Failed to sync heartbeat location", err)
+                        );
+                    },
+                    (error) => console.error("Heartbeat geolocation error", error),
+                    { enableHighAccuracy: true }
+                );
+            }
+        };
+
+        const interval = setInterval(updateLocation, 30000);
+        updateLocation(); // Initial update
+
+        return () => clearInterval(interval);
+    }, [mission]);
 
     useEffect(() => {
         fetchActiveMission();
@@ -250,18 +281,30 @@ export default function ActiveMission() {
 
     const donorPos = mission?.coordinates;
     const ngoPos = mission?.ngoCoordinates;
-    const volunteerPos = user?.coordinates?.lat ? user.coordinates : (user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
+
+    // Priority: 1. Live Heartbeat, 2. Flat Coordinates, 3. GeoJSON coordinates
+    const volunteerPos = activeVolunteerPos || (user?.coordinates?.lat ? user.coordinates : (user?.volunteerProfile?.currentLocation?.coordinates?.[0] ? {
         lat: user.volunteerProfile.currentLocation.coordinates[1],
         lng: user.volunteerProfile.currentLocation.coordinates[0]
-    } : undefined);
+    } : undefined));
 
     const mapCenter = currentStepIndex < 2 ? (donorPos || ngoPos || { lat: 28.6139, lng: 77.2090 }) : (ngoPos || donorPos || { lat: 28.6139, lng: 77.2090 });
 
 
     const handleNavigate = () => {
+        // Ensure we have the most accurate destination based on current phase
         const dest = currentStepIndex < 2 ? donorPos : ngoPos;
-        if (dest) {
-            window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&travelmode=driving`, '_blank');
+
+        if (dest && dest.lat && dest.lng) {
+            // Use standard Google Maps URL format for better compatibility
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&travelmode=driving`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+            toast({
+                title: "Location Unavailable",
+                description: "The destination coordinates are missing. Please wait for sync.",
+                variant: "destructive"
+            });
         }
     };
 
@@ -444,10 +487,10 @@ export default function ActiveMission() {
                         </div>
 
                         <Button
-                            className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-black text-sm uppercase tracking-widest shadow-glow shadow-primary/20 gap-2 mb-4"
+                            className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-black text-sm uppercase tracking-widest shadow-glow shadow-primary/20 gap-2 mb-4 pointer-events-auto"
                             onClick={handleNavigate}
                         >
-                            <MapPin className="size-4" /> Open In GPS
+                            <ExternalLink className="size-4" /> Open In Maps
                         </Button>
 
                         <div className="h-2 w-full bg-muted rounded-full overflow-hidden">

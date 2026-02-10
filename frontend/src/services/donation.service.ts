@@ -18,6 +18,7 @@ interface BackendDonation {
         organization?: string;
         email?: string;
         coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] };
+        location?: { type: 'Point', coordinates: [number, number] };
         stats?: { trustScore?: number };
     };
     photos?: string[];
@@ -36,7 +37,8 @@ interface BackendDonation {
         organization?: string;
         address?: string;
         email?: string;
-        coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] }
+        coordinates?: { lat: number; lng: number } | { type: 'Point', coordinates: [number, number] };
+        location?: { type: 'Point', coordinates: [number, number] };
     };
     volunteer?: { _id?: string; id?: string; name?: string };
     pickupPhoto?: string;
@@ -93,13 +95,21 @@ const mapDonation = (d: BackendDonation): Donation => ({
     ngoEmail: d.claimedBy?.email,
     ngoCoordinates: (function () {
         const coords = d.claimedBy?.coordinates;
-        if (!coords) return undefined;
-        if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
-            return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+        const loc = d.claimedBy?.location;
+
+        if (coords) {
+            if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+                return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+            }
+            if ('lat' in coords && 'lng' in coords) {
+                return { lat: coords.lat, lng: coords.lng };
+            }
         }
-        if ('lat' in coords && 'lng' in coords) {
-            return { lat: coords.lat, lng: coords.lng };
+
+        if (loc && loc.type === 'Point' && Array.isArray(loc.coordinates)) {
+            return { lat: loc.coordinates[1], lng: loc.coordinates[0] };
         }
+
         return undefined;
     })(),
     claimedBy: d.claimedBy ? {
@@ -108,12 +118,17 @@ const mapDonation = (d: BackendDonation): Donation => ({
         email: d.claimedBy.email,
         coordinates: (function () {
             const coords = d.claimedBy?.coordinates;
-            if (!coords) return undefined;
-            if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
-                return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+            const loc = d.claimedBy?.location;
+            if (coords) {
+                if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+                    return { lat: coords.coordinates[1], lng: coords.coordinates[0] };
+                }
+                if ('lat' in coords && 'lng' in coords) {
+                    return { lat: coords.lat, lng: coords.lng };
+                }
             }
-            if ('lat' in coords && 'lng' in coords) {
-                return { lat: coords.lat, lng: coords.lng };
+            if (loc && loc.type === 'Point' && Array.isArray(loc.coordinates)) {
+                return { lat: loc.coordinates[1], lng: loc.coordinates[0] };
             }
             return undefined;
         })()
