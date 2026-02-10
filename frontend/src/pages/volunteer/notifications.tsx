@@ -71,7 +71,8 @@ export default function VolunteerNotifications() {
 
     const getCategory = (type: string) => {
         switch (type) {
-            case 'match': return 'System';
+            case 'match':
+            case 'priority_dispatch':
             case 'pickup':
             case 'delivery': return 'Mission';
             case 'hygiene': return 'Progress';
@@ -155,12 +156,12 @@ export default function VolunteerNotifications() {
                                             {/* Icon Strategy */}
                                             <div className={cn(
                                                 "size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner",
-                                                n.type === 'match' ? "bg-amber-500/10 text-amber-500" :
+                                                n.type === 'match' || n.type === 'priority_dispatch' ? "bg-amber-500/10 text-amber-500" :
                                                     n.type === 'pickup' ? "bg-primary/10 text-primary" :
                                                         n.type === 'delivery' ? "bg-blue-500/10 text-blue-500" :
                                                             "bg-emerald-500/10 text-emerald-500"
                                             )}>
-                                                {n.type === 'match' ? <Zap className="size-6" /> :
+                                                {n.type === 'match' || n.type === 'priority_dispatch' ? <Zap className="size-6" /> :
                                                     n.type === 'pickup' ? <Clock className="size-6" /> :
                                                         n.type === 'delivery' ? <Package className="size-6" /> :
                                                             <ShieldCheck className="size-6" />}
@@ -179,7 +180,7 @@ export default function VolunteerNotifications() {
                                                     {n.message}
                                                 </p>
 
-                                                {n.type === 'match' && (
+                                                {(n.type === 'match' || n.type === 'priority_dispatch') && (
                                                     <div className="pt-3">
                                                         <Button className="h-9 rounded-xl font-bold bg-primary hover:bg-primary/90 px-4 group/btn" size="sm" onClick={() => window.location.href = '/volunteer/available'}>
                                                             View Mission

@@ -4,6 +4,7 @@ import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { findSuitableVolunteers } from '../services/matching.service.js';
 import { reassignMission } from '../controllers/donation.controller.js';
+import { createNotification } from './notification.js';
 
 /**
  * @desc    Initialize Background Service Supervisor
@@ -117,7 +118,7 @@ const setupCronJobs = () => {
                 if (expandedVolunteers.length > 0) {
                     const top3 = expandedVolunteers.slice(0, 3);
                     donation.dispatchedTo = top3.map(v => v._id);
-                    donation.dispatchedAt = new Date(); 
+                    donation.dispatchedAt = new Date();
                     await donation.save();
 
                     for (const v of top3) {
