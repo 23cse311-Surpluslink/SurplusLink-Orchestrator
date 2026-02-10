@@ -62,6 +62,7 @@ export default function PostDonation() {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [expiryWarning, setExpiryWarning] = useState(false);
+  const [pickupWarning, setPickupWarning] = useState(false);
   const [customAllergen, setCustomAllergen] = useState('');
 
   const isVerified = user?.status === 'active';
@@ -104,6 +105,7 @@ export default function PostDonation() {
 
   const watchExpiryDate = form.watch('expiryDate');
   const watchExpiryTime = form.watch('expiryTime');
+  const watchPickupEnd = form.watch('pickupWindowEnd');
 
   useEffect(() => {
     if (watchExpiryDate && watchExpiryTime) {
@@ -112,11 +114,17 @@ export default function PostDonation() {
         const now = new Date();
         const diffInHours = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60);
         setExpiryWarning(diffInHours > 0 && diffInHours < 2);
+
+        if (watchPickupEnd) {
+          const pickupEnd = new Date(`${watchExpiryDate}T${watchPickupEnd}`);
+          setPickupWarning(pickupEnd >= expiry);
+        }
       } catch (e) {
         setExpiryWarning(false);
+        setPickupWarning(false);
       }
     }
-  }, [watchExpiryDate, watchExpiryTime, toast]);
+  }, [watchExpiryDate, watchExpiryTime, watchPickupEnd, toast]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -532,6 +540,21 @@ export default function PostDonation() {
                     />
                   </div>
                 </div>
+                {pickupWarning ? (
+                  <div className="mt-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 animate-in fade-in zoom-in-95 duration-300">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-bold text-amber-600 leading-relaxed">
+                      Critical Logic Error: The pickup window ends after the food expires. Please ensure food is collected and delivered before its expiry time.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center gap-2 px-1">
+                    <Clock className="h-3 w-3 text-amber-500" />
+                    <p className="text-[10px] font-medium text-amber-600/80 italic">
+                      Pro Tip: Set the pickup window to end at least 1 hour before expiry for safe redistribution.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
