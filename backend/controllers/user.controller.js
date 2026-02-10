@@ -19,20 +19,7 @@ const getUserProfile = async (req, res, next) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
-            res.json({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                organization: user.organization,
-                status: user.status,
-                avatar: user.avatar,
-                createdAt: user.createdAt,
-                ngoProfile: user.ngoProfile,
-                isOnline: user.isOnline,
-                stats: user.stats,
-                volunteerProfile: user.volunteerProfile,
-            });
+            res.json(user);
         } else {
             res.status(404);
             throw new Error('User not found');
@@ -101,21 +88,7 @@ const updateUserProfile = async (req, res, next) => {
             }
 
             const updatedUser = await user.save();
-
-            res.json({
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                organization: updatedUser.organization,
-                status: updatedUser.status,
-                address: updatedUser.address,
-                coordinates: updatedUser.coordinates,
-                avatar: updatedUser.avatar,
-                createdAt: updatedUser.createdAt,
-                isOnline: updatedUser.isOnline,
-                volunteerProfile: updatedUser.volunteerProfile,
-            });
+            res.json(updatedUser);
         } else {
             res.status(404);
             throw new Error('User not found');
@@ -226,20 +199,7 @@ const updateNGOSettings = async (req, res, next) => {
             };
 
             const updatedUser = await user.save();
-            res.json({
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                organization: updatedUser.organization,
-                status: updatedUser.status,
-                avatar: updatedUser.avatar,
-                createdAt: updatedUser.createdAt,
-                ngoProfile: updatedUser.ngoProfile,
-                isOnline: updatedUser.isOnline,
-                stats: updatedUser.stats,
-                volunteerProfile: updatedUser.volunteerProfile,
-            });
+            res.json(updatedUser);
         } else {
             res.status(404);
             throw new Error('NGO profile not found or user is not an NGO');
@@ -261,20 +221,7 @@ const toggleVolunteerStatus = async (req, res, next) => {
         if (user && user.role === 'volunteer') {
             user.isOnline = req.body.isOnline;
             const updatedUser = await user.save();
-            res.json({
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                organization: updatedUser.organization,
-                status: updatedUser.status,
-                avatar: updatedUser.avatar,
-                createdAt: updatedUser.createdAt,
-                ngoProfile: updatedUser.ngoProfile,
-                isOnline: updatedUser.isOnline,
-                stats: updatedUser.stats,
-                volunteerProfile: updatedUser.volunteerProfile,
-            });
+            res.json(updatedUser);
         } else {
             res.status(404);
             throw new Error('User not found or not a volunteer');
@@ -304,20 +251,7 @@ const updateVolunteerProfile = async (req, res, next) => {
             }
 
             const updatedUser = await user.save();
-            res.json({
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                organization: updatedUser.organization,
-                status: updatedUser.status,
-                avatar: updatedUser.avatar,
-                createdAt: updatedUser.createdAt,
-                ngoProfile: updatedUser.ngoProfile,
-                isOnline: updatedUser.isOnline,
-                stats: updatedUser.stats,
-                volunteerProfile: updatedUser.volunteerProfile,
-            });
+            res.json(updatedUser);
         } else {
             res.status(404);
             throw new Error('User not found or not a volunteer');

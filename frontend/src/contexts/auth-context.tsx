@@ -132,8 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [toast]);
 
     const updateProfile = useCallback(async (data: Partial<User> | FormData) => {
-        const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
-        const response = await api.put<any>('/users/profile', data, { headers });
+        const response = await api.put<any>('/users/profile', data);
         const updatedUser = response.data;
         const newState = setAuthData(updatedUser as User);
         setAuthState(newState);
