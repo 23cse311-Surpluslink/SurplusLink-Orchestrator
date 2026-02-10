@@ -87,7 +87,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: 'pickup' | 'delivery' | 'hygiene' | 'system' | 'match';
+  type: 'pickup' | 'delivery' | 'hygiene' | 'system' | 'match' | 'priority_dispatch';
   read: boolean;
   createdAt: string;
 }
