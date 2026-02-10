@@ -31,3 +31,7 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+# Cloud Report
+CLOUD_REPORT.md
+

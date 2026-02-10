@@ -82,7 +82,7 @@ const updateUserProfile = async (req, res, next) => {
         if (user) {
             user.name = req.body.name || user.name;
             user.address = req.body.address || user.address;
-            
+
             // Automated Address-to-Coordinate Conversion
             if (req.body.address && req.body.address !== user.address) {
                 const geocoded = await geocodeAddress(req.body.address);
@@ -296,11 +296,12 @@ const updateVolunteerProfile = async (req, res, next) => {
         if (user && user.role === 'volunteer') {
             const { vehicleType, maxWeight } = req.body;
 
-            user.volunteerProfile = {
-                ...user.volunteerProfile,
-                vehicleType: vehicleType || user.volunteerProfile.vehicleType,
-                maxWeight: maxWeight !== undefined ? maxWeight : user.volunteerProfile.maxWeight,
-            };
+            if (vehicleType) {
+                user.volunteerProfile.vehicleType = vehicleType;
+            }
+            if (maxWeight !== undefined) {
+                user.volunteerProfile.maxWeight = maxWeight;
+            }
 
             const updatedUser = await user.save();
             res.json({
@@ -424,7 +425,7 @@ const getVolunteerStats = async (req, res, next) => {
 const getNgoVolunteers = async (req, res, next) => {
     try {
         // Find all donations claimed by this NGO that have a volunteer assigned
-        const donations = await Donation.find({ 
+        const donations = await Donation.find({
             claimedBy: req.user._id,
             volunteer: { $exists: true }
         }).populate('volunteer', 'name email phone avatar stats volunteerProfile isOnline');
@@ -446,12 +447,12 @@ const getNgoVolunteers = async (req, res, next) => {
                     if (onRouteStatuses.includes(donation.deliveryStatus)) {
                         status = 'on_route';
                         const isHeadingToPickup = ['pending_pickup', 'at_pickup'].includes(donation.deliveryStatus);
-                        currentTask = isHeadingToPickup 
+                        currentTask = isHeadingToPickup
                             ? `Picking up from ${donation.donorName || 'Donor'}`
                             : `Delivering to ${req.user.organization || 'NGO Center'}`;
                     } else if (donation.deliveryStatus === 'delivered' && donation.status !== 'completed') {
-                         status = 'busy';
-                         currentTask = 'Verification Pending';
+                        status = 'busy';
+                        currentTask = 'Verification Pending';
                     }
 
                     uniqueVolunteersMap.set(volId, {
