@@ -50,6 +50,8 @@ SurplusLink is a hyper-local food rescue ecosystem designed to eliminate food wa
 
 ## 3. API Endpoints (Comprehensive)
 
+> **Note**: For detailed request/response payloads and error codes, please refer to the [**Detailed API Reference**](./backend/docs/API_REFERENCE.md).
+
 ### **A. Authentication (`/api/v1/auth`)**
 | Path | Method | Access | Function |
 | :--- | :--- | :--- | :--- |
