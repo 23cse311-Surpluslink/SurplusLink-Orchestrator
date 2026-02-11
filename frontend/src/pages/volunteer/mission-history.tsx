@@ -220,36 +220,6 @@ export default function MissionHistory() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-border/50">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-xl font-black">Achievement Gallery</CardTitle>
-                            <CardDescription className="text-xs font-bold uppercase tracking-widest">
-                                {ACHIEVEMENTS.filter(a => a.unlocked).length} / {ACHIEVEMENTS.length} Unlocked
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-3 gap-4">
-                                {ACHIEVEMENTS.map((badge) => (
-                                    <div key={badge.id} className="group relative flex flex-col items-center gap-2">
-                                        <div className={cn(
-                                            "size-16 rounded-2xl flex items-center justify-center transition-all duration-300",
-                                            badge.unlocked
-                                                ? "bg-primary/10 text-primary border-2 border-primary/30"
-                                                : "bg-muted text-muted-foreground/30 border-2 border-dashed border-border grayscale"
-                                        )}>
-                                            {badge.unlocked ? <badge.icon className="size-8" /> : <Lock className="size-8" />}
-                                        </div>
-                                        <span className={cn(
-                                            "text-[10px] font-black uppercase text-center",
-                                            badge.unlocked ? "text-foreground" : "text-muted-foreground/50"
-                                        )}>
-                                            {badge.name}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
 

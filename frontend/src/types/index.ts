@@ -76,10 +76,26 @@ export interface Donation {
     coordinates?: { lat: number; lng: number };
   };
   matchPercentage?: number;
+  suitabilityScore?: number;
   urgencyLevel?: 'Critical' | 'Urgent' | 'Standard';
   distance?: number;
   donorTrustScore?: number;
   rejectionReason?: string;
+  donor?: {
+    id: string;
+    name: string;
+    email: string;
+    organization?: string;
+    coordinates?: { lat: number; lng: number };
+  };
+  volunteer?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar?: string;
+    volunteerProfile?: VolunteerProfile;
+  };
 }
 
 export interface Notification {

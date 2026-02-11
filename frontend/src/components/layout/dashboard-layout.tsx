@@ -5,20 +5,25 @@ import { useAuth } from '@/contexts/auth-context';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { AppSidebar } from './app-sidebar';
-import { Sun, Moon, Home, HelpCircle, Info, Sparkles } from 'lucide-react';
+import { Sun, Moon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/theme-context';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 interface DashboardLayoutProps {
     requiredRole?: UserRole;
 }
 
 export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
-    const { isAuthenticated, role } = useAuth();
+    const { isAuthenticated, role, isLoading } = useAuth();
     const { theme, toggleTheme } = useTheme();
-    const navigate = useNavigate();
-    const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;

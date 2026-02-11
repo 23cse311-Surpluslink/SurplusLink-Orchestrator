@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useState, useEffect, useCallback } from "react";
 import DonationService from "@/services/donation.service";
+import { useNavigate } from "react-router-dom";
 import { Donation } from "@/types";
 
 const containerVariants = {
@@ -21,6 +22,7 @@ const itemVariants = {
 
 export default function VolunteerDashboard() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeDonation, setActiveDonation] = useState<Donation | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -96,9 +98,8 @@ export default function VolunteerDashboard() {
             className="space-y-8 p-6"
         >
             <div className="flex flex-col gap-2 relative">
-                <div className="absolute -left-4 top-0 w-1 bg-primary h-full rounded-full" />
-                <h1 className="text-4xl font-black tracking-tight lg:text-6xl text-foreground">
-                    Volunteer <span className="text-primary italic">Portal</span>
+                <h1 className="text-3xl font-black tracking-tight lg:text-5xl text-foreground">
+                    Volunteer <span className="text-primary">Portal</span>
                 </h1>
                 <p className="text-muted-foreground text-lg font-medium max-w-2xl">
                     Welcome back, <span className="text-foreground font-black underline decoration-primary/30 underline-offset-4">{user?.name}</span>! Ready for your next rescue mission?
@@ -154,14 +155,14 @@ export default function VolunteerDashboard() {
                             {activeDonation ? "Active Mission" : "Available Nearby"}
                         </h2>
                         {!activeDonation && (
-                            <Button variant="link" className="text-primary font-bold p-0" onClick={() => window.location.href = '/volunteer/available'}>
+                            <Button variant="link" className="text-primary font-bold p-0" onClick={() => navigate('/volunteer/available')}>
                                 Browse All <ArrowRight className="ml-1 size-4" />
                             </Button>
                         )}
                     </div>
 
                     {activeDonation ? (
-                        <Card className="relative overflow-hidden border-2 border-primary shadow-glow shadow-primary/10 bg-card group cursor-pointer" onClick={() => window.location.href = '/volunteer/active'}>
+                        <Card className="relative overflow-hidden border-2 border-primary shadow-glow shadow-primary/10 bg-card group cursor-pointer" onClick={() => navigate('/volunteer/active')}>
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <Navigation className="size-24 text-primary animate-pulse" />
                             </div>
@@ -200,7 +201,7 @@ export default function VolunteerDashboard() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-glow p-12 text-center group cursor-pointer" onClick={() => window.location.href = '/volunteer/available'}>
+                        <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-glow p-12 text-center group cursor-pointer" onClick={() => navigate('/volunteer/available')}>
                             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                                 <Search className="size-32 text-primary" />
                             </div>
@@ -245,7 +246,7 @@ export default function VolunteerDashboard() {
                                     <p className="text-xs text-muted-foreground font-medium">98% success rate in food handling.</p>
                                 </div>
                             </div>
-                            <Button variant="outline" className="w-full font-bold h-11 border-primary/20 hover:bg-primary/5" onClick={() => window.location.href = '/volunteer/history'}>
+                            <Button variant="outline" className="w-full font-bold h-11 border-primary/20 hover:bg-primary/5" onClick={() => navigate('/volunteer/history')}>
                                 View Impact Ledger
                             </Button>
                         </CardContent>

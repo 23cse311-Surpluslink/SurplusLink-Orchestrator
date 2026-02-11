@@ -338,19 +338,25 @@ function VerificationReviewCard({ user, onVerify }: { user: User, onVerify: (id:
                     <div className="space-y-3">
                         <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Document Evidence</Label>
                         {user.documentUrl ? (
-                            <a
-                                href={user.documentUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group"
-                            >
-                                <FileText className="h-10 w-10 text-primary mb-3" />
-                                <span className="text-sm font-bold text-primary flex items-center gap-2 transition-transform group-hover:translate-x-1">
-                                    Review Document
-                                    <ExternalLink className="h-4 w-4" />
-                                </span>
-
-                            </a>
+                            <div className="space-y-4">
+                                <a
+                                    href={user.documentUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group overflow-hidden relative"
+                                >
+                                    {user.documentUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i) ? (
+                                        <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <img src={user.documentUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : null}
+                                    <FileText className="h-10 w-10 text-primary mb-3 relative z-10" />
+                                    <span className="text-sm font-bold text-primary flex items-center gap-2 transition-transform group-hover:translate-x-1 relative z-10">
+                                        {user.documentUrl.match(/.pdf/i) ? 'Open PDF Document' : 'View Verification Image'}
+                                        <ExternalLink className="h-4 w-4" />
+                                    </span>
+                                </a>
+                            </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-border/50 bg-muted/20 opacity-50">
                                 <XCircle className="h-10 w-10 text-muted-foreground mb-3" />

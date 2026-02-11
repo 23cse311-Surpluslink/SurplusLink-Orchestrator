@@ -141,7 +141,17 @@ export function NearbyDonationsPage() {
             <div className="flex-1 flex flex-col h-full overflow-hidden md:rounded-xl md:border bg-background">
                 <div className="p-4 border-b space-y-4 bg-muted/10">
                     <PageHeader
-                        title="Smart Feed"
+                        title={
+                            <div className="flex items-center gap-2">
+                                Smart Feed
+                                {!loading && donations.length > 0 && (
+                                    <span className="flex h-3 w-3">
+                                        <span className="animate-blink absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                                    </span>
+                                )}
+                            </div>
+                        }
                         description="Intelligently prioritized donations based on your needs and capacity."
                     />
 
@@ -234,18 +244,6 @@ export function NearbyDonationsPage() {
                             />
                         ))
                     )}
-                </div>
-            </div>
-            <div className="flex w-full md:w-[400px] xl:w-[500px] h-[350px] md:h-auto shrink-0 flex-col rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative shadow-xl transition-all duration-500 hover:shadow-2xl mt-4 md:mt-0">
-                <NgoMap donations={filteredDonations} apiKey={MAP_API_KEY} />
-                <div className="absolute bottom-6 left-6 right-6 pointer-events-none">
-                    <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl border border-white/50 shadow-sm flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-slate-600 font-medium">System Online</span>
-                        </div>
-                        <span className="text-slate-400 font-mono tracking-wider">LIVE FEED</span>
-                    </div>
                 </div>
             </div>
 

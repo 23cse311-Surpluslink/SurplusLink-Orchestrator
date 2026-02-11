@@ -551,7 +551,7 @@ export default function PostDonation() {
                 ) : (
                   <div className="mt-2 flex items-center gap-2 px-1">
                     <Clock className="h-3 w-3 text-amber-500" />
-                    <p className="text-[10px] font-medium text-amber-600/80 italic">
+                    <p className="text-[15px] font-medium text-amber-600/80 italic">
                       Pro Tip: Set the pickup window to end at least 1 hour before expiry for safe redistribution.
                     </p>
                   </div>

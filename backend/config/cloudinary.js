@@ -15,13 +15,15 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     const isAvatar = file.fieldname === 'avatar';
-    const isDocument = file.fieldname === 'verificationDoc' || file.mimetype === 'application/pdf';
+    
+    // Determine resource type: images for avatars, 'auto' for others to handle PDFs correctly
+    const resourceType = isAvatar ? 'image' : 'auto';
 
     return {
       folder: isAvatar ? 'surplus-link-avatars' : 'surplus-link-verifications',
-      format: isDocument ? 'pdf' : undefined,
-      resource_type: 'auto',
+      resource_type: resourceType,
       public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+      // Removed forced format: 'pdf' to allow original file extensions to persist
     };
   },
 });

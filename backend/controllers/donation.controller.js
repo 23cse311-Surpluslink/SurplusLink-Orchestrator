@@ -164,8 +164,8 @@ export const createDonation = async (req, res) => {
 export const getDonorHistory = async (req, res) => {
     try {
         const donations = await Donation.find({ donor: req.user._id })
-            .populate('volunteer', 'name')
-            .populate('claimedBy', 'organization name')
+            .populate('volunteer', 'name email phone avatar volunteerProfile.currentLocation')
+            .populate('claimedBy', 'organization name coordinates')
             .sort({ createdAt: -1 });
         res.json(donations);
     } catch (error) {
@@ -337,6 +337,31 @@ export const cancelDonation = async (req, res) => {
             donation._id
         );
 
+        // Notify NGO if they had claimed it
+        if (donation.claimedBy) {
+            await createNotification(
+                donation.claimedBy,
+                `Attention: The donor has cancelled the donation "${donation.title}".`,
+                'general',
+                donation._id
+            );
+        }
+
+        // Notify Volunteer if they were on the job
+        if (donation.volunteer) {
+            await createNotification(
+                donation.volunteer,
+                `Mission Cancelled: The donor has cancelled the rescue for "${donation.title}". You are now free for other missions.`,
+                'general',
+                donation._id
+            );
+
+            // Adjust volunteer work-load metrics
+            await User.findByIdAndUpdate(donation.volunteer, {
+                $inc: { currentTaskCount: -1 }
+            });
+        }
+
         res.json(donation);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -351,9 +376,9 @@ export const cancelDonation = async (req, res) => {
 export const getDonationById = async (req, res) => {
     try {
         const donation = await Donation.findById(req.params.id)
-            .populate('donor', 'name email organization')
-            .populate('volunteer', 'name')
-            .populate('claimedBy', 'organization name');
+            .populate('donor', 'name email organization coordinates')
+            .populate('volunteer', 'name email phone avatar volunteerProfile.currentLocation')
+            .populate('claimedBy', 'organization name coordinates');
 
         if (!donation) {
             return res.status(404).json({ message: 'Donation not found' });
@@ -424,6 +449,7 @@ export const completeDonation = async (req, res, next) => {
         if (donation.volunteer) {
             const volunteer = await User.findById(donation.volunteer);
             if (volunteer) {
+                const oldTier = volunteer.volunteerProfile.tier;
                 volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
                 volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + weight;
                 volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
@@ -431,10 +457,29 @@ export const completeDonation = async (req, res, next) => {
                 
                 // Tier Promotion Logic
                 const missions = volunteer.stats.completedDonations;
-                if (missions >= 50) volunteer.volunteerProfile.tier = 'champion';
-                else if (missions >= 10) volunteer.volunteerProfile.tier = 'hero';
+                let newTier = 'rookie';
+                if (missions >= 50) newTier = 'champion';
+                else if (missions >= 10) newTier = 'hero';
                 
+                volunteer.volunteerProfile.tier = newTier;
                 await volunteer.save();
+
+                // Notify Volunteer of Completion
+                await createNotification(
+                    volunteer._id,
+                    `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${weight}kg Impact recorded!`,
+                    'donation_completed',
+                    donation._id
+                );
+
+                // Notify of Tier Promotion
+                if (newTier !== oldTier) {
+                    await createNotification(
+                        volunteer._id,
+                        `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
+                        'general'
+                    );
+                }
             }
         }
 
@@ -782,8 +827,8 @@ export const getClaimedDonations = async (req, res, next) => {
     try {
         const donations = await Donation.find({ claimedBy: req.user._id })
             .sort({ updatedAt: -1 })
-            .populate('donor', 'name organization')
-            .populate('volunteer', 'name');
+            .populate('donor', 'name organization coordinates')
+            .populate('volunteer', 'name email phone avatar volunteerProfile.currentLocation');
         res.json(donations);
     } catch (error) {
         next(error);
@@ -1069,30 +1114,6 @@ export const confirmDelivery = async (req, res, next) => {
         donation.deliveryNotes = notes;
         donation.deliveredAt = Date.now();
         await donation.save();
-
-        // Level-Up Engine: Update volunteer rank based on successful completion
-        const volunteer = await User.findById(req.user.id);
-        if (volunteer) {
-            volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
-            volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
-
-            // Tier Calculation
-            const count = volunteer.stats.completedDonations;
-            let newTier = volunteer.volunteerProfile.tier;
-
-            if (count >= 50) newTier = 'champion';
-            else if (count >= 10) newTier = 'hero';
-
-            if (newTier !== volunteer.volunteerProfile.tier) {
-                volunteer.volunteerProfile.tier = newTier;
-                await createNotification(
-                    volunteer._id,
-                    `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
-                    'general'
-                );
-            }
-            await volunteer.save();
-        }
 
         if (donation.claimedBy) {
             await createNotification(

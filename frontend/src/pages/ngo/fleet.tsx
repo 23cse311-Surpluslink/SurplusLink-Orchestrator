@@ -108,7 +108,7 @@ export default function NgoFleetDashboard() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search fleet..."
+                            placeholder="Search volunteer..."
                             className="h-11 w-64 rounded-xl border border-border/50 bg-card pl-10 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -155,7 +155,7 @@ export default function NgoFleetDashboard() {
                                                     )}
                                                 </h3>
                                                 <div className="flex items-center gap-3 text-xs text-muted-foreground font-bold uppercase tracking-tighter">
-                                                    <span className="flex items-center gap-1"><Truck className="size-3" /> {vol.completedTasks} Rescues</span>
+
                                                     <span className="flex items-center gap-1">★ {vol.rating.toFixed(1)}</span>
                                                 </div>
                                             </div>

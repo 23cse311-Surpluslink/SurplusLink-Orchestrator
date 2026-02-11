@@ -308,24 +308,25 @@ const getVolunteerStats = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
-        const completedCount = user.stats.completedDonations || 0;
-        const cancelledCount = user.stats.cancelledDonations || 0;
-        const totalAccepted = completedCount + cancelledCount;
-
-        // Reliability Score
-        let reliabilityScore = 0;
-        if (totalAccepted > 0) {
-            reliabilityScore = (completedCount / totalAccepted) * 100;
-        } else if (completedCount === 0 && cancelledCount === 0) {
-            reliabilityScore = 100;
-        }
-
-        // Total Impact (Weight moved)
+        // Source of Truth: Count actual completed missions from the database
         const completedMissions = await Donation.find({
             volunteer: user._id,
             status: 'completed'
         });
 
+        const actualCompletedCount = completedMissions.length;
+        const cancelledCount = user.stats.cancelledDonations || 0;
+        const totalAccepted = actualCompletedCount + cancelledCount;
+
+        // Reliability Score
+        let reliabilityScore = 0;
+        if (totalAccepted > 0) {
+            reliabilityScore = (actualCompletedCount / totalAccepted) * 100;
+        } else {
+            reliabilityScore = 100;
+        }
+
+        // Total Impact (Weight moved)
         let totalImpact = 0;
         completedMissions.forEach(mission => {
             const match = String(mission.quantity).match(/(\d+(\.\d+)?)/);
@@ -334,8 +335,20 @@ const getVolunteerStats = async (req, res, next) => {
             }
         });
 
+        // Data Integrity Sync: Update cached stats if they divergence is found
+        if (user.stats.completedDonations !== actualCompletedCount) {
+            user.stats.completedDonations = actualCompletedCount;
+
+            // Re-verify Tier based on corrected count
+            if (actualCompletedCount >= 50) user.volunteerProfile.tier = 'champion';
+            else if (actualCompletedCount >= 10) user.volunteerProfile.tier = 'hero';
+            else user.volunteerProfile.tier = 'rookie';
+
+            await user.save();
+        }
+
         res.json({
-            totalDeliveries: completedCount,
+            totalDeliveries: actualCompletedCount,
             totalImpact: parseFloat(totalImpact.toFixed(2)),
             reliabilityScore: parseFloat(reliabilityScore.toFixed(2)),
             tier: user.volunteerProfile.tier

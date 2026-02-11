@@ -62,6 +62,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Logo } from "@/components/ui/logo"
 import { useAuth } from "@/contexts/auth-context"
+import { useNotifications } from "@/contexts/notification-context"
 import { UserRole } from "@/types"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
@@ -81,7 +82,7 @@ const navItemsByRole = {
         { label: "Accepted Donations", href: "/ngo/accepted", icon: CheckSquare },
         { label: "Volunteer Availablity", href: "/ngo/fleet", icon: Truck },
         { label: "Notifications", href: "/ngo/notifications", icon: Bell },
-        { label: "Feedback", href: "/ngo/feedback", icon: MessageSquare },
+        // { label: "Feedback", href: "/ngo/feedback", icon: MessageSquare },
         { label: "Settings", href: "/ngo/settings", icon: Settings },
     ],
     admin: [
@@ -104,11 +105,13 @@ const navItemsByRole = {
 
 export function AppSidebar({ role }: { role: UserRole }) {
     const { user, logout, toggleOnlineStatus } = useAuth()
+    const { unreadCount } = useNotifications()
     const { state } = useSidebar()
     const location = useLocation()
     const navigate = useNavigate()
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
     const [pendingCount, setPendingCount] = React.useState(0)
+    const [nearbyCount, setNearbyCount] = React.useState(0)
     const isOnline = user?.isOnline || false
     const navItems = navItemsByRole[role] || []
 
@@ -122,14 +125,20 @@ export function AppSidebar({ role }: { role: UserRole }) {
                 console.error('Error fetching pending count:', error);
             }
         }
+        if (role === 'ngo') {
+            try {
+                const { data } = await api.get('/donations/feed');
+                setNearbyCount(data.count || 0);
+            } catch (error) {
+                console.error('Error fetching nearby count:', error);
+            }
+        }
     }, [role]);
 
     React.useEffect(() => {
         fetchPending();
-        if (role === 'admin') {
-            const interval = setInterval(fetchPending, 10000);
-            return () => clearInterval(interval);
-        }
+        const interval = setInterval(fetchPending, 15000);
+        return () => clearInterval(interval);
     }, [role, fetchPending]);
 
     const isCollapsed = state === "collapsed"
@@ -189,18 +198,37 @@ export function AppSidebar({ role }: { role: UserRole }) {
                                     >
                                         <Link
                                             to={item.href}
-                                            className="flex items-center w-full px-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center"
+                                            className={cn(
+                                                "flex items-center w-full px-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center relative",
+                                                ((item.label === "Notifications" && unreadCount > 0) ||
+                                                    (item.label === "Smart Feed" && nearbyCount > 0)) && "animate-blink text-primary"
+                                            )}
                                         >
-                                            <item.icon className="!size-5 shrink-0" />
+                                            <item.icon className={cn(
+                                                "!size-5 shrink-0",
+                                                ((item.label === "Notifications" && unreadCount > 0) ||
+                                                    (item.label === "Smart Feed" && nearbyCount > 0)) ? "text-primary" : ""
+                                            )} />
                                             <span className="text-sm font-medium ml-3 group-data-[collapsible=icon]:hidden">
                                                 {item.label}
                                             </span>
+                                            {(item.label === "Notifications" && unreadCount > 0) && (
+                                                <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] flex items-center justify-center group-data-[collapsible=icon]:hidden">
+                                                    {unreadCount}
+                                                </span>
+                                            )}
+                                            {(item.label === "Smart Feed" && nearbyCount > 0) && (
+                                                <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] flex items-center justify-center group-data-[collapsible=icon]:hidden">
+                                                    {nearbyCount}
+                                                </span>
+                                            )}
                                             {item.label === "User Management" && pendingCount > 0 && (
                                                 <span className="ml-auto flex h-2 w-2 rounded-full bg-orange-500 animate-pulse group-data-[collapsible=icon]:hidden" />
                                             )}
-                                            {item.label === "User Management" && pendingCount > 0 && isCollapsed && (
-                                                <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                                            )}
+                                            {(item.label === "Notifications" || item.label === "Smart Feed" || item.label === "User Management") &&
+                                                (unreadCount > 0 || nearbyCount > 0 || pendingCount > 0) && isCollapsed && (
+                                                    <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                                                )}
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

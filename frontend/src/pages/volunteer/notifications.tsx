@@ -114,23 +114,6 @@ export default function VolunteerNotifications() {
                 </div>
             </header>
 
-            {/* Filter Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["All", "System", "Mission", "Progress"].map((f) => (
-                    <Button
-                        key={f}
-                        variant={filter === f ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setFilter(f)}
-                        className={cn(
-                            "rounded-full px-5 font-bold border-2 transition-all h-9",
-                            filter === f ? "border-primary shadow-glow shadow-primary/20" : "bg-card border-border/50 hover:border-primary/50 text-muted-foreground"
-                        )}
-                    >
-                        {f}
-                    </Button>
-                ))}
-            </div>
 
             <AnimatePresence mode="wait">
                 {loading ? (
