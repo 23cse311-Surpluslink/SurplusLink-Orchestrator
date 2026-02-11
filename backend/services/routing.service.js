@@ -8,12 +8,6 @@ const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
  * Implements Dijkstra's algorithm and path optimization based on travel cost.
  */
 
-// Road Factor constants for cost calculation
-const ROAD_FACTORS = {
-    highway: 1.0,
-    main_road: 1.2,
-    local_road: 1.5
-};
 
 /**
  * Calculates the cost between two points using Distance Matrix API.

@@ -30,7 +30,8 @@ import {
     PartyPopper,
     Loader2,
     Mail,
-    ExternalLink
+    ExternalLink,
+    Zap
 } from "lucide-react";
 import { RouteMap } from "@/components/volunteer/route-map";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,7 @@ export default function ActiveMission() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
     const [optimizedStops, setOptimizedStops] = useState<MissionStop[]>([]);
+    const [isDiversionSuggested, setIsDiversionSuggested] = useState(false);
     const [activeVolunteerPos, setActiveVolunteerPos] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const { toast } = useToast();
 
@@ -122,6 +124,10 @@ export default function ActiveMission() {
             // The backend returns 'path' in the optimized result from getOptimalPath
             if (extra.path) setOptimizedStops(extra.path);
             else if (extra.stops) setOptimizedStops(extra.stops); // Fallback
+
+            if (extra.diversionSuggested) {
+                setIsDiversionSuggested(true);
+            }
         } catch (error) {
             console.error("Failed to fetch optimized route", error);
         }
@@ -453,6 +459,32 @@ export default function ActiveMission() {
                             </React.Fragment>
                         ))}
                     </div>
+
+                    {/* Smart Routing Diversion Alert */}
+                    <AnimatePresence>
+                        {isDiversionSuggested && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="mt-4 px-2"
+                            >
+                                <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-amber-500/5">
+                                    <div className="size-10 rounded-xl bg-amber-500 flex items-center justify-center shrink-0 animate-bounce shadow-glow shadow-amber-500/40">
+                                        <Zap className="size-5 text-white fill-white" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">Dijkstra Smart Route</span>
+                                            <Badge className="bg-amber-500 text-white border-none text-[8px] h-4">Dynamic Detour</Badge>
+                                        </div>
+                                        <p className="text-sm font-bold text-foreground">A high-priority nearby mission has been added to your route!</p>
+                                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter">Optimized for safety and environmental impact</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
 
