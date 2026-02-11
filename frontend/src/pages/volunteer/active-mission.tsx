@@ -339,9 +339,20 @@ export default function ActiveMission() {
                 </div>
                 <h2 className="text-2xl font-black">No Active Mission</h2>
                 <p className="text-muted-foreground max-w-xs mt-2">Browse the available jobs to start a food rescue!</p>
-                <Button className="mt-8 rounded-xl px-8" onClick={() => window.location.href = "/volunteer/available"}>
-                    Find Missions
-                </Button>
+                <div className="flex gap-4 mt-8">
+                    <Button
+                        variant="outline"
+                        className="rounded-xl px-6 gap-2"
+                        onClick={() => fetchActiveMission()}
+                        disabled={loading}
+                    >
+                        <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+                        Refresh
+                    </Button>
+                    <Button className="rounded-xl px-8" onClick={() => window.location.href = "/volunteer/available"}>
+                        Find Missions
+                    </Button>
+                </div>
             </div>
         );
     }
