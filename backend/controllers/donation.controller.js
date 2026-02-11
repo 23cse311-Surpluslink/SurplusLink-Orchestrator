@@ -445,42 +445,14 @@ export const completeDonation = async (req, res, next) => {
             }
         }
 
-        // 3. Update Volunteer (Reputation, Impact & Tiers)
+        // 3. Notify Volunteer of Verification
         if (donation.volunteer) {
-            const volunteer = await User.findById(donation.volunteer);
-            if (volunteer) {
-                const oldTier = volunteer.volunteerProfile.tier;
-                volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
-                volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + weight;
-                volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
-                volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
-                
-                // Tier Promotion Logic
-                const missions = volunteer.stats.completedDonations;
-                let newTier = 'rookie';
-                if (missions >= 50) newTier = 'champion';
-                else if (missions >= 10) newTier = 'hero';
-                
-                volunteer.volunteerProfile.tier = newTier;
-                await volunteer.save();
-
-                // Notify Volunteer of Completion
-                await createNotification(
-                    volunteer._id,
-                    `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${weight}kg Impact recorded!`,
-                    'donation_completed',
-                    donation._id
-                );
-
-                // Notify of Tier Promotion
-                if (newTier !== oldTier) {
-                    await createNotification(
-                        volunteer._id,
-                        `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
-                        'general'
-                    );
-                }
-            }
+            await createNotification(
+                donation.volunteer,
+                `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${weight}kg Impact recorded!`,
+                'donation_completed',
+                donation._id
+            );
         }
 
         await createNotification(
@@ -1114,6 +1086,38 @@ export const confirmDelivery = async (req, res, next) => {
         donation.deliveryNotes = notes;
         donation.deliveredAt = Date.now();
         await donation.save();
+
+        // Level-Up Engine: Update volunteer rank based on successful physical completion
+        const volunteer = await User.findById(req.user.id);
+        if (volunteer) {
+            const oldTier = volunteer.volunteerProfile.tier;
+            
+            // Calculate metrics
+            const match = String(donation.quantity).match(/(\d+(\.\d+)?)/);
+            const weight = match ? parseFloat(match[0]) : 1;
+            const co2Basis = weight * 2.5;
+
+            volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
+            volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + weight;
+            volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
+            volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
+
+            // Tier Calculation
+            const count = volunteer.stats.completedDonations;
+            let newTier = 'rookie';
+            if (count >= 50) newTier = 'champion';
+            else if (count >= 10) newTier = 'hero';
+
+            if (newTier !== oldTier) {
+                volunteer.volunteerProfile.tier = newTier;
+                await createNotification(
+                    volunteer._id,
+                    `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
+                    'general'
+                );
+            }
+            await volunteer.save();
+        }
 
         if (donation.claimedBy) {
             await createNotification(

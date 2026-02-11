@@ -311,7 +311,10 @@ const getVolunteerStats = async (req, res, next) => {
         // Source of Truth: Count actual completed missions from the database
         const completedMissions = await Donation.find({
             volunteer: user._id,
-            status: 'completed'
+            $or: [
+                { status: 'completed' },
+                { deliveryStatus: 'delivered' }
+            ]
         });
 
         const actualCompletedCount = completedMissions.length;
