@@ -1,3 +1,4 @@
+/** Landing page with hero, features, and impact overview */
 import { Navbar } from '@/components/layout/navbar';
 import { Hero } from '@/components/landing/hero';
 import { Features } from '@/components/landing/features';
@@ -6,6 +7,7 @@ import { Impact } from '@/components/landing/impact';
 import { FAQ } from '@/components/landing/faq';
 import { Footer } from '@/components/landing/footer';
 import { motion } from 'framer-motion';
+import React from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { useEffect } from 'react';

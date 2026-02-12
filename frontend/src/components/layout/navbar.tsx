@@ -1,3 +1,4 @@
+/** Global navigation bar for public and app pages */
 import { Sun, Moon, Bell, LogOut, Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation, Link } from 'react-router-dom';

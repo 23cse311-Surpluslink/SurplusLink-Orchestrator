@@ -1,3 +1,4 @@
+/** Discovery feed for donations within the NGO's operating radius */
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';

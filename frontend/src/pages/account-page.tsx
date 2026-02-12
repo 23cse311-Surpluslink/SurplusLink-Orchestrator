@@ -1,3 +1,4 @@
+/** User account profile management */
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

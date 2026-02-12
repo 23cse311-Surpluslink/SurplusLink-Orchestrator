@@ -1,3 +1,4 @@
+/** General user settings page */
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/auth-context';

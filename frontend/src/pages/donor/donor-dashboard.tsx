@@ -1,3 +1,4 @@
+/** Overview of donor's contributions and impact metrics */
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/common/page-header';
@@ -39,8 +40,6 @@ export default function DonorDashboard() {
     useEffect(() => {
         if (donations) {
             const acceptedDonation = donations.find(d => d.status === 'assigned');
-            // In a real app, you'd track which ones you've already notified about
-            // For now, we'll just show a toast if any is 'assigned' (which means accepted by NGO)
             if (acceptedDonation) {
                 toast({
                     title: "Donation Confirmed!",

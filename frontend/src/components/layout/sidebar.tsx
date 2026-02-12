@@ -1,3 +1,4 @@
+/** Main navigation sidebar for dashboard layout */
 import { NavLink, useLocation, Link } from 'react-router-dom';
 import {
   Home,

@@ -1,3 +1,4 @@
+/** Central administrative dashboard for system-wide oversight */
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, Truck, AlertTriangle, Building2, UserCircle } from 'lucide-react';

@@ -1,3 +1,4 @@
+/** Real-time tracking and management of the current rescue mission */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {

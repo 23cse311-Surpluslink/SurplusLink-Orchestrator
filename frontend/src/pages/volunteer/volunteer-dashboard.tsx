@@ -1,3 +1,4 @@
+/** Volunteer dashboard for tracking missions and level progress */
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

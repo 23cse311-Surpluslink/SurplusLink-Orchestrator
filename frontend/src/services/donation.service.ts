@@ -1,3 +1,4 @@
+/** API service for donation-related operations */
 import api from '@/lib/api';
 import { Donation, DonationStats, NgoStats } from '@/types';
 

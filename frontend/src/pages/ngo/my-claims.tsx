@@ -1,3 +1,4 @@
+/** Management of donations claimed by the NGO */
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DonationService from '@/services/donation.service';

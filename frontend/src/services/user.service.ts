@@ -1,3 +1,4 @@
+/** API service for user profile and stats */
 import api from '@/lib/api';
 
 export const updateVolunteerStatus = async (isOnline: boolean) => {

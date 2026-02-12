@@ -1,3 +1,4 @@
+/** NGO dashboard for managing claims and tracking impact */
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MapPin, Package, Clock, TrendingUp, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
