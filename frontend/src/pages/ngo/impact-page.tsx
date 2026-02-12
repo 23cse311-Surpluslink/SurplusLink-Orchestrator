@@ -1,3 +1,4 @@
+/** Visualization of social and environmental impact metrics for the NGO */
 import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
