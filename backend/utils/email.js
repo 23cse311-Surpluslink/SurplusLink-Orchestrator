@@ -9,17 +9,17 @@ const sendEmail = async (options) => {
   console.log(`[Email Service] attempting to send email to: ${options.email}`);
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false
-    },
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,   
-  });
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, 
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+});
+
 
   const mailOptions = {
     from: `"SurplusLink" <${process.env.EMAIL_USERNAME}>`,
