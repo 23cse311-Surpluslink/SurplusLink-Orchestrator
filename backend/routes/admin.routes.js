@@ -4,6 +4,9 @@ import {
     verifyUser,
     manageSafetyRule,
     getSafetyRules,
+    logViolation,
+    getAuditLogs,
+    interveneTask,
 } from '../controllers/admin.controller.js';
 import { protect, roleBasedAccess } from '../middleware/auth.middleware.js';
 
@@ -16,5 +19,8 @@ adminRouter.get('/pending-users', getPendingUsers);
 adminRouter.post('/verify-user', verifyUser);
 adminRouter.post('/safety-rules', manageSafetyRule);
 adminRouter.get('/safety-rules', getSafetyRules);
+adminRouter.post('/log-violation', logViolation);
+adminRouter.get('/audit-logs', getAuditLogs);
+adminRouter.post('/intervene-task', interveneTask);
 
 export default adminRouter;

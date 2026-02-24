@@ -33,6 +33,14 @@ const userSchema = mongoose.Schema(
       enum: ['active', 'pending', 'deactivated', 'rejected'],
       default: 'pending',
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    violationCount: {
+      type: Number,
+      default: 0,
+    },
     taxId: String,
     permitNumber: String,
     documentUrl: String,
@@ -150,7 +158,7 @@ userSchema.pre('save', async function (next) {
     // Sync Root GeoJSON
     this.location = {
       type: 'Point',
-      coordinates: [lng, lat] 
+      coordinates: [lng, lat]
     };
 
     // Sync Volunteer Profile GeoJSON

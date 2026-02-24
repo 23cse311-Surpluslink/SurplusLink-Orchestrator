@@ -1,6 +1,8 @@
 import User from '../models/User.model.js';
 import SafetyRule from '../models/SafetyRule.model.js';
 import VerificationLog from '../models/VerificationLog.model.js';
+import ViolationLog from '../models/ViolationLog.model.js';
+import AuditLog from '../models/AuditLog.model.js';
 import Donation from '../models/Donation.model.js';
 
 /**
@@ -44,6 +46,14 @@ export const verifyUser = async (req, res, next) => {
             remarks,
         });
 
+        // Audit Log
+        await AuditLog.create({
+            action: `USER_VERIFICATION_${status.toUpperCase()}`,
+            category: 'verification',
+            userId: req.user._id,
+            metadata: { targetUserId: userId, remarks },
+        });
+
         res.json({ message: `User ${status} successfully` });
     } catch (error) {
         next(error);
@@ -65,6 +75,14 @@ export const manageSafetyRule = async (req, res, next) => {
             { upsert: true, new: true }
         );
 
+        // Audit Log
+        await AuditLog.create({
+            action: 'MANAGE_SAFETY_RULE',
+            category: 'safety',
+            userId: req.user._id,
+            metadata: { rule },
+        });
+
         res.json(rule);
     } catch (error) {
         next(error);
@@ -80,6 +98,117 @@ export const getSafetyRules = async (req, res, next) => {
     try {
         const rules = await SafetyRule.find();
         res.json(rules);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Log a violation for a user
+ * @route   POST /api/v1/admin/log-violation
+ * @access  Private/Admin
+ */
+export const logViolation = async (req, res, next) => {
+    try {
+        const { userId, violationType, actionTaken, description, severity } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        user.violationCount += 1;
+
+        // Auto-suspension threshold
+        if (user.violationCount >= 3) {
+            user.status = 'deactivated';
+        }
+
+        await user.save();
+
+        const violation = await ViolationLog.create({
+            userId,
+            adminId: req.user._id,
+            violationType,
+            actionTaken,
+            description,
+            severity,
+        });
+
+        // Audit Log
+        await AuditLog.create({
+            action: 'LOG_VIOLATION',
+            category: 'user',
+            userId: req.user._id,
+            metadata: { targetUserId: userId, violationId: violation._id, actionTaken },
+        });
+
+        res.json({
+            message: 'Violation logged successfully',
+            violationCount: user.violationCount,
+            accountStatus: user.status
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get Audit Logs
+ * @route   GET /api/v1/admin/audit-logs
+ * @access  Private/Admin
+ */
+export const getAuditLogs = async (req, res, next) => {
+    try {
+        const logs = await AuditLog.find()
+            .populate('userId', 'name email role')
+            .sort({ createdAt: -1 })
+            .limit(100);
+        res.json(logs);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Admin Intervention (Cancel/Reassign donation task)
+ * @route   POST /api/v1/admin/intervene-task
+ * @access  Private/Admin
+ */
+export const interveneTask = async (req, res, next) => {
+    try {
+        const { donationId, action, reason } = req.body;
+
+        const donation = await Donation.findById(donationId);
+        if (!donation) {
+            res.status(404);
+            throw new Error('Donation task not found');
+        }
+
+        if (action === 'cancel') {
+            donation.status = 'active';
+            donation.claimedBy = null;
+            donation.volunteer = null;
+            donation.deliveryStatus = 'idle';
+        } else if (action === 'reassign') {
+            donation.claimedBy = null;
+            donation.volunteer = null;
+            donation.status = 'active';
+            donation.deliveryStatus = 'idle';
+        }
+
+        await donation.save();
+
+        // Audit Log
+        await AuditLog.create({
+            action: `ADMIN_INTERVENTION_${action.toUpperCase()}`,
+            category: 'donation',
+            userId: req.user._id,
+            metadata: { donationId, reason, action },
+        });
+
+        res.json({ message: `Task ${action}ed successfully` });
     } catch (error) {
         next(error);
     }

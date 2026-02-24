@@ -12,6 +12,8 @@
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
+import AuditLog from '../models/AuditLog.model.js';
+
 import SafetyRule from '../models/SafetyRule.model.js';
 
 import sendEmail from '../utils/email.js';
@@ -147,7 +149,16 @@ export const createDonation = async (req, res) => {
 
         const donation = await Donation.create(donationData);
 
+        // Audit Log
+        await AuditLog.create({
+            action: 'CREATE_DONATION',
+            category: 'donation',
+            userId: req.user._id,
+            metadata: { donationId: donation._id, title: donation.title },
+        });
+
         //notify all nearby ngos brodcast
+
         try {
             const ngos = await User.find({ role: 'ngo' });
             for (const ngo of ngos) {
@@ -585,6 +596,14 @@ export const claimDonation = async (req, res, next) => {
         donation.claimedBy = req.user.id;
         donation.claimedAt = Date.now();
         await donation.save();
+
+        // Audit Log
+        await AuditLog.create({
+            action: 'CLAIM_DONATION',
+            category: 'donation',
+            userId: req.user._id,
+            metadata: { donationId: donation._id, title: donation.title },
+        });
 
         await createNotification(
             donation.donor,
