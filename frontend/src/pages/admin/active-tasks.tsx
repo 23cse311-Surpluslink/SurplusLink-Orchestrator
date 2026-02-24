@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Truck, MapPin, Building2, User as UserIcon, AlertTriangle, XCircle, Rot
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Donation } from '@/types';
 
 interface ActiveTask {
     _id: string;
@@ -27,16 +28,11 @@ export default function ActiveTasksPage() {
     const [reason, setReason] = useState('');
     const { toast } = useToast();
 
-    useEffect(() => {
-        fetchActiveTasks();
-    }, []);
-
-    const fetchActiveTasks = async () => {
+    const fetchActiveTasks = useCallback(async () => {
         try {
-            // Reusing donation list api but filtering for non-completed ones
             const res = await api.get('/donations');
-            const active = res.data.filter((t: any) => t.status !== 'completed' && t.status !== 'expired');
-            setTasks(active);
+            const active = res.data.filter((t: Donation) => t.status !== 'completed' && t.status !== 'expired');
+            setTasks(active as unknown as ActiveTask[]);
         } catch (error) {
             toast({
                 title: 'Error',
@@ -46,7 +42,11 @@ export default function ActiveTasksPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        fetchActiveTasks();
+    }, [fetchActiveTasks]);
 
     const handleIntervene = async (donationId: string, action: 'cancel' | 'reassign' | 'pause') => {
         if (!reason) {

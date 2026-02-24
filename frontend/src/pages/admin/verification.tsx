@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,11 +27,7 @@ export default function VerificationPage() {
     const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
     const { toast } = useToast();
 
-    useEffect(() => {
-        fetchPendingUsers();
-    }, []);
-
-    const fetchPendingUsers = async () => {
+    const fetchPendingUsers = useCallback(async () => {
         try {
             const res = await api.get('/admin/pending-users');
             setUsers(res.data);
@@ -44,7 +40,11 @@ export default function VerificationPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        fetchPendingUsers();
+    }, [fetchPendingUsers]);
 
     const handleVerify = async (userId: string, status: 'approved' | 'rejected') => {
         setProcessingId(userId);

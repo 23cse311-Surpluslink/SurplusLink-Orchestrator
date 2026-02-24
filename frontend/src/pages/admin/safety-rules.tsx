@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,11 +32,7 @@ export default function SafetyRulesPage() {
         storageRequired: 'ambient'
     });
 
-    useEffect(() => {
-        fetchRules();
-    }, []);
-
-    const fetchRules = async () => {
+    const fetchRules = useCallback(async () => {
         try {
             const res = await api.get('/admin/safety-rules');
             setRules(res.data);
@@ -49,7 +45,11 @@ export default function SafetyRulesPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        fetchRules();
+    }, [fetchRules]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

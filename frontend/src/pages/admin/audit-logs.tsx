@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ interface AuditLog {
         email: string;
         role: string;
     };
-    metadata: any;
+    metadata: Record<string, unknown>;
     createdAt: string;
 }
 
@@ -29,11 +29,7 @@ export default function AuditLogsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const { toast } = useToast();
 
-    useEffect(() => {
-        fetchLogs();
-    }, []);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         try {
             const res = await api.get('/admin/audit-logs');
             setLogs(res.data);
@@ -46,7 +42,11 @@ export default function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
 
     const getCategoryBadge = (category: string) => {
         const styles: { [key: string]: string } = {
