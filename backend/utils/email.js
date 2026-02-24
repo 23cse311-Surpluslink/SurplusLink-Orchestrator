@@ -1,38 +1,48 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
-  // Mock mode for tests or missing API key
-  if (process.env.NODE_ENV === 'test' || !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === 'test' || !process.env.EMAIL_HOST || !process.env.EMAIL_USERNAME) {
     console.log(`[Email Mock] ${process.env.NODE_ENV === 'test' ? 'Test Mode' : 'Missing Credentials'} - Skipping real send to: ${options.email}`);
     return { mock: true, to: options.email, subject: options.subject };
   }
 
-  console.log(`[Resend Service] attempting to send email to: ${options.email}`);
+  console.log(`[Email Service] attempting to send email to: ${options.email}`);
 
-  // Initialize Resend
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: process.env.EMAIL_PORT == 465, // true for 465, false for 587/STARTTLS
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+  });
 
   const mailOptions = {
-    from: 'SurplusLink <onboarding@resend.dev>', // Keep this as onboarding@resend.dev during testing phase
-    to: typeof options.email === 'string' ? [options.email] : options.email,
+    from: `"SurplusLink" <${process.env.EMAIL_USERNAME}>`,
+    to: options.email,
     subject: options.subject,
     text: options.message,
     html: options.html,
   };
 
   try {
-    const { data, error } = await resend.emails.send(mailOptions);
-
-    if (error) {
-      console.error(`[Resend Service] Error Payload:`, error);
-      throw new Error(error.message);
-    }
-
-    console.log(`[Resend Service] SUCCESS: Message sent to ${options.email} (ID: ${data?.id})`);
-    return data;
+    console.log(`[Email Service] Sending via ${process.env.EMAIL_HOST}...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[Email Service] SUCCESS: Message sent to ${options.email} (ID: ${info.messageId})`);
+    return info;
   } catch (error) {
-    console.error(`[Resend Service] FAILURE: Could not send email to ${options.email}`);
-    console.error(`[Resend Service] Error Message: ${error.message}`);
+    console.error(`[Email Service] FAILURE: Could not send email to ${options.email}`);
+    console.error(`[Email Service] Error Type: ${error.name}`);
+    console.error(`[Email Service] Error Message: ${error.message}`);
+    if (error.code === 'EAUTH') {
+      console.error(`[Email Service] AUTH ERROR: Check EMAIL_USERNAME and EMAIL_PASSWORD (App Password required for Gmail)`);
+    }
     throw error;
   }
 };
