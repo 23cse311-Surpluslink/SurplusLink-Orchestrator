@@ -10,6 +10,8 @@ import userRoutes from './routes/user.routes.js';
 import donationRoutes from './routes/donation.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import reportRoutes from './routes/report.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+
 
 dotenv.config({ path: './.env' });
 
@@ -71,6 +73,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/admin', adminRoutes);
+
 
 // Error Handling
 app.use(notFound);

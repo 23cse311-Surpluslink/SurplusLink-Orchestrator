@@ -12,6 +12,8 @@
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
 import { createNotification } from '../utils/notification.js';
+import SafetyRule from '../models/SafetyRule.model.js';
+
 import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
 import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
@@ -78,6 +80,17 @@ export const createDonation = async (req, res) => {
                 message: 'Food items must be valid for at least 2 hours before expiry for safety.',
             });
         }
+
+        // --- EPIC 6: SAFETY RULE ENFORCEMENT ---
+        const rule = await SafetyRule.findOne({ foodType, isActive: true });
+        if (rule) {
+            if (hoursToExpiry > rule.maxDurationHours) {
+                return res.status(400).json({
+                    message: `Safety Violation: ${foodType} cannot be safely distributed if kept for more than ${rule.maxDurationHours} hours. (Currently: ${hoursToExpiry.toFixed(1)} hours left)`,
+                });
+            }
+        }
+
 
         //scheduling rule: ensure pickupWindow.end < expiryDate
         if (windowEnd >= expiry) {
@@ -270,7 +283,7 @@ export const getNgoStats = async (req, res) => {
         // Metric 3: Monthly Breakdown for Charts
         const monthlyDataMap = {};
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         // Initialize last 6 months
         const now = new Date();
         for (let i = 5; i >= 0; i--) {
@@ -501,7 +514,7 @@ export const getSmartFeed = async (req, res, next) => {
 
                 // Core Logic: Find best donations within radius
                 donations = await findBestDonationsForNGO(req.user.id);
-                
+
                 // Global Fallback for Testing / Low Density areas
                 if (donations.length === 0) {
                     donations = await Donation.find({ status: 'active' })
@@ -659,10 +672,10 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
         console.log(`[Auto-Dispatch] Dispatching donation ${donationId} to ${priorityVolunteers.length} volunteers.`);
 
         const isTest = process.env.NODE_ENV === 'test';
-        
+
         // Strategy: Sequence notifications to prevent multiple volunteers from racing to the same item
         priorityVolunteers.forEach((volunteer, index) => {
-            const delay = isTest ? 0 : index * 30000; 
+            const delay = isTest ? 0 : index * 30000;
 
             setTimeout(async () => {
                 const freshDonation = await Donation.findById(donationId);
@@ -826,7 +839,7 @@ export const getAvailableMissions = async (req, res, next) => {
         const query = {
             status: 'assigned',
             deliveryStatus: 'idle',
-            volunteer: { $exists: false }, 
+            volunteer: { $exists: false },
         };
 
         let donations;
@@ -838,9 +851,9 @@ export const getAvailableMissions = async (req, res, next) => {
         // Logistic Rule: Honor the 2-minute priority period for dispatched volunteers
         const lockFilter = {
             $or: [
-                { dispatchedAt: { $exists: false } }, 
-                { dispatchedAt: { $lt: lockThreshold } }, 
-                { dispatchedTo: req.user.id } 
+                { dispatchedAt: { $exists: false } },
+                { dispatchedAt: { $lt: lockThreshold } },
+                { dispatchedTo: req.user.id }
             ]
         };
 
@@ -868,7 +881,7 @@ export const getAvailableMissions = async (req, res, next) => {
 
         // Capacity Rule: Filter missions based on volunteer vehicle weight limits
         const suitableMissions = donations.filter(donation => {
-            if (!maxWeight) return true; 
+            if (!maxWeight) return true;
 
             const quantityStr = String(donation.quantity).toLowerCase();
             const match = quantityStr.match(/(\d+(\.\d+)?)/);
@@ -876,7 +889,7 @@ export const getAvailableMissions = async (req, res, next) => {
                 const weight = parseFloat(match[0]);
                 return weight <= maxWeight;
             }
-            return true; 
+            return true;
         });
 
         res.json(suitableMissions);
@@ -915,7 +928,7 @@ export const acceptMission = async (req, res, next) => {
                 _id: donationId,
                 status: 'assigned',
                 deliveryStatus: 'idle',
-                volunteer: { $exists: false } 
+                volunteer: { $exists: false }
             },
             {
                 volunteer: volunteerId,
@@ -1091,7 +1104,7 @@ export const confirmDelivery = async (req, res, next) => {
         const volunteer = await User.findById(req.user.id);
         if (volunteer) {
             const oldTier = volunteer.volunteerProfile.tier;
-            
+
             // Calculate metrics
             const match = String(donation.quantity).match(/(\d+(\.\d+)?)/);
             const weight = match ? parseFloat(match[0]) : 1;
@@ -1300,7 +1313,7 @@ export const getOptimizedRoute = async (req, res, next) => {
                 type: 'pickup',
                 coordinates: donation.coordinates.coordinates,
                 address: donation.pickupAddress,
-                priority: 5 
+                priority: 5
             },
             {
                 id: 'dropoff',
