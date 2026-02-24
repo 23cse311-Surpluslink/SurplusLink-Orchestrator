@@ -35,6 +35,16 @@ import api from '@/lib/api';
 import { User } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function UserManagement() {
     const [users, setUsers] = useState<User[]>([]);
@@ -61,6 +71,38 @@ export default function UserManagement() {
         const interval = setInterval(fetchUsers, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isViolationModalOpen, setIsViolationModalOpen] = useState(false);
+    const [violationData, setViolationData] = useState({
+        violationType: 'hygiene',
+        severity: 'medium',
+        description: '',
+        actionTaken: 'warning'
+    });
+
+    const handleLogViolation = async () => {
+        if (!selectedUser) return;
+        try {
+            await api.post('/admin/log-violation', {
+                userId: selectedUser.id,
+                ...violationData
+            });
+            toast({
+                title: "Violation Logged",
+                description: `A violation has been recorded for ${selectedUser.name}.`,
+            });
+            setIsViolationModalOpen(false);
+            setViolationData({ violationType: 'hygiene', severity: 'medium', description: '', actionTaken: 'warning' });
+            fetchUsers();
+        } catch (error) {
+            toast({
+                title: "Action Failed",
+                description: "Could not log violation.",
+                variant: "destructive"
+            });
+        }
+    };
 
     const handleVerify = async (userId: string, newStatus: string) => {
         try {
@@ -159,6 +201,10 @@ export default function UserManagement() {
                                             user={user}
                                             onVerify={handleVerify}
                                             onReview={() => setActiveTab('pending')}
+                                            onFlag={() => {
+                                                setSelectedUser(user);
+                                                setIsViolationModalOpen(true);
+                                            }}
                                         />
                                     ))}
                                 </AnimatePresence>
@@ -189,11 +235,97 @@ export default function UserManagement() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <Dialog open={isViolationModalOpen} onOpenChange={setIsViolationModalOpen}>
+                <DialogContent className="rounded-3xl border-border/50 max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black tracking-tight">Report Safety Violation</DialogTitle>
+                        <DialogDescription className="font-medium">
+                            Record a policy or safety breach for <strong>{selectedUser?.name}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-6 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-50">Violation Type</Label>
+                                <Select
+                                    value={violationData.violationType}
+                                    onValueChange={(v) => setViolationData({ ...violationData, violationType: v })}
+                                >
+                                    <SelectTrigger className="h-12 rounded-xl bg-muted/30">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="hygiene">Hygiene Breach</SelectItem>
+                                        <SelectItem value="delivery_fail">Delivery Failure</SelectItem>
+                                        <SelectItem value="misconduct">User Misconduct</SelectItem>
+                                        <SelectItem value="documentation">Invalid Docs</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-50">Severity</Label>
+                                <Select
+                                    value={violationData.severity}
+                                    onValueChange={(v) => setViolationData({ ...violationData, severity: v })}
+                                >
+                                    <SelectTrigger className="h-12 rounded-xl bg-muted/30">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="low">Low (Warning)</SelectItem>
+                                        <SelectItem value="medium">Medium</SelectItem>
+                                        <SelectItem value="high">High (Immediate Action)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest opacity-50">Incident Description</Label>
+                            <Textarea
+                                placeholder="Describe the violation in detail..."
+                                className="h-32 rounded-2xl bg-muted/30 resize-none border-none focus-visible:ring-primary"
+                                value={violationData.description}
+                                onChange={(e) => setViolationData({ ...violationData, description: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest opacity-50">Administrative Action</Label>
+                            <Select
+                                value={violationData.actionTaken}
+                                onValueChange={(v) => setViolationData({ ...violationData, actionTaken: v })}
+                            >
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="warning">Official Warning</SelectItem>
+                                    <SelectItem value="suspension">Temporary Suspension</SelectItem>
+                                    <SelectItem value="ban">Permanent Ban</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="ghost" className="h-12 rounded-xl font-bold uppercase tracking-wider text-xs" onClick={() => setIsViolationModalOpen(false)}>Cancel</Button>
+                        <Button
+                            className="bg-red-500 hover:bg-red-600 h-12 flex-1 rounded-xl font-black uppercase tracking-widest text-xs"
+                            onClick={handleLogViolation}
+                        >
+                            Log Incident & Notify User
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
 
-function UserCard({ user, onVerify, onReview }: { user: User, onVerify: (id: string, s: string) => void, onReview: () => void }) {
+function UserCard({ user, onVerify, onReview, onFlag }: { user: User, onVerify: (id: string, s: string) => void, onReview: () => void, onFlag: () => void }) {
     return (
         <motion.div
             layout
@@ -221,12 +353,20 @@ function UserCard({ user, onVerify, onReview }: { user: User, onVerify: (id: str
                         <StatusBadge status={user.status} />
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                    {user.organization && (
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground/70 uppercase tracking-tight">
-                            <Building2 className="h-3 w-3" />
-                            {user.organization}
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {user.organization && (
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground/70 uppercase tracking-tight">
+                                <Building2 className="h-3 w-3" />
+                                {user.organization}
+                            </div>
+                        )}
+                        {user.violationCount && user.violationCount > 0 && (
+                            <div className="flex items-center gap-1.5 text-[11px] font-black text-red-500 uppercase tracking-tight">
+                                <ShieldAlert className="h-3 w-3" />
+                                {user.violationCount} Violations
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -236,7 +376,19 @@ function UserCard({ user, onVerify, onReview }: { user: User, onVerify: (id: str
                     Joined {new Date(user.createdAt).toLocaleDateString()}
                 </div>
                 <div className="flex gap-2">
+                    {user.status === 'active' && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg text-[12px] font-bold uppercase tracking-wide text-orange-500 border-orange-500/20 hover:bg-orange-500/10"
+                            onClick={onFlag}
+                        >
+                            <ShieldAlert size={14} className="mr-1" />
+                            Flag
+                        </Button>
+                    )}
                     {user.status === 'pending' ? (
+                        // ... existing button logic
                         user.documentUrl || user.taxId ? (
                             <Button
                                 variant="hero"

@@ -32,6 +32,7 @@ export interface User {
   address?: string;
   coordinates?: { lat: number; lng: number };
   isOnline?: boolean;
+  violationCount?: number;
   volunteerProfile?: VolunteerProfile;
   stats?: UserStats;
 }

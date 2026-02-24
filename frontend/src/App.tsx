@@ -22,6 +22,10 @@ import DonorImpact from "./pages/donor/donor-impact";
 import DonorSettings from "./pages/donor/settings";
 import AdminDashboard from "./pages/admin/admin-dashboard";
 import UserManagement from "./pages/admin/user-management";
+import VerificationPage from "./pages/admin/verification";
+import SafetyRulesPage from "./pages/admin/safety-rules";
+import AuditLogsPage from "./pages/admin/audit-logs";
+import ActiveTasksPage from "./pages/admin/active-tasks";
 import DonationAnalytics from "./pages/admin/donation-analytics";
 import NgoDashboard from "./pages/ngo/ngo-dashboard";
 import VolunteerDashboard from "./pages/volunteer/volunteer-dashboard";
@@ -85,6 +89,10 @@ const App = () => (
                 <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
+                  <Route path="verification" element={<VerificationPage />} />
+                  <Route path="safety" element={<SafetyRulesPage />} />
+                  <Route path="audit" element={<AuditLogsPage />} />
+                  <Route path="tasks" element={<ActiveTasksPage />} />
                   <Route path="reports" element={<DonationAnalytics />} />
                   <Route path="volunteers" element={<VolunteerPerformance />} />
                   <Route path="impact-report" element={<NgoImpactReport />} />

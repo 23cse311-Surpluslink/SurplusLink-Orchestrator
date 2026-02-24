@@ -19,6 +19,8 @@ import {
     Sparkles,
     Circle,
     Zap,
+    ShieldAlert,
+    AlertTriangle
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -87,11 +89,13 @@ const navItemsByRole = {
     ],
     admin: [
         { label: "Dashboard", href: "/admin", icon: Home },
-        { label: "User Management", href: "/admin/users", icon: Users },
+        { label: "User Directory", href: "/admin/users", icon: Users },
+        { label: "KYC Hub", href: "/admin/verification", icon: ShieldCheck },
+        { label: "Safety Rules", href: "/admin/safety", icon: ShieldAlert },
+        { label: "Audit Trail", href: "/admin/audit", icon: List },
+        { label: "Task Rescue", href: "/admin/tasks", icon: AlertTriangle },
         { label: "System Reports", href: "/admin/reports", icon: FileText },
         { label: "Volunteer Fleet", href: "/admin/volunteers", icon: Zap },
-        { label: "Live Tracking", href: "/admin/tracking", icon: Truck },
-        { label: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
     ],
     volunteer: [
         { label: "Dashboard", href: "/volunteer", icon: Home },
