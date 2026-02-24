@@ -4,6 +4,7 @@ import VerificationLog from '../models/VerificationLog.model.js';
 import ViolationLog from '../models/ViolationLog.model.js';
 import AuditLog from '../models/AuditLog.model.js';
 import Donation from '../models/Donation.model.js';
+import { createNotification } from '../utils/notification.js';
 
 /**
  * @desc    Get all pending users for verification
@@ -180,11 +181,18 @@ export const interveneTask = async (req, res, next) => {
     try {
         const { donationId, action, reason } = req.body;
 
-        const donation = await Donation.findById(donationId);
+        const donation = await Donation.findById(donationId)
+            .populate('donor')
+            .populate('claimedBy')
+            .populate('volunteer');
+
         if (!donation) {
             res.status(404);
             throw new Error('Donation task not found');
         }
+
+        const oldVolunteer = donation.volunteer;
+        const oldNgo = donation.claimedBy;
 
         if (action === 'cancel') {
             donation.status = 'active';
@@ -196,19 +204,33 @@ export const interveneTask = async (req, res, next) => {
             donation.volunteer = null;
             donation.status = 'active';
             donation.deliveryStatus = 'idle';
+        } else if (action === 'pause') {
+            // Future requirement: pause logic
+            donation.status = 'active'; // Temporarily reset to active but could be a 'paused' state
         }
 
         await donation.save();
+
+        // 🔔 Notify Stakeholders of intervention
+        const participants = [donation.donor, oldNgo, oldVolunteer].filter(Boolean);
+        for (const participant of participants) {
+            await createNotification(
+                participant._id,
+                `Admin Intervention: The task for "${donation.title}" has been ${action}ed. Reason: ${reason}`,
+                'general',
+                donation._id
+            );
+        }
 
         // Audit Log
         await AuditLog.create({
             action: `ADMIN_INTERVENTION_${action.toUpperCase()}`,
             category: 'donation',
             userId: req.user._id,
-            metadata: { donationId, reason, action },
+            metadata: { donationId, reason, action, affectedUsers: participants.map(p => p._id) },
         });
 
-        res.json({ message: `Task ${action}ed successfully` });
+        res.json({ message: `Task ${action}ed successfully and stakeholders notified.` });
     } catch (error) {
         next(error);
     }

@@ -178,10 +178,19 @@ userSchema.pre('save', async function (next) {
 userSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
-  transform: function (doc, ret) {
+  transform: function (doc, ret, options) {
     ret.id = ret._id;
     delete ret._id;
     delete ret.password;
+
+    // --- EPIC 6: DATA PRIVACY PROTECTION (US 6.6) ---
+    // Mask sensitive identification data for non-privileged views
+    const isPrivileged = options && (options.role === 'admin' || options.userId === ret.id.toString());
+
+    if (!isPrivileged) {
+      if (ret.taxId) ret.taxId = '***' + ret.taxId.slice(-4);
+      if (ret.permitNumber) ret.permitNumber = '***' + ret.permitNumber.slice(-4);
+    }
   },
 });
 

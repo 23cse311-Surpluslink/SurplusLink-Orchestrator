@@ -19,7 +19,8 @@ const getUserProfile = async (req, res, next) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
-            res.json(user);
+            // Apply Data Privacy Masking (EPIC 6)
+            res.json(user.toJSON({ role: req.user.role, userId: req.user._id }));
         } else {
             res.status(404);
             throw new Error('User not found');
@@ -155,7 +156,8 @@ const submitVerification = async (req, res, next) => {
 const getUsers = async (req, res, next) => {
     try {
         const users = await User.find({}).sort({ createdAt: -1 });
-        res.json(users);
+        // Apply Data Privacy Masking (EPIC 6)
+        res.json(users.map(u => u.toJSON({ role: req.user.role, userId: req.user._id })));
     } catch (error) {
         next(error);
     }
@@ -175,7 +177,8 @@ const getPendingVerifications = async (req, res, next) => {
                 { documentUrl: { $exists: true } }
             ]
         }).sort({ createdAt: -1 });
-        res.json(users);
+        // Apply Data Privacy Masking (EPIC 6)
+        res.json(users.map(u => u.toJSON({ role: req.user.role, userId: req.user._id })));
     } catch (error) {
         next(error);
     }
