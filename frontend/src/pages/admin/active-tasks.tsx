@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Donation } from '@/types';
 
 interface ActiveTask {
-    _id: string;
+    id: string;
     title: string;
     status: string;
     deliveryStatus: string;
@@ -30,7 +30,7 @@ export default function ActiveTasksPage() {
 
     const fetchActiveTasks = useCallback(async () => {
         try {
-            const res = await api.get('/donations');
+            const res = await api.get('/donations/admin/active-missions');
             const active = res.data.filter((t: Donation) => t.status !== 'completed' && t.status !== 'expired');
             setTasks(active as unknown as ActiveTask[]);
         } catch (error) {
@@ -83,7 +83,7 @@ export default function ActiveTasksPage() {
                     </Card>
                 ) : (
                     tasks.map(task => (
-                        <Card key={task._id} className="border-border/50 overflow-hidden">
+                        <Card key={task.id} className="border-border/50 overflow-hidden">
                             <div className="p-6 grid md:grid-cols-4 gap-6">
                                 <div className="md:col-span-2 space-y-4">
                                     <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ export default function ActiveTasksPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-lg">{task.title}</h3>
-                                            <p className="text-xs text-muted-foreground">ID: {task._id}</p>
+                                            <p className="text-xs text-muted-foreground">ID: {task.id}</p>
                                         </div>
                                     </div>
 
@@ -129,7 +129,7 @@ export default function ActiveTasksPage() {
                                 </div>
 
                                 <div className="md:col-span-2 flex flex-col justify-between border-l border-border/50 pl-6">
-                                    {interventionId === task._id ? (
+                                    {interventionId === task.id ? (
                                         <div className="space-y-3">
                                             <Textarea
                                                 placeholder="Reason for intervention (required)..."
@@ -138,9 +138,9 @@ export default function ActiveTasksPage() {
                                                 onChange={(e) => setReason(e.target.value)}
                                             />
                                             <div className="grid grid-cols-3 gap-2">
-                                                <Button size="sm" variant="destructive" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task._id, 'cancel')}>Cancel</Button>
-                                                <Button size="sm" variant="default" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task._id, 'reassign')}>Reassign</Button>
-                                                <Button size="sm" variant="secondary" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task._id, 'pause')}>Pause</Button>
+                                                <Button size="sm" variant="destructive" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task.id, 'cancel')}>Cancel</Button>
+                                                <Button size="sm" variant="default" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task.id, 'reassign')}>Reassign</Button>
+                                                <Button size="sm" variant="secondary" className="rounded-lg text-[10px] uppercase font-black" onClick={() => handleIntervene(task.id, 'pause')}>Pause</Button>
                                             </div>
                                             <Button variant="ghost" className="w-full h-8 text-[10px] uppercase font-bold" onClick={() => setInterventionId(null)}>Back</Button>
                                         </div>
@@ -150,7 +150,7 @@ export default function ActiveTasksPage() {
                                             <Button
                                                 variant="hero"
                                                 className="bg-orange-500 hover:bg-orange-600 h-10 w-full rounded-xl gap-2 font-black uppercase text-xs"
-                                                onClick={() => setInterventionId(task._id)}
+                                                onClick={() => setInterventionId(task.id)}
                                             >
                                                 Intervene Task
                                             </Button>

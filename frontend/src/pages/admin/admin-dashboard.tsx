@@ -95,7 +95,7 @@ export default function AdminDashboard() {
                         size="sm"
                         variant="hero"
                         className="bg-orange-500 hover:bg-orange-600 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest px-6"
-                        onClick={() => navigate('/admin/users')}
+                        onClick={() => navigate('/admin/verification')}
                     >
                         Review KYC
                     </Button>

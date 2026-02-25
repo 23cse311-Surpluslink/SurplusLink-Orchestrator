@@ -12,7 +12,7 @@ import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SafetyRule {
-    _id: string;
+    id: string;
     foodType: string;
     maxDurationHours: number;
     storageRequired: string;
@@ -29,7 +29,7 @@ export default function SafetyRulesPage() {
     const [formData, setFormData] = useState({
         foodType: '',
         maxDurationHours: 24,
-        storageRequired: 'ambient'
+        storageRequired: 'dry'
     });
 
     const fetchRules = useCallback(async () => {
@@ -61,7 +61,7 @@ export default function SafetyRulesPage() {
             });
             fetchRules();
             setIsAdding(false);
-            setFormData({ foodType: '', maxDurationHours: 24, storageRequired: 'ambient' });
+            setFormData({ foodType: '', maxDurationHours: 24, storageRequired: 'dry' });
         } catch (error) {
             toast({
                 title: 'Error',
@@ -133,10 +133,10 @@ export default function SafetyRulesPage() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="ambient">Ambient (Room Temp)</SelectItem>
-                                                <SelectItem value="refrigerated">Refrigerated</SelectItem>
-                                                <SelectItem value="frozen">Frozen</SelectItem>
-                                                <SelectItem value="hot">Hot Storage</SelectItem>
+                                                <SelectItem value="none">No Specific Storage</SelectItem>
+                                                <SelectItem value="dry">Dry Storage</SelectItem>
+                                                <SelectItem value="cold">Cold Storage</SelectItem>
+                                                <SelectItem value="frozen">Frozen Storage</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -163,7 +163,7 @@ export default function SafetyRulesPage() {
                     [1, 2, 3].map(i => <div key={i} className="h-48 rounded-2xl bg-muted animate-pulse" />)
                 ) : (
                     rules.map(rule => (
-                        <Card key={rule._id} className="border-border/50 group hover:border-primary/50 transition-colors">
+                        <Card key={rule.id} className="border-border/50 group hover:border-primary/50 transition-colors">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-black uppercase tracking-wider">{rule.foodType}</CardTitle>
                                 <ShieldAlert size={18} className="text-primary opacity-20 group-hover:opacity-100 transition-opacity" />
