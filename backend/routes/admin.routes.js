@@ -14,7 +14,6 @@ const adminRouter = express.Router();
 
 adminRouter.use(protect);
 adminRouter.use(roleBasedAccess(['admin']));
-
 adminRouter.get('/pending-users', getPendingUsers);
 adminRouter.post('/verify-user', verifyUser);
 adminRouter.post('/safety-rules', manageSafetyRule);
