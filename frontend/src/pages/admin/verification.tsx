@@ -10,7 +10,7 @@ import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PendingUser {
-    _id: string;
+    id: string;
     name: string;
     email: string;
     role: string;
@@ -29,7 +29,7 @@ export default function VerificationPage() {
 
     const fetchPendingUsers = useCallback(async () => {
         try {
-            const res = await api.get('/admin/pending-users');
+            const res = await api.get('/users/admin/pending');
             setUsers(res.data);
         } catch (error) {
             toast({
@@ -58,7 +58,7 @@ export default function VerificationPage() {
                 title: 'Success',
                 description: `User has been ${status}`,
             });
-            setUsers(users.filter(u => u._id !== userId));
+            setUsers(users.filter(u => u.id !== userId));
         } catch (error) {
             toast({
                 title: 'Error',
@@ -96,7 +96,7 @@ export default function VerificationPage() {
                     <AnimatePresence>
                         {users.map(user => (
                             <motion.div
-                                key={user._id}
+                                key={user.id}
                                 layout
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -148,16 +148,16 @@ export default function VerificationPage() {
                                             <Textarea
                                                 placeholder="Add internal notes or rejection reason..."
                                                 className="bg-background/50 text-sm h-20 resize-none rounded-xl"
-                                                value={remarks[user._id] || ''}
-                                                onChange={(e) => setRemarks({ ...remarks, [user._id]: e.target.value })}
+                                                value={remarks[user.id] || ''}
+                                                onChange={(e) => setRemarks({ ...remarks, [user.id]: e.target.value })}
                                             />
                                         </div>
 
                                         <div className="p-6 flex flex-col justify-center gap-3 bg-muted/5">
                                             <Button
                                                 className="w-full h-12 rounded-xl gap-2 font-black uppercase text-xs"
-                                                onClick={() => handleVerify(user._id, 'approved')}
-                                                disabled={processingId === user._id}
+                                                onClick={() => handleVerify(user.id, 'approved')}
+                                                disabled={processingId === user.id}
                                             >
                                                 <CheckCircle2 size={16} />
                                                 Approve User
@@ -165,8 +165,8 @@ export default function VerificationPage() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full h-12 rounded-xl gap-2 font-black uppercase text-xs border-red-500/20 text-red-500 hover:bg-red-500/10 hover:border-red-500"
-                                                onClick={() => handleVerify(user._id, 'rejected')}
-                                                disabled={processingId === user._id}
+                                                onClick={() => handleVerify(user.id, 'rejected')}
+                                                disabled={processingId === user.id}
                                             >
                                                 <XCircle size={16} />
                                                 Reject Identity

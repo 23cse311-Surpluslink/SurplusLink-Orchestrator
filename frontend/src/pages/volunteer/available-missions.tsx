@@ -160,18 +160,7 @@ export default function AvailableMissions() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <Tabs value={view} onValueChange={(v) => setView(v as "list" | "map")} className="w-fit">
-                        <TabsList className="bg-muted/50 border border-border/50">
-                            <TabsTrigger value="list" className="gap-2 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                                <ListIcon className="size-4" /> List
-                            </TabsTrigger>
-                            <TabsTrigger value="map" className="gap-2 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                                <MapIcon className="size-4" /> Map
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
+
             </header>
 
 

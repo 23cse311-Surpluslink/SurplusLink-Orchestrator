@@ -102,7 +102,6 @@ const navItemsByRole = {
         { label: "Active Mission", href: "/volunteer/active", icon: Truck },
         { label: "Available Jobs", href: "/volunteer/available", icon: MapPin },
         { label: "Mission History", href: "/volunteer/history", icon: List },
-        { label: "Notifications", href: "/volunteer/notifications", icon: Bell },
         { label: "Vehicle Settings", href: "/volunteer/settings", icon: Settings },
     ],
 }

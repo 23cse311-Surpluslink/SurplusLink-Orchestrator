@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Users,
     ShieldCheck,
@@ -22,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -47,11 +47,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function UserManagement() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterRole, setFilterRole] = useState<string>('all');
-    const [activeTab, setActiveTab] = useState('all');
     const { toast } = useToast();
 
     const fetchUsers = async () => {
@@ -131,8 +131,6 @@ export default function UserManagement() {
         return matchesSearch && matchesRole;
     });
 
-    const pendingUsers = users.filter(u => u.role !== 'admin' && u.status === 'pending' && (u.taxId || u.documentUrl));
-
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
             <PageHeader
@@ -166,75 +164,30 @@ export default function UserManagement() {
                 </div>
             </PageHeader>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <div className="flex items-center justify-between bg-card/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm sticky top-0 z-10">
-                    <TabsList className="bg-transparent gap-2 h-auto p-0">
-                        <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground h-10 px-6 rounded-xl font-bold transition-all uppercase tracking-wider text-[10px]">
-                            Full Directory
-                        </TabsTrigger>
-                        <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white h-10 px-6 rounded-xl font-bold transition-all uppercase tracking-wider text-[10px] relative">
-                            KYC Queue
-                            {pendingUsers.length > 0 && (
-                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-orange-600 text-[10px] text-white ring-2 ring-background animate-pulse">
-                                    {pendingUsers.length}
-                                </span>
-                            )}
-                        </TabsTrigger>
-                    </TabsList>
-                    <div className="px-4 py-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 border-l border-border/50">
-                        {filteredUsers.length} Users Listed
+            <div className="grid gap-4">
+                {isLoading ? (
+                    <LoadingSkeleton />
+                ) : filteredUsers.length === 0 ? (
+                    <EmptyState />
+                ) : (
+                    <div className="grid xl:grid-cols-2 gap-4">
+                        <AnimatePresence mode="popLayout">
+                            {filteredUsers.map((user) => (
+                                <UserCard
+                                    key={user.id}
+                                    user={user}
+                                    onVerify={handleVerify}
+                                    onReview={() => navigate('/admin/verification')}
+                                    onFlag={() => {
+                                        setSelectedUser(user);
+                                        setIsViolationModalOpen(true);
+                                    }}
+                                />
+                            ))}
+                        </AnimatePresence>
                     </div>
-                </div>
-
-                <TabsContent value="all">
-                    <div className="grid gap-4">
-                        {isLoading ? (
-                            <LoadingSkeleton />
-                        ) : filteredUsers.length === 0 ? (
-                            <EmptyState />
-                        ) : (
-                            <div className="grid xl:grid-cols-2 gap-4">
-                                <AnimatePresence mode="popLayout">
-                                    {filteredUsers.map((user) => (
-                                        <UserCard
-                                            key={user.id}
-                                            user={user}
-                                            onVerify={handleVerify}
-                                            onReview={() => setActiveTab('pending')}
-                                            onFlag={() => {
-                                                setSelectedUser(user);
-                                                setIsViolationModalOpen(true);
-                                            }}
-                                        />
-                                    ))}
-                                </AnimatePresence>
-                            </div>
-                        )}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="pending">
-                    <div className="grid gap-6">
-                        {pendingUsers.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-20 text-center space-y-4 rounded-[3rem] border-2 border-dashed border-border/50 bg-muted/5">
-                                <div className="p-6 rounded-[2rem] bg-emerald-500/10 text-emerald-600">
-                                    <CheckCircle2 size={48} />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-2xl font-black tracking-tight">All Caught Up!</h3>
-                                    <p className="text-muted-foreground font-medium">No pending verification requests at the moment.</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="grid gap-6">
-                                {pendingUsers.map((user) => (
-                                    <VerificationReviewCard key={user.id} user={user} onVerify={handleVerify} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </TabsContent>
-            </Tabs>
+                )}
+            </div>
 
             <Dialog open={isViolationModalOpen} onOpenChange={setIsViolationModalOpen}>
                 <DialogContent className="rounded-3xl border-border/50 max-w-lg">
@@ -388,7 +341,6 @@ function UserCard({ user, onVerify, onReview, onFlag }: { user: User, onVerify: 
                         </Button>
                     )}
                     {user.status === 'pending' ? (
-                        // ... existing button logic
                         user.documentUrl || user.taxId ? (
                             <Button
                                 variant="hero"
