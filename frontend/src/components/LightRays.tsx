@@ -10,7 +10,6 @@ export type RaysOrigin =
   | 'bottom-center'
   | 'bottom-right'
   | 'bottom-left';
-
 interface LightRaysProps {
   raysOrigin?: RaysOrigin;
   raysColor?: string;
