@@ -15,6 +15,7 @@ export interface UserStats {
   cancelledDonations: number;
   mealsSaved?: number;
   co2Saved?: number;
+  sustainabilityCredits?: number;
 }
 
 export interface User {
@@ -149,6 +150,7 @@ export interface DonationStats {
   acceptanceRate: number;
   mealsSaved?: number;
   co2Reduced?: number;
+  sustainabilityCredits?: number;
   monthlyBreakdown?: {
     month: string;
     meals: number;

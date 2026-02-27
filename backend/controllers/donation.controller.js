@@ -241,6 +241,7 @@ export const getDonorStats = async (req, res) => {
             acceptanceRate: parseFloat(acceptanceRate.toFixed(2)),
             mealsSaved: myDonations.reduce((acc, d) => acc + calculateMeals(convertToWeight(d.quantity)), 0),
             co2Reduced: parseFloat(myDonations.reduce((acc, d) => acc + calculateCo2Savings(convertToWeight(d.quantity)), 0).toFixed(1)),
+            sustainabilityCredits: req.user.stats?.sustainabilityCredits || 0,
             monthlyBreakdown: Object.values(monthlyDataMap)
         });
     } catch (error) {
@@ -318,6 +319,7 @@ export const getNgoStats = async (req, res) => {
             avgDeliveryTime,
             totalDistributions: completedDonations.length,
             monthlyData: Object.values(monthlyDataMap),
+            sustainabilityCredits: req.user.stats?.sustainabilityCredits || 0,
             trend: completedDonations.length > 5 ? 15 : 0
         });
     } catch (error) {
@@ -466,11 +468,18 @@ export const completeDonation = async (req, res, next) => {
             const newCount = currentCount + 1;
             const newScore = ((currentScore * currentCount) + Number(rating)) / newCount;
 
+            // US 7.4: Sustainability Credits Logic
+            const baseCredits = 50;
+            const weightBonus = Math.floor(weight * 5);
+            const ratingBonus = Math.max(0, (Number(rating) - 3) * 10);
+            const totalCreditsAwarded = baseCredits + weightBonus + ratingBonus;
+
             donor.stats.trustScore = parseFloat(newScore.toFixed(2));
             donor.stats.totalRatings = newCount;
             donor.stats.completedDonations = (donor.stats.completedDonations || 0) + 1;
             donor.stats.mealsSaved = (donor.stats.mealsSaved || 0) + meals;
             donor.stats.co2Saved = (donor.stats.co2Saved || 0) + co2Basis;
+            donor.stats.sustainabilityCredits = (donor.stats.sustainabilityCredits || 0) + totalCreditsAwarded;
             await donor.save();
         }
 
@@ -478,9 +487,13 @@ export const completeDonation = async (req, res, next) => {
         if (donation.claimedBy) {
             const ngo = await User.findById(donation.claimedBy);
             if (ngo) {
+                // NGOs get credits for processing rescues
+                const ngoCredits = 30 + Math.floor(weight * 2);
+
                 ngo.stats.completedDonations = (ngo.stats.completedDonations || 0) + 1;
                 ngo.stats.mealsSaved = (ngo.stats.mealsSaved || 0) + meals;
                 ngo.stats.co2Saved = (ngo.stats.co2Saved || 0) + co2Basis;
+                ngo.stats.sustainabilityCredits = (ngo.stats.sustainabilityCredits || 0) + ngoCredits;
                 await ngo.save();
             }
         }
@@ -1145,9 +1158,13 @@ export const confirmDelivery = async (req, res, next) => {
             const meals = calculateMeals(weight);
             const co2Basis = calculateCo2Savings(weight);
 
+            // US 7.4: Sustainability Credits for Volunteers (Higher rewards for logistics)
+            const volCredits = 75 + Math.floor(weight * 10);
+
             volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
             volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + meals;
             volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
+            volunteer.stats.sustainabilityCredits = (volunteer.stats.sustainabilityCredits || 0) + volCredits;
             volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
 
             // Tier Calculation
