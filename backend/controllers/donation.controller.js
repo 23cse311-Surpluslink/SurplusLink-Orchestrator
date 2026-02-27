@@ -20,6 +20,8 @@ import sendEmail from '../utils/email.js';
 import { geocodeAddress } from '../utils/geocoder.js';
 import { findBestDonationsForNGO, getUnmetNeed, findSuitableVolunteers } from '../services/matching.service.js';
 import { getOptimalPath } from '../services/routing.service.js';
+import ImpactMetric from '../models/ImpactMetric.model.js';
+import { convertToWeight, calculateMeals, calculateCo2Savings } from '../utils/impact.js';
 
 /**
  * @desc    Create a new donation posting
@@ -225,10 +227,11 @@ export const getDonorStats = async (req, res) => {
         myDonations.forEach(d => {
             const m = months[new Date(d.createdAt).getMonth()];
             if (monthlyDataMap[m]) {
-                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
-                const weight = match ? parseFloat(match[0]) : 1;
-                monthlyDataMap[m].meals += weight;
-                monthlyDataMap[m].co2 += parseFloat((weight * 2.5).toFixed(1));
+                const weight = convertToWeight(d.quantity);
+                const meals = calculateMeals(weight);
+                const co2 = calculateCo2Savings(weight);
+                monthlyDataMap[m].meals += meals;
+                monthlyDataMap[m].co2 += co2;
             }
         });
 
@@ -236,14 +239,8 @@ export const getDonorStats = async (req, res) => {
             totalDonations,
             completedDonations,
             acceptanceRate: parseFloat(acceptanceRate.toFixed(2)),
-            mealsSaved: myDonations.reduce((acc, d) => {
-                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
-                return acc + (match ? parseFloat(match[0]) : 1);
-            }, 0),
-            co2Reduced: parseFloat((myDonations.reduce((acc, d) => {
-                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
-                return acc + (match ? parseFloat(match[0]) : 1);
-            }, 0) * 2.5).toFixed(1)),
+            mealsSaved: myDonations.reduce((acc, d) => acc + calculateMeals(convertToWeight(d.quantity)), 0),
+            co2Reduced: parseFloat(myDonations.reduce((acc, d) => acc + calculateCo2Savings(convertToWeight(d.quantity)), 0).toFixed(1)),
             monthlyBreakdown: Object.values(monthlyDataMap)
         });
     } catch (error) {
@@ -307,10 +304,11 @@ export const getNgoStats = async (req, res) => {
             const date = new Date(d.createdAt);
             const m = months[date.getMonth()];
             if (monthlyDataMap[m]) {
-                const match = String(d.quantity).match(/(\d+(\.\d+)?)/);
-                const weight = match ? parseFloat(match[0]) : 1;
-                monthlyDataMap[m].meals += weight;
-                monthlyDataMap[m].co2 += parseFloat((weight * 2.5).toFixed(1));
+                const weight = convertToWeight(d.quantity);
+                const meals = calculateMeals(weight);
+                const co2 = calculateCo2Savings(weight);
+                monthlyDataMap[m].meals += meals;
+                monthlyDataMap[m].co2 += co2;
                 monthlyDataMap[m].distributions += 1;
             }
         });
@@ -436,11 +434,29 @@ export const completeDonation = async (req, res, next) => {
         donation.feedback = { rating, comment };
         await donation.save();
 
-        // --- IMPACT ENGINE ---
-        // Calculate raw metrics based on quantity
-        const match = String(donation.quantity).match(/(\d+(\.\d+)?)/);
-        const weight = match ? parseFloat(match[0]) : 1;
-        const co2Basis = weight * 2.5; // avg 2.5kg CO2 saved per kg food rescue
+        // --- IMPACT ENGINE (US 7.1 & 7.2) ---
+        const weight = convertToWeight(donation.quantity);
+        const meals = calculateMeals(weight);
+        const co2Basis = calculateCo2Savings(weight);
+
+        // Update Daily Global Aggregate
+        const today = new Date().setHours(0, 0, 0, 0);
+        await ImpactMetric.findOneAndUpdate(
+            { date: today },
+            {
+                $inc: {
+                    totalMeals: meals,
+                    totalCo2: co2Basis,
+                    donationsCompleted: 1,
+                    totalWeightKg: weight
+                },
+                $addToSet: {
+                    donors: donation.donor,
+                    ngos: donation.claimedBy
+                }
+            },
+            { upsert: true, new: true }
+        );
 
         // 1. Update Donor (Trust & Impact)
         const donor = await User.findById(donation.donor);
@@ -453,7 +469,7 @@ export const completeDonation = async (req, res, next) => {
             donor.stats.trustScore = parseFloat(newScore.toFixed(2));
             donor.stats.totalRatings = newCount;
             donor.stats.completedDonations = (donor.stats.completedDonations || 0) + 1;
-            donor.stats.mealsSaved = (donor.stats.mealsSaved || 0) + weight;
+            donor.stats.mealsSaved = (donor.stats.mealsSaved || 0) + meals;
             donor.stats.co2Saved = (donor.stats.co2Saved || 0) + co2Basis;
             await donor.save();
         }
@@ -463,17 +479,17 @@ export const completeDonation = async (req, res, next) => {
             const ngo = await User.findById(donation.claimedBy);
             if (ngo) {
                 ngo.stats.completedDonations = (ngo.stats.completedDonations || 0) + 1;
-                ngo.stats.mealsSaved = (ngo.stats.mealsSaved || 0) + weight;
+                ngo.stats.mealsSaved = (ngo.stats.mealsSaved || 0) + meals;
                 ngo.stats.co2Saved = (ngo.stats.co2Saved || 0) + co2Basis;
                 await ngo.save();
             }
         }
 
-        // 3. Notify Volunteer of Verification
+        // 3. Notify Stakeholders
         if (donation.volunteer) {
             await createNotification(
                 donation.volunteer,
-                `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${weight}kg Impact recorded!`,
+                `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${meals} meals Impact recorded!`,
                 'donation_completed',
                 donation._id
             );
@@ -481,7 +497,7 @@ export const completeDonation = async (req, res, next) => {
 
         await createNotification(
             donation.donor,
-            `Your donation "${donation.title}" was completed! You received a ${rating}/5 rating.`,
+            `Your donation "${donation.title}" was completed! Impact: ${meals} meals saved and ${co2Basis}kg CO2 avoided.`,
             'donation_completed',
             donation._id
         );
@@ -1125,12 +1141,12 @@ export const confirmDelivery = async (req, res, next) => {
             const oldTier = volunteer.volunteerProfile.tier;
 
             // Calculate metrics
-            const match = String(donation.quantity).match(/(\d+(\.\d+)?)/);
-            const weight = match ? parseFloat(match[0]) : 1;
-            const co2Basis = weight * 2.5;
+            const weight = convertToWeight(donation.quantity);
+            const meals = calculateMeals(weight);
+            const co2Basis = calculateCo2Savings(weight);
 
             volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
-            volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + weight;
+            volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + meals;
             volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
             volunteer.currentTaskCount = Math.max(0, (volunteer.currentTaskCount || 1) - 1);
 

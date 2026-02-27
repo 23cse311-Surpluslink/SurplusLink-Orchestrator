@@ -7,7 +7,9 @@
 
 import Donation from '../models/Donation.model.js';
 import User from '../models/User.model.js';
+import ImpactMetric from '../models/ImpactMetric.model.js';
 import mongoose from 'mongoose';
+import { convertToWeight, calculateMeals, calculateCo2Savings } from '../utils/impact.js';
 
 /**
  * @desc    Generate a detailed donation activity report with filtering
@@ -90,7 +92,18 @@ const getDonationReport = async (req, res, next) => {
             { $sort: { createdAt: -1 } },
         ]);
 
-        res.status(200).json(report);
+        // Post-processing to add standardized impact metrics (US 7.1, 7.2)
+        const result = report.map(item => {
+            const weight = convertToWeight(item.quantity);
+            return {
+                ...item,
+                weightKg: weight,
+                meals: calculateMeals(weight),
+                co2: calculateCo2Savings(weight)
+            };
+        });
+
+        res.status(200).json(result);
     } catch (error) {
         next(error);
     }
@@ -499,4 +512,45 @@ const getVolunteerPerformanceReport = async (req, res, next) => {
     }
 };
 
-export { getDonationReport, getNgoUtilizationReport, getVolunteerPerformanceReport };
+/**
+ * @desc    Generate a system-wide impact summary report (US 7.1 & 7.2)
+ * @route   GET /api/v1/reports/impact-summary
+ * @access  Private (Admin)
+ * @description Aggregates meals saved and CO2 emissions avoided over time.
+ */
+const getImpactSummary = async (req, res, next) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        let query = {};
+        if (startDate || endDate) {
+            query.date = {};
+            if (startDate) query.date.$gte = new Date(startDate);
+            if (endDate) query.date.$lte = new Date(endDate);
+        }
+
+        const stats = await ImpactMetric.find(query).sort({ date: 1 });
+
+        const totals = await ImpactMetric.aggregate([
+            { $match: query },
+            {
+                $group: {
+                    _id: null,
+                    totalMeals: { $sum: '$totalMeals' },
+                    totalCo2: { $sum: '$totalCo2' },
+                    totalWeightKg: { $sum: '$totalWeightKg' },
+                    donationsCompleted: { $sum: '$donationsCompleted' },
+                }
+            }
+        ]);
+
+        res.json({
+            summary: totals[0] || { totalMeals: 0, totalCo2: 0, totalWeightKg: 0, donationsCompleted: 0 },
+            timeline: stats
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getDonationReport, getNgoUtilizationReport, getVolunteerPerformanceReport, getImpactSummary };
