@@ -43,8 +43,6 @@ const impactMetricSchema = new mongoose.Schema(
     }
 );
 
-// Indexes for date range reports
-impactMetricSchema.index({ date: 1 });
 
 const ImpactMetric = mongoose.model('ImpactMetric', impactMetricSchema);
 
