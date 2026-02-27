@@ -447,6 +447,45 @@ const getAddressFromCoords = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Update user preferences (Language & Accessibility)
+ * @route   PATCH /api/v1/users/preferences
+ * @access  Private
+ * @description Supports User Stories 7.5 and 7.6.
+ */
+const updatePreferences = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            const { language, accessibilityPreferences } = req.body;
+
+            if (language) {
+                user.language = language;
+            }
+
+            if (accessibilityPreferences) {
+                user.accessibilityPreferences = {
+                    ...user.accessibilityPreferences.toObject(),
+                    ...accessibilityPreferences
+                };
+            }
+
+            const updatedUser = await user.save();
+            res.json({
+                success: true,
+                language: updatedUser.language,
+                accessibilityPreferences: updatedUser.accessibilityPreferences
+            });
+        } else {
+            res.status(404);
+            throw new Error('User not found');
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     getUserProfile,
     verifyUser,
@@ -460,5 +499,6 @@ export {
     updateVolunteerLocation,
     getVolunteerStats,
     getNgoVolunteers,
-    getAddressFromCoords
+    getAddressFromCoords,
+    updatePreferences
 };

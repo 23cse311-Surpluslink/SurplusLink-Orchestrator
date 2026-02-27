@@ -83,9 +83,10 @@ const setupCronJobs = () => {
 
                 await createNotification(
                     donation.donor,
-                    `Your donation "${donation.title}" has expired and is no longer available.`,
                     'donation_expired',
-                    donation._id
+                    'donation_expired',
+                    donation._id,
+                    { title: donation.title }
                 );
                 console.log(`[Cron] Expired donation: ${donation._id}`);
             }
@@ -124,9 +125,10 @@ const setupCronJobs = () => {
                     for (const v of top3) {
                         await createNotification(
                             v._id,
-                            `EXPANDED MISSION: A donation "${donation.title}" is available in a wider area. You have priority!`,
                             'priority_dispatch',
-                            donation._id
+                            'priority_dispatch',
+                            donation._id,
+                            { title: donation.title }
                         );
                     }
                 }

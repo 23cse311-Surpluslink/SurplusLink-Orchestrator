@@ -120,6 +120,16 @@ const userSchema = mongoose.Schema(
         type: Date
       },
     },
+    language: {
+      type: String,
+      enum: ['en', 'hi', 'te', 'ta', 'kn', 'ml'], // English, Hindi, Telugu, Tamil, Kannada, Malayalam
+      default: 'en',
+    },
+    accessibilityPreferences: {
+      voiceMode: { type: Boolean, default: false },
+      highContrast: { type: Boolean, default: false },
+      screenReaderOptimized: { type: Boolean, default: false },
+    },
   },
   {
     timestamps: true,

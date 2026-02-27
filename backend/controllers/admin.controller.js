@@ -55,6 +55,15 @@ export const verifyUser = async (req, res, next) => {
             metadata: { targetUserId: userId, remarks },
         });
 
+        // 🔔 Notify User
+        await createNotification(
+            userId,
+            'account_verify',
+            'general',
+            null,
+            { status }
+        );
+
         res.json({ message: `User ${status} successfully` });
     } catch (error) {
         next(error);
@@ -216,9 +225,10 @@ export const interveneTask = async (req, res, next) => {
         for (const participant of participants) {
             await createNotification(
                 participant._id,
-                `Admin Intervention: The task for "${donation.title}" has been ${action}ed. Reason: ${reason}`,
+                'admin_intervention',
                 'general',
-                donation._id
+                donation._id,
+                { title: donation.title, action, reason }
             );
         }
 

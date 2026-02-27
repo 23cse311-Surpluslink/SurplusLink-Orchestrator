@@ -166,9 +166,10 @@ export const createDonation = async (req, res) => {
             for (const ngo of ngos) {
                 await createNotification(
                     ngo._id,
-                    `New donation available: ${title}`,
                     'donation_created',
-                    donation._id
+                    'donation_created',
+                    donation._id,
+                    { title }
                 );
             }
         } catch (notifyError) {
@@ -356,9 +357,10 @@ export const cancelDonation = async (req, res) => {
 
         await createNotification(
             donation.donor,
-            `You have cancelled the donation: ${donation.title}`,
             'donation_cancelled',
-            donation._id
+            'donation_cancelled',
+            donation._id,
+            { title: donation.title }
         );
 
         // Notify NGO if they had claimed it
@@ -502,9 +504,10 @@ export const completeDonation = async (req, res, next) => {
         if (donation.volunteer) {
             await createNotification(
                 donation.volunteer,
-                `Mission Verified! Your delivery for "${donation.title}" has been confirmed by the NGO. +${meals} meals Impact recorded!`,
+                'mission_verified',
                 'donation_completed',
-                donation._id
+                donation._id,
+                { title: donation.title, meals }
             );
         }
 
@@ -1177,8 +1180,10 @@ export const confirmDelivery = async (req, res, next) => {
                 volunteer.volunteerProfile.tier = newTier;
                 await createNotification(
                     volunteer._id,
-                    `Congratulations! You've been promoted to ${newTier.toUpperCase()} tier!`,
-                    'general'
+                    'promoted',
+                    'general',
+                    null,
+                    { tier: newTier.toUpperCase() }
                 );
             }
             await volunteer.save();
