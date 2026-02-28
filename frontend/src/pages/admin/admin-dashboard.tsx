@@ -104,7 +104,7 @@ export default function AdminDashboard() {
                         className="bg-orange-500 hover:bg-orange-600 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest px-6"
                         onClick={() => navigate('/admin/verification')}
                     >
-                        Review KYC
+            Review KYC
                     </Button>
                 </motion.div>
             )}
