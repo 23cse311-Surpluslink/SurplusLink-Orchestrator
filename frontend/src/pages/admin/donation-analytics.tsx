@@ -65,6 +65,8 @@ interface AnalyticsRecord {
     weightKg: number;
     status: string;
     expiryDate: string;
+    meals: number;
+    co2: number;
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -118,6 +120,8 @@ interface RawReportItem {
     quantity: string;
     status: string;
     expiryDate: string;
+    meals: number;
+    co2: number;
 }
 
 export default function DonationAnalytics() {
@@ -143,7 +147,7 @@ export default function DonationAnalytics() {
                     const quantityLower = String(item.quantity).toLowerCase();
                     const weightMatch = quantityLower.match(/(\d+(\.\d+)?)/);
                     const weight = weightMatch ? parseFloat(weightMatch[0]) : 1; // Fallback to 1
-                    return { ...item, weightKg: weight };
+                    return { ...item, weightKg: weight, meals: item.meals || 0, co2: item.co2 || 0 };
                 });
 
                 setReports(decorated);
@@ -174,9 +178,11 @@ export default function DonationAnalytics() {
         const completed = filteredData.filter(d => d.status === 'completed').length;
         const cancelled = filteredData.filter(d => d.status === 'cancelled').length;
         const volume = filteredData.reduce((acc, curr) => acc + curr.weightKg, 0);
+        const meals = filteredData.reduce((acc, curr) => acc + (curr.meals || 0), 0);
+        const co2 = filteredData.reduce((acc, curr) => acc + (curr.co2 || 0), 0);
         const fulfillmentRate = total > 0 ? Math.round(((completed) / (total - cancelled || 1)) * 100) : 0;
 
-        return { total, volume, fulfillmentRate };
+        return { total, volume, fulfillmentRate, meals, co2 };
     }, [filteredData]);
 
     const volumeChartData = useMemo(() => {
@@ -234,27 +240,34 @@ export default function DonationAnalytics() {
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-2xl w-full" />)}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
-                        title="Rescue Missions"
-                        value={stats.total}
-                        trend={12.5}
-                        subtext="Cumulative donations tracked"
+                        title="Meals Saved"
+                        value={stats.meals}
+                        trend={15.2}
+                        subtext="Cumulative nourishment provided"
                         icon={Package}
                     />
                     <StatCard
+                        title="CO₂ Avoided"
+                        value={`${stats.co2.toFixed(1)} kg`}
+                        trend={12.8}
+                        subtext="Total environmental impact"
+                        icon={TrendingUp}
+                    />
+                    <StatCard
                         title="Mass Recovered"
-                        value={`${stats.volume} kg`}
+                        value={`${stats.volume.toFixed(1)} kg`}
                         trend={8.2}
                         subtext="Total food diverted from waste"
-                        icon={TrendingUp}
+                        icon={CheckCircle2}
                     />
                     <StatCard
                         title="Rescue Success"
                         value={`${stats.fulfillmentRate}%`}
                         trend={4.1}
                         subtext="Completed vs Postings"
-                        icon={CheckCircle2}
+                        icon={TrendingUp}
                     />
                 </div>
             )}

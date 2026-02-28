@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Truck, Zap, Leaf, ShieldCheck, MapPin, Clock, ArrowRight, Search, Loader2, Navigation } from "lucide-react";
+import { Truck, Zap, Leaf, ShieldCheck, MapPin, Clock, ArrowRight, Search, Loader2, Navigation, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
@@ -82,6 +82,13 @@ export default function VolunteerDashboard() {
             })(),
             color: "text-teal-500",
         },
+        {
+            label: "Credits",
+            value: user?.stats?.sustainabilityCredits || 0,
+            icon: Award,
+            description: "Sustainability Credits",
+            color: "text-primary",
+        },
     ];
 
     const getTierProgress = () => {
@@ -108,7 +115,7 @@ export default function VolunteerDashboard() {
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
                 {stats.map((stat, index) => (
                     <motion.div key={index} variants={itemVariants}>
                         <Card className="relative overflow-hidden hover:bg-accent/50 transition-all cursor-default group border-border/50 border-2 hover:border-primary/20 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-xl hover:shadow-primary/5">

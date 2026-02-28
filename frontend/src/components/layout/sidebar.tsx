@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   role: UserRole;
@@ -34,26 +35,26 @@ interface NavItem {
 }
 
 const donorNavItems: NavItem[] = [
-  { label: 'Dashboard', href: '/donor', icon: Home },
+  { label: 'nav.dashboard', href: '/donor', icon: Home },
   { label: 'Post Donation', href: '/donor/post', icon: PlusCircle },
-  { label: 'My Donations', href: '/donor/donations', icon: List },
-  { label: 'Notifications', href: '/donor/notifications', icon: Bell },
-  { label: 'Impact Summary', href: '/donor/impact', icon: BarChart3 },
+  { label: 'nav.donations', href: '/donor/donations', icon: List },
+  { label: 'nav.notifications', href: '/donor/notifications', icon: Bell },
+  { label: 'nav.impact', href: '/donor/impact', icon: BarChart3 },
 ];
 
 const ngoNavItems: NavItem[] = [
-  { label: 'Dashboard', href: '/ngo', icon: Home },
+  { label: 'nav.dashboard', href: '/ngo', icon: Home },
   { label: 'Nearby Donations', href: '/ngo/nearby', icon: MapPin },
   { label: 'Accepted Donations', href: '/ngo/accepted', icon: CheckSquare },
   { label: 'Volunteer View', href: '/ngo/volunteers', icon: Users },
-  { label: 'Notifications', href: '/ngo/notifications', icon: Bell },
+  { label: 'nav.notifications', href: '/ngo/notifications', icon: Bell },
   { label: 'Feedback', href: '/ngo/feedback', icon: MessageSquare },
-  { label: 'Impact Metrics', href: '/ngo/impact', icon: BarChart3 },
+  { label: 'nav.impact', href: '/ngo/impact', icon: BarChart3 },
   { label: 'Utilization Report', href: '/ngo/impact-report', icon: FileText },
 ];
 
 const adminNavItems: NavItem[] = [
-  { label: 'Dashboard', href: '/admin', icon: Home },
+  { label: 'nav.dashboard', href: '/admin', icon: Home },
   { label: 'User Management', href: '/admin/users', icon: Users },
   { label: 'Verification', href: '/admin/verification', icon: ShieldCheck },
   { label: 'Safety Rules', href: '/admin/safety', icon: AlertTriangle },
@@ -66,7 +67,7 @@ const volunteerNavItems: NavItem[] = [
   { label: 'My Tasks', href: '/volunteer', icon: Truck },
   { label: 'Available Jobs', href: '/volunteer/available', icon: MapPin },
   { label: 'Mission History', href: '/volunteer/history', icon: List },
-  { label: 'Notifications', href: '/volunteer/notifications', icon: Bell },
+  { label: 'nav.notifications', href: '/volunteer/notifications', icon: Bell },
 ];
 
 const navItemsByRole: Record<UserRole, NavItem[]> = {
@@ -77,6 +78,7 @@ const navItemsByRole: Record<UserRole, NavItem[]> = {
 };
 
 export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const navItems = navItemsByRole[role];
 
@@ -125,7 +127,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                 )}
               >
                 <item.icon className="h-5 w-5" />
-                {item.label}
+                {item.label.includes('.') ? t(item.label) : item.label}
               </NavLink>
             );
           })}

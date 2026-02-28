@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/theme-context";
 import { AuthProvider } from "./contexts/auth-context";
 import { NotificationProvider } from "./contexts/notification-context";
+import { AccessibilityProvider } from "./contexts/accessibility-context";
 
 import LandingPage from "./pages/landing-page";
 import LoginPage from "./pages/login-page";
@@ -53,81 +54,83 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <AccessibilityProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                  <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                <Route path="/donor" element={<DashboardLayout requiredRole="donor" />}>
-                  <Route index element={<DonorDashboard />} />
-                  <Route path="post" element={<PostDonation />} />
-                  <Route path="donations" element={<DonorDonations />} />
-                  <Route path="notifications" element={<DonorNotifications />} />
-                  <Route path="impact" element={<DonorImpact />} />
-                  <Route path="reports" element={<DonationAnalytics />} />
-                  <Route path="settings" element={<DonorSettings />} />
-                </Route>
+                  <Route path="/donor" element={<DashboardLayout requiredRole="donor" />}>
+                    <Route index element={<DonorDashboard />} />
+                    <Route path="post" element={<PostDonation />} />
+                    <Route path="donations" element={<DonorDonations />} />
+                    <Route path="notifications" element={<DonorNotifications />} />
+                    <Route path="impact" element={<DonorImpact />} />
+                    <Route path="reports" element={<DonationAnalytics />} />
+                    <Route path="settings" element={<DonorSettings />} />
+                  </Route>
 
-                <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
-                  <Route index element={<NgoDashboard />} />
-                  <Route path="nearby" element={<NearbyDonationsPage />} />
-                  <Route path="accepted" element={<MyClaimsPage />} />
-                  <Route path="fleet" element={<NgoFleetDashboard />} />
-                  <Route path="notifications" element={<DonorNotifications />} />
-                  <Route path="feedback" element={<NgoFeedbackPage />} />
-                  <Route path="impact" element={<NgoImpactPage />} />
-                  <Route path="impact-report" element={<NgoImpactReport />} />
-                  <Route path="settings" element={<NgoSettingsPage />} />
-                </Route>
+                  <Route path="/ngo" element={<DashboardLayout requiredRole="ngo" />}>
+                    <Route index element={<NgoDashboard />} />
+                    <Route path="nearby" element={<NearbyDonationsPage />} />
+                    <Route path="accepted" element={<MyClaimsPage />} />
+                    <Route path="fleet" element={<NgoFleetDashboard />} />
+                    <Route path="notifications" element={<DonorNotifications />} />
+                    <Route path="feedback" element={<NgoFeedbackPage />} />
+                    <Route path="impact" element={<NgoImpactPage />} />
+                    <Route path="impact-report" element={<NgoImpactReport />} />
+                    <Route path="settings" element={<NgoSettingsPage />} />
+                  </Route>
 
-                <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<UserManagement />} />
-                  <Route path="verification" element={<VerificationPage />} />
-                  <Route path="safety" element={<SafetyRulesPage />} />
-                  <Route path="audit" element={<AuditLogsPage />} />
-                  <Route path="tasks" element={<ActiveTasksPage />} />
-                  <Route path="reports" element={<DonationAnalytics />} />
-                  <Route path="volunteers" element={<VolunteerPerformance />} />
-                  <Route path="impact-report" element={<NgoImpactReport />} />
-                  <Route path="tracking" element={<AdminDashboard />} />
-                  <Route path="notifications" element={<AdminDashboard />} />
-                  <Route path="moderation" element={<AdminDashboard />} />
-                </Route>
+                  <Route path="/admin" element={<DashboardLayout requiredRole="admin" />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="users" element={<UserManagement />} />
+                    <Route path="verification" element={<VerificationPage />} />
+                    <Route path="safety" element={<SafetyRulesPage />} />
+                    <Route path="audit" element={<AuditLogsPage />} />
+                    <Route path="tasks" element={<ActiveTasksPage />} />
+                    <Route path="reports" element={<DonationAnalytics />} />
+                    <Route path="volunteers" element={<VolunteerPerformance />} />
+                    <Route path="impact-report" element={<NgoImpactReport />} />
+                    <Route path="tracking" element={<AdminDashboard />} />
+                    <Route path="notifications" element={<AdminDashboard />} />
+                    <Route path="moderation" element={<AdminDashboard />} />
+                  </Route>
 
-                <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
-                  <Route index element={<VolunteerDashboard />} />
-                  <Route path="available" element={<AvailableMissions />} />
-                  <Route path="active" element={<ActiveMission />} />
-                  <Route path="history" element={<MissionHistory />} />
-                  <Route path="notifications" element={<VolunteerNotifications />} />
-                  <Route path="settings" element={<VolunteerSettings />} />
-                </Route>
+                  <Route path="/volunteer" element={<DashboardLayout requiredRole="volunteer" />}>
+                    <Route index element={<VolunteerDashboard />} />
+                    <Route path="available" element={<AvailableMissions />} />
+                    <Route path="active" element={<ActiveMission />} />
+                    <Route path="history" element={<MissionHistory />} />
+                    <Route path="notifications" element={<VolunteerNotifications />} />
+                    <Route path="settings" element={<VolunteerSettings />} />
+                  </Route>
 
-                <Route path="/volunteer/preview" element={<VolunteerDashboard />} />
+                  <Route path="/volunteer/preview" element={<VolunteerDashboard />} />
 
-                <Route path="/account" element={<DashboardLayout />}>
-                  <Route index element={<AccountPage />} />
-                </Route>
+                  <Route path="/account" element={<DashboardLayout />}>
+                    <Route index element={<AccountPage />} />
+                  </Route>
 
-                <Route path="/settings" element={<DashboardLayout />}>
-                  <Route index element={<SettingsPage />} />
-                </Route>
+                  <Route path="/settings" element={<DashboardLayout />}>
+                    <Route index element={<SettingsPage />} />
+                  </Route>
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </NotificationProvider>
+        </AccessibilityProvider>
       </AuthProvider>
     </ThemeProvider>
-  </QueryClientProvider >
+  </QueryClientProvider>
 );
 
 export default App;

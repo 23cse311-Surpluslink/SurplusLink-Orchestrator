@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/common/stat-card';
-import { Package, Users, Leaf, Clock, TrendingUp, Loader2 } from 'lucide-react';
+import { Package, Users, Leaf, Clock, TrendingUp, Loader2, Award } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import DonationService from '@/services/donation.service';
 import { useToast } from '@/hooks/use-toast';
 import { NgoStats } from '@/types';
@@ -22,6 +23,7 @@ const data = [
 ];
 
 export function NgoImpactPage() {
+    const { t } = useTranslation();
     const [stats, setStats] = useState<NgoStats | null>(null);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
@@ -53,11 +55,12 @@ export function NgoImpactPage() {
                 description="Visualize the community difference you're making via SurplusLink."
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard title="Total Meals Shared" value={stats?.mealsReceived || 0} icon={<Package className="h-5 w-5" />} trend={{ value: 24, isPositive: true }} />
                 <StatCard title="CO2 Offset (kg)" value={Math.round((stats?.mealsReceived || 0) * 1.4)} icon={<Leaf className="h-5 w-5 text-green-600" />} trend={{ value: 18, isPositive: true }} />
                 <StatCard title="Distributions" value={stats?.totalDistributions || 0} icon={<Users className="h-5 w-5" />} trend={{ value: 12, isPositive: true }} />
                 <StatCard title="Rescue Efficiency" value="94%" icon={<TrendingUp className="h-5 w-5 text-primary" />} />
+                <StatCard title="Sustainability Credits" value={stats?.sustainabilityCredits || 0} icon={<Award className="h-5 w-5 text-amber-500" />} />
             </div>
 
             <div className="grid lg:grid-cols-2 gap-6">

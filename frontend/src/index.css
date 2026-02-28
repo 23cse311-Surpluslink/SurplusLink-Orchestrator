@@ -306,3 +306,41 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/30;
 }
+
+/* Simplified Mode for Accessibility (US 7.6) */
+.simplified-mode {
+  font-size: 1.125rem; /* Larger base font */
+  --radius: 0.25rem;   /* Simple square corners */
+}
+
+.simplified-mode * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.simplified-mode .container {
+  max-width: 1000px !important;
+}
+
+.simplified-mode h1 { font-size: 2.5rem !important; font-weight: 800 !important; }
+.simplified-mode h2 { font-size: 2rem !important; font-weight: 700 !important; }
+.simplified-mode h3 { font-size: 1.5rem !important; font-weight: 600 !important; }
+
+.simplified-mode .shadow-2xl, 
+.simplified-mode .shadow-xl,
+.simplified-mode .shadow-lg {
+  box-shadow: 0 0 0 1px hsl(var(--border)) !important; /* Flat borders instead of shadows */
+}
+
+.simplified-mode .rounded-\[2\.5rem\], 
+.simplified-mode .rounded-3xl,
+.simplified-mode .rounded-2xl {
+  border-radius: 0.5rem !important;
+}
+
+.simplified-mode .bg-card\/50 {
+  background-color: hsl(var(--card)) !important;
+  backdrop-filter: none !important;
+}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { StatCard } from '@/components/common/stat-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Package, Leaf, TrendingUp, Award, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import DonationService from '@/services/donation.service';
@@ -17,8 +18,10 @@ const foodTypeData = [
 ];
 
 import { DonationStats } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export default function DonorImpact() {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<DonationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -148,6 +151,46 @@ export default function DonorImpact() {
       </div>
 
       {/* CO2 Impact */}
+      {/* Sustainability Credits & Badges */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-1 bg-gradient-to-br from-primary/10 to-emerald-500/10 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              Sustainability Credits
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <div className="text-5xl font-black text-primary mb-2">
+              {metrics?.sustainabilityCredits || 0}
+            </div>
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Available Credits</p>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Badges & Recognition</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              <Badge className="h-16 w-32 flex flex-col items-center justify-center gap-1 bg-emerald-500/10 text-emerald-700 border-emerald-200">
+                <Leaf className="h-6 w-6" />
+                <span className="text-[10px] font-black uppercase">Eco Warrior</span>
+              </Badge>
+              <Badge className="h-16 w-32 flex flex-col items-center justify-center gap-1 bg-primary/10 text-primary border-primary/20 opacity-50">
+                <Package className="h-6 w-6" />
+                <span className="text-[10px] font-black uppercase">1k Meals</span>
+              </Badge>
+              <Badge className="h-16 w-32 flex flex-col items-center justify-center gap-1 bg-amber-500/10 text-amber-700 border-amber-200 opacity-50">
+                <Award className="h-6 w-6" />
+                <span className="text-[10px] font-black uppercase">Certified Safe</span>
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Environmental Impact</CardTitle>

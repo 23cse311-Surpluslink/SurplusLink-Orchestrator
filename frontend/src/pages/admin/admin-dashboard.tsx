@@ -1,7 +1,7 @@
 /** Central administrative dashboard for system-wide oversight */
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Truck, AlertTriangle, Building2, UserCircle } from 'lucide-react';
+import { Users, FileText, Truck, AlertTriangle, Building2, UserCircle, Sparkles, Leaf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { PageHeader } from '@/components/common/page-header';
@@ -22,6 +22,8 @@ export default function AdminDashboard() {
         activeNgos: 0,
         donationsToday: 0,
         activeRoutes: 0,
+        totalMeals: 0,
+        totalCo2: 0,
         monthlyData: [] as { month: string; donations: number }[]
     });
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
@@ -30,9 +32,10 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [userRes, adminRes] = await Promise.all([
+                const [userRes, adminRes, impactRes] = await Promise.all([
                     api.get('/users/admin/users'),
-                    DonationService.getAdminStats()
+                    DonationService.getAdminStats(),
+                    api.get('/reports/impact-summary')
                 ]);
 
                 const users = userRes.data;
@@ -47,6 +50,8 @@ export default function AdminDashboard() {
                     activeNgos: ngos.length,
                     donationsToday: adminRes.donationsToday,
                     activeRoutes: adminRes.activeRoutes,
+                    totalMeals: impactRes.data.summary.totalMeals,
+                    totalCo2: impactRes.data.summary.totalCo2,
                     monthlyData: adminRes.monthlyData
                 });
                 setRecentUsers(users.slice(0, 5));
@@ -64,8 +69,10 @@ export default function AdminDashboard() {
         <div className="space-y-8">
             <PageHeader title="Admin Dashboard" description="System overview and real-time monitoring." />
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 <StatCard title="Donations Today" value={stats.donationsToday} icon={<FileText className="h-5 w-5" />} trend={{ value: stats.donationsToday > 0 ? 100 : 0, isPositive: true }} />
+                <StatCard title="Total Meals" value={stats.totalMeals.toLocaleString()} icon={<Sparkles className="h-5 w-5" />} />
+                <StatCard title="CO₂ Avoided" value={`${stats.totalCo2.toFixed(1)}kg`} icon={<Leaf className="h-5 w-5" />} />
                 <StatCard title="Active Routes" value={stats.activeRoutes} icon={<Truck className="h-5 w-5" />} />
                 <StatCard title="Total Users" value={stats.totalUsers} icon={<Users className="h-5 w-5" />} />
                 <StatCard

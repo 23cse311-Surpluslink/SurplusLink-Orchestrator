@@ -169,6 +169,7 @@ export interface NgoStats {
     distributions: number;
   }[];
   trend: number;
+  sustainabilityCredits?: number;
 }
 
 export interface UtilizationRecord {
