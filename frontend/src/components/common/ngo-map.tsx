@@ -1,11 +1,11 @@
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_ID } from '@/lib/maps-config';
 import { Donation } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { memo } from 'react';
 
 interface NgoMapProps {
     donations: Donation[];
-    apiKey: string;
 }
 
 const containerStyle = {
@@ -30,10 +30,11 @@ const mapStyles = [
     { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0d1112" }] }
 ];
 
-function NgoMapComponent({ donations, apiKey }: NgoMapProps) {
+function NgoMapComponent({ donations }: NgoMapProps) {
     const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: apiKey
+        id: GOOGLE_MAPS_ID,
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: GOOGLE_MAPS_LIBRARIES
     });
 
     const activeDonationsWithCoords = donations.filter(d => d.coordinates);

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, Marker, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_ID } from '@/lib/maps-config';
 import { Loader2, Crosshair, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,9 +31,9 @@ const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi
 
 export function MapPicker({ initialCenter, onLocationSelect }: MapPickerProps) {
     const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-        libraries: ['places'] as ("places" | "drawing" | "geometry" | "visualization")[]
+        id: GOOGLE_MAPS_ID,
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: GOOGLE_MAPS_LIBRARIES
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);

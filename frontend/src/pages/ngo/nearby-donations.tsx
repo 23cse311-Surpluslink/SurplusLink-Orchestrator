@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/carousel";
 import { Loader2, MapPin, Filter, AlertCircle, Search, Calendar, Clock, Package, User, Image as ImageIcon, Zap } from 'lucide-react';
 import { getTimeUntil, formatTime } from '@/utils/formatters';
-import { NgoMap } from '@/components/common/ngo-map';
 import { Badge } from '@/components/ui/badge';
 
 export function NearbyDonationsPage() {
@@ -47,7 +46,7 @@ export function NearbyDonationsPage() {
     const [isRejecting, setIsRejecting] = useState(false);
     const [viewDonation, setViewDonation] = useState<Donation | null>(null);
 
-    const MAP_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+
 
     const loadFeed = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);

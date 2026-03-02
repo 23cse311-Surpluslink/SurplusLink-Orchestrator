@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_ID } from '@/lib/maps-config';
 import { Loader2 } from 'lucide-react';
 import { Donation } from '@/types';
 
@@ -28,8 +29,9 @@ const mapStyles = [
 
 export function MissionsMap({ missions, userCoords, onSelectMission }: MissionsMapProps) {
     const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+        id: GOOGLE_MAPS_ID,
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: GOOGLE_MAPS_LIBRARIES
     });
 
     const center = useMemo(() => {
