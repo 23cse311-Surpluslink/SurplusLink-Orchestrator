@@ -271,14 +271,31 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.95); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
 }
 
 @keyframes notificationPulse {
-  0% { box-shadow: 0 0 0 0 rgba(var(--primary), 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(var(--primary), 0); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--primary), 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--primary), 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0);
+  }
 }
 
 .animate-blink {
@@ -309,8 +326,10 @@
 
 /* Simplified Mode for Accessibility (US 7.6) */
 .simplified-mode {
-  font-size: 1.125rem; /* Larger base font */
-  --radius: 0.25rem;   /* Simple square corners */
+  font-size: 1.125rem;
+  /* Larger base font */
+  --radius: 0.25rem;
+  /* Simple square corners */
 }
 
 .simplified-mode * {
@@ -324,17 +343,29 @@
   max-width: 1000px !important;
 }
 
-.simplified-mode h1 { font-size: 2.5rem !important; font-weight: 800 !important; }
-.simplified-mode h2 { font-size: 2rem !important; font-weight: 700 !important; }
-.simplified-mode h3 { font-size: 1.5rem !important; font-weight: 600 !important; }
-
-.simplified-mode .shadow-2xl, 
-.simplified-mode .shadow-xl,
-.simplified-mode .shadow-lg {
-  box-shadow: 0 0 0 1px hsl(var(--border)) !important; /* Flat borders instead of shadows */
+.simplified-mode h1 {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
 }
 
-.simplified-mode .rounded-\[2\.5rem\], 
+.simplified-mode h2 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+}
+
+.simplified-mode h3 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+.simplified-mode .shadow-2xl,
+.simplified-mode .shadow-xl,
+.simplified-mode .shadow-lg {
+  box-shadow: 0 0 0 1px hsl(var(--border)) !important;
+  /* Flat borders instead of shadows */
+}
+
+.simplified-mode .rounded-\[2\.5rem\],
 .simplified-mode .rounded-3xl,
 .simplified-mode .rounded-2xl {
   border-radius: 0.5rem !important;
@@ -370,4 +401,53 @@
 .high-contrast .bg-muted\/30 {
   background-color: transparent !important;
   border: 1px solid white !important;
+}
+
+/* --- Google Translate Hiding (US 7.5) --- */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+.goog-te-gadget-icon,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+#google_translate_element,
+.goog-te-menu-value span:nth-child(2),
+.goog-te-menu-value img {
+  display: none !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+iframe.goog-te-menu-frame {
+  display: none !important;
+}
+
+.goog-tooltip {
+  display: none !important;
+}
+
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+/* --- Force Clean Branding --- */
+#\:0\.container, #\3a 0\.container, .goog-te-spinner-pos {
+  display: none !important;
+}
+
+html, body {
+  height: 100% !important;
+  top: 0 !important;
+  position: static !important;
 }

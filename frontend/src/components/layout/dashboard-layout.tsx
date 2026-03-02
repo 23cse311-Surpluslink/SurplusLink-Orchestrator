@@ -8,6 +8,7 @@ import { AppSidebar } from './app-sidebar';
 import { Sun, Moon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/theme-context';
+import { LanguageSelector } from '@/components/common/language-selector';
 
 interface DashboardLayoutProps {
     requiredRole?: UserRole;
@@ -47,6 +48,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
 
                         </div>
                         <div className="flex items-center gap-4">
+                            <LanguageSelector />
                             <Button
                                 variant="ghost"
                                 size="icon"
