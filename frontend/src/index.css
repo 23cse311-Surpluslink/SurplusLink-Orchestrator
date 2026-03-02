@@ -344,3 +344,30 @@
   background-color: hsl(var(--card)) !important;
   backdrop-filter: none !important;
 }
+
+/* High Contrast Mode for Accessibility (US 7.6) */
+.high-contrast {
+  --background: 0 0% 0% !important;
+  --foreground: 0 0% 100% !important;
+  --card: 0 0% 0% !important;
+  --card-foreground: 0 0% 100% !important;
+  --primary: 0 0% 100% !important;
+  --primary-foreground: 0 0% 0% !important;
+  --border: 0 0% 100% !important;
+  --muted: 0 0% 20% !important;
+  --muted-foreground: 0 0% 80% !important;
+  --accent: 0 0% 100% !important;
+  --accent-foreground: 0 0% 0% !important;
+  --shadow-glow: none !important;
+}
+
+.high-contrast * {
+  border-width: 1px !important;
+  text-shadow: none !important;
+}
+
+.high-contrast .bg-primary\/10,
+.high-contrast .bg-muted\/30 {
+  background-color: transparent !important;
+  border: 1px solid white !important;
+}
