@@ -21,7 +21,7 @@ export function SettingsPage() {
     const { toast } = useToast();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
-    const { simplifiedMode, setSimplifiedMode } = useAccessibility();
+    const { simplifiedMode, setSimplifiedMode, highContrast, setHighContrast } = useAccessibility();
 
     const [address, setAddress] = useState(user?.address || '');
     const [isSaving, setIsSaving] = useState(false);
@@ -238,10 +238,10 @@ export function SettingsPage() {
                     <Card className="rounded-[2.5rem] border-none shadow-2xl bg-card overflow-hidden">
                         <CardHeader className="px-8 pt-8 text-center flex flex-col items-center">
                             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-3">
-                                {simplifiedMode ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                                <Eye className="h-6 w-6" />
                             </div>
                             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                                Visual Interaction
+                                Visual Accessibility
                             </Label>
                         </CardHeader>
                         <CardContent className="px-8 pb-8 space-y-4">
@@ -253,6 +253,17 @@ export function SettingsPage() {
                                 <Switch
                                     checked={simplifiedMode}
                                     onCheckedChange={setSimplifiedMode}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 border border-border/50">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">High Contrast</Label>
+                                    <p className="text-[10px] text-muted-foreground font-medium">Maximum readability colors.</p>
+                                </div>
+                                <Switch
+                                    checked={highContrast}
+                                    onCheckedChange={setHighContrast}
                                 />
                             </div>
                         </CardContent>

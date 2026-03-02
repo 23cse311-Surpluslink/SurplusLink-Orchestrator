@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface AccessibilityContextType {
     simplifiedMode: boolean;
     setSimplifiedMode: (enabled: boolean) => void;
+    highContrast: boolean;
+    setHighContrast: (enabled: boolean) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
@@ -10,6 +12,9 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
     const [simplifiedMode, setSimplifiedMode] = useState(() => {
         return localStorage.getItem('simplified-mode') === 'true';
+    });
+    const [highContrast, setHighContrast] = useState(() => {
+        return localStorage.getItem('high-contrast') === 'true';
     });
 
     useEffect(() => {
@@ -21,8 +26,17 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
         }
     }, [simplifiedMode]);
 
+    useEffect(() => {
+        localStorage.setItem('high-contrast', highContrast ? 'true' : 'false');
+        if (highContrast) {
+            document.documentElement.classList.add('high-contrast');
+        } else {
+            document.documentElement.classList.remove('high-contrast');
+        }
+    }, [highContrast]);
+
     return (
-        <AccessibilityContext.Provider value={{ simplifiedMode, setSimplifiedMode }}>
+        <AccessibilityContext.Provider value={{ simplifiedMode, setSimplifiedMode, highContrast, setHighContrast }}>
             {children}
         </AccessibilityContext.Provider>
     );

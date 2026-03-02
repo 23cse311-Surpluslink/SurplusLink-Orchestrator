@@ -500,6 +500,42 @@ export const completeDonation = async (req, res, next) => {
             }
         }
 
+        // 3. Update Volunteer (Credits & Tier Promotion)
+        if (donation.volunteer) {
+            const volunteer = await User.findById(donation.volunteer);
+            if (volunteer) {
+                // Volunteers get higher base credits for the physical labor
+                const volCredits = 80 + Math.floor(weight * 8);
+
+                volunteer.stats.completedDonations = (volunteer.stats.completedDonations || 0) + 1;
+                volunteer.stats.mealsSaved = (volunteer.stats.mealsSaved || 0) + meals;
+                volunteer.stats.co2Saved = (volunteer.stats.co2Saved || 0) + co2Basis;
+                volunteer.stats.sustainabilityCredits = (volunteer.stats.sustainabilityCredits || 0) + volCredits;
+
+                // Tier logic: 10 missions = Hero, 50 missions = Champion
+                const totalMissions = volunteer.stats.completedDonations;
+                const oldTier = volunteer.volunteerProfile?.tier || 'rookie';
+
+                if (totalMissions >= 50) {
+                    volunteer.volunteerProfile.tier = 'champion';
+                } else if (totalMissions >= 10) {
+                    volunteer.volunteerProfile.tier = 'hero';
+                }
+
+                // Notify volunteer if they leveled up
+                if (oldTier !== volunteer.volunteerProfile.tier) {
+                    await createNotification(
+                        volunteer._id,
+                        `🎉 Rank Up! You are now a Surplus ${volunteer.volunteerProfile.tier.charAt(0).toUpperCase() + volunteer.volunteerProfile.tier.slice(1)}!`,
+                        'level_up',
+                        donation._id
+                    );
+                }
+
+                await volunteer.save();
+            }
+        }
+
         // 3. Notify Stakeholders
         if (donation.volunteer) {
             await createNotification(

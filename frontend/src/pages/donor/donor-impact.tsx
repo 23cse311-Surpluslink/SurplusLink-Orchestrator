@@ -67,10 +67,10 @@ export default function DonorImpact() {
           description="Direct environmental offset"
         />
         <StatCard
-          title="Total Donations"
-          value={metrics?.totalDonations || 0}
-          icon={<TrendingUp className="h-5 w-5" />}
-          trend={{ value: 8, isPositive: true }}
+          title="Sustainability Credits"
+          value={metrics?.sustainabilityCredits?.toLocaleString() || "0"}
+          icon={<TrendingUp className="h-5 w-5 text-primary" />}
+          description="Reward points earned"
         />
         <StatCard
           title="Acceptance Rate"
@@ -79,6 +79,32 @@ export default function DonorImpact() {
           description="Donations utilized"
         />
       </div>
+
+      {/* Badge Achievement Section */}
+      <Card className="bg-gradient-to-r from-primary/10 via-card to-primary/5 border-primary/20">
+        <CardContent className="py-6">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="relative">
+              <div className="h-24 w-24 rounded-full bg-primary/20 flex items-center justify-center animate-pulse" />
+              <Award className="h-12 w-12 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-xl font-black mb-1">
+                {metrics?.sustainabilityCredits && metrics.sustainabilityCredits > 5000 ? "Gold Guardian" :
+                  metrics?.sustainabilityCredits && metrics.sustainabilityCredits > 1000 ? "Silver Savior" :
+                    "Eco Warrior"}
+              </h3>
+              <p className="text-muted-foreground text-sm font-medium">
+                {metrics?.sustainabilityCredits && metrics.sustainabilityCredits > 5000 ?
+                  "You're in the top 1% of contributors. Your dedication is world-changing!" :
+                  metrics?.sustainabilityCredits && metrics.sustainabilityCredits > 1000 ?
+                    "Outstanding commitment! You're making a significant dent in food waste." :
+                    "Great start! Keep rescuing food to unlock higher tiers and rewards."}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
