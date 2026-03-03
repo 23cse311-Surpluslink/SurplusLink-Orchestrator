@@ -128,7 +128,11 @@ const setupCronJobs = () => {
                             'priority_dispatch',
                             'priority_dispatch',
                             donation._id,
-                            { title: donation.title }
+                            {
+                                title: donation.title,
+                                foodType: donation.foodType,
+                                quantity: donation.quantity
+                            }
                         );
                     }
                 }

@@ -831,7 +831,12 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
                         volunteer._id,
                         message,
                         'priority_dispatch',
-                        donation._id
+                        donation._id,
+                        {
+                            title: donation.title,
+                            foodType: donation.foodType,
+                            quantity: donation.quantity
+                        }
                     );
                 }
             }, delay);

@@ -21,7 +21,7 @@ const translations = {
         'admin_intervention': 'Admin Intervention: The task for "{title}" has been {action}ed. Reason: {reason}',
         'account_verify': 'Your account has been {status} by the administration.',
         'donation_expired': 'Your donation "{title}" has expired and is no longer available.',
-        'priority_dispatch': 'PRIORITY MISSION: A donation "{title}" is available nearby. You have priority!',
+        'priority_dispatch': 'MISSION ALERT: "{title}" ({foodType}) for {quantity} is available nearby. You have priority! Expiring soon.',
     },
     hi: {
         'donation_created': 'नया दान उपलब्ध है: {title}',
