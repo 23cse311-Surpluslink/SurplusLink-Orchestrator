@@ -171,9 +171,32 @@ export const createDonation = async (req, res) => {
                 { title }
             );
 
-            // Broadcast to NGOs
-            const ngos = await User.find({ role: 'ngo' });
-            for (const ngo of ngos) {
+            // US 8.2: Geo-based and Capacity-aware alert logic
+            const nearbyNgos = await User.find({
+                role: 'ngo',
+                status: 'active',
+                location: {
+                    $near: {
+                        $geometry: donation.coordinates,
+                        $maxDistance: 15000 // 15km radius
+                    }
+                }
+            });
+
+            // Capacity & Storage Filter
+            const targetNgos = nearbyNgos.filter(ngo => {
+                // 1. Storage Facility Check
+                if (storageReq && ngo.ngoProfile?.storageFacilities?.length > 0) {
+                    if (!ngo.ngoProfile.storageFacilities.includes(storageReq)) return false;
+                }
+
+                // 2. Daily Capacity Check (Basic: Must have some capacity defined)
+                if (ngo.ngoProfile?.dailyCapacity <= 0) return false;
+
+                return true;
+            });
+
+            for (const ngo of targetNgos) {
                 await createNotification(
                     ngo._id,
                     'donation_created',
