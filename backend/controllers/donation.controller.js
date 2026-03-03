@@ -162,6 +162,16 @@ export const createDonation = async (req, res) => {
         //notify all nearby ngos brodcast
 
         try {
+            // Notify Donor
+            await createNotification(
+                req.user._id,
+                'donation_created',
+                'donation_created',
+                donation._id,
+                { title }
+            );
+
+            // Broadcast to NGOs
             const ngos = await User.find({ role: 'ngo' });
             for (const ngo of ngos) {
                 await createNotification(
@@ -549,9 +559,10 @@ export const completeDonation = async (req, res, next) => {
 
         await createNotification(
             donation.donor,
-            `Your donation "${donation.title}" was completed! Impact: ${meals} meals saved and ${co2Basis}kg CO2 avoided.`,
             'donation_completed',
-            donation._id
+            'donation_completed',
+            donation._id,
+            { title: donation.title, meals }
         );
 
         res.json(donation);
@@ -675,9 +686,10 @@ export const claimDonation = async (req, res, next) => {
 
         await createNotification(
             donation.donor,
-            `Your donation "${donation.title}" has been claimed by ${req.user.organization}`,
             'donation_assigned',
-            donation._id
+            'donation_assigned',
+            donation._id,
+            { title: donation.title, organization: req.user.organization }
         );
 
         // Immediate Dispatch: Alert top suitable volunteers
@@ -718,9 +730,30 @@ export const reassignMission = async (donationId, reason = 'Stalled or abandoned
 
             await createNotification(
                 oldVolunteer._id,
-                `The mission for "${donation.title}" has been unassigned due to: ${reason}.`,
-                'general'
+                `The mission for "${donation.title}" has been unassigned due to: {reason}.`,
+                'general',
+                donation._id,
+                { reason }
             );
+
+            // Notify Donor and NGO about re-assignment
+            await createNotification(
+                donation.donor,
+                'mission_reassigned',
+                'mission_reassigned',
+                donation._id,
+                { title: donation.title }
+            );
+
+            if (donation.claimedBy) {
+                await createNotification(
+                    donation.claimedBy,
+                    'mission_reassigned',
+                    'mission_reassigned',
+                    donation._id,
+                    { title: donation.title }
+                );
+            }
         }
 
         // High-Priority Push to next available tier of volunteers
@@ -824,9 +857,10 @@ export const rejectDonation = async (req, res, next) => {
         if (donation.donor) {
             await createNotification(
                 donation.donor._id || donation.donor,
-                `Your donation "${donation.title}" was rejected: ${formattedReason}`,
                 'donation_rejected',
-                donation._id
+                'donation_rejected',
+                donation._id,
+                { title: donation.title, reason: formattedReason }
             );
         }
 
@@ -1046,9 +1080,10 @@ export const acceptMission = async (req, res, next) => {
 
         await createNotification(
             donationFinal.donor._id,
-            `A volunteer ${volunteerName} is on their way to pick up your donation!`,
             'volunteer_accepted',
-            donationFinal._id
+            'volunteer_accepted',
+            donationFinal._id,
+            { name: volunteerName, title: donationFinal.title }
         );
 
         if (donationFinal.claimedBy) {
@@ -1140,11 +1175,20 @@ export const confirmPickup = async (req, res, next) => {
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
-                `Your donation has been picked up by ${req.user.name} and is on the way!`,
                 'donation_picked_up',
-                donation._id
+                'donation_picked_up',
+                donation._id,
+                { title: donation.title, name: req.user.name }
             );
         }
+
+        await createNotification(
+            donation.donor,
+            'donation_picked_up',
+            'donation_picked_up',
+            donation._id,
+            { title: donation.title, name: req.user.name }
+        );
 
         res.json(donation);
     } catch (error) {
@@ -1228,11 +1272,20 @@ export const confirmDelivery = async (req, res, next) => {
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
-                `${req.user.name} has arrived at your location. Please verify receipt to finalize!`,
                 'donation_delivered',
-                donation._id
+                'donation_delivered',
+                donation._id,
+                { title: donation.title }
             );
         }
+
+        await createNotification(
+            donation.donor,
+            'donation_delivered',
+            'donation_delivered',
+            donation._id,
+            { title: donation.title }
+        );
 
         res.json(donation);
     } catch (error) {
@@ -1275,9 +1328,10 @@ export const failMission = async (req, res, next) => {
         if (donation.claimedBy) {
             await createNotification(
                 donation.claimedBy._id,
-                `Volunteer ${volunteerName} dropped the mission. Reason: "${failureReason}". Searching for a new match.`,
-                'general',
-                donation._id
+                'mission_reassigned',
+                'mission_reassigned',
+                donation._id,
+                { title: donation.title }
             );
         }
 
