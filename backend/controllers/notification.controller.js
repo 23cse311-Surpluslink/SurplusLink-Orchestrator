@@ -8,10 +8,11 @@ import Notification from '../models/Notification.model.js';
 export const getNotifications = async (req, res) => {
     try {
         const notifications = await Notification.find({ recipient: req.user._id })
+            .populate('relatedDonation', 'title status quantity')
             .sort({ createdAt: -1 })
             .limit(50);
         res.json(notifications);
-    } catch (error){
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
