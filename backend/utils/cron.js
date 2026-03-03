@@ -158,7 +158,8 @@ const setupCronJobs = () => {
                             {
                                 title: donation.title,
                                 foodType: donation.foodType,
-                                quantity: donation.quantity
+                                quantity: donation.quantity,
+                                distance: (v.distance / 1000).toFixed(1)
                             }
                         );
                     }

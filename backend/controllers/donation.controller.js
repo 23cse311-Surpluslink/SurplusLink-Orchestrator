@@ -835,7 +835,8 @@ export const initiateAutoDispatch = async (donationId, isRetry = false) => {
                         {
                             title: donation.title,
                             foodType: donation.foodType,
-                            quantity: donation.quantity
+                            quantity: donation.quantity,
+                            distance: (volunteer.distance / 1000).toFixed(1)
                         }
                     );
                 }
