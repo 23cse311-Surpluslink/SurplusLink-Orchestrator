@@ -130,6 +130,18 @@ const userSchema = mongoose.Schema(
       highContrast: { type: Boolean, default: false },
       screenReaderOptimized: { type: Boolean, default: false },
     },
+    notificationPreferences: {
+      enabled: { type: Boolean, default: true },
+      channels: {
+        email: { type: Boolean, default: true },
+        push: { type: Boolean, default: true },
+      },
+      types: {
+        donations: { type: Boolean, default: true }, // Donation status updates
+        missions: { type: Boolean, default: true }, // New mission alerts
+        reminders: { type: Boolean, default: true }, // Safety nudges & expiry alerts
+      }
+    },
   },
   {
     timestamps: true,

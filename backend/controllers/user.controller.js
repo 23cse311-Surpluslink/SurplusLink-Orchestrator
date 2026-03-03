@@ -458,7 +458,7 @@ const updatePreferences = async (req, res, next) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
-            const { language, accessibilityPreferences } = req.body;
+            const { language, accessibilityPreferences, notificationPreferences } = req.body;
 
             if (language) {
                 user.language = language;
@@ -466,8 +466,15 @@ const updatePreferences = async (req, res, next) => {
 
             if (accessibilityPreferences) {
                 user.accessibilityPreferences = {
-                    ...user.accessibilityPreferences.toObject(),
+                    ...user.accessibilityPreferences,
                     ...accessibilityPreferences
+                };
+            }
+
+            if (notificationPreferences) {
+                user.notificationPreferences = {
+                    ...user.notificationPreferences,
+                    ...notificationPreferences
                 };
             }
 
@@ -475,7 +482,8 @@ const updatePreferences = async (req, res, next) => {
             res.json({
                 success: true,
                 language: updatedUser.language,
-                accessibilityPreferences: updatedUser.accessibilityPreferences
+                accessibilityPreferences: updatedUser.accessibilityPreferences,
+                notificationPreferences: updatedUser.notificationPreferences
             });
         } else {
             res.status(404);
