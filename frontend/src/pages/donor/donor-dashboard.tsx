@@ -15,12 +15,24 @@ import DonationService from '@/services/donation.service';
 import { Donation } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from 'react';
 
 export default function DonorDashboard() {
     const { user } = useAuth();
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const isVerified = user?.status === 'active';
+    const [cancelId, setCancelId] = useState<string | null>(null);
 
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ['donor-stats'],
@@ -71,8 +83,13 @@ export default function DonorDashboard() {
     });
 
     const handleCancel = (id: string) => {
-        if (confirm("Are you sure you want to cancel this donation?")) {
-            cancelMutation.mutate(id);
+        setCancelId(id);
+    };
+
+    const confirmCancel = () => {
+        if (cancelId) {
+            cancelMutation.mutate(cancelId);
+            setCancelId(null);
         }
     };
 
@@ -195,6 +212,28 @@ export default function DonorDashboard() {
                     </div>
                 </div>
             </div>
+
+            <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
+                <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl animate-in zoom-in-95 duration-300">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-bold tracking-tight">Stop Donation Rescue?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground text-base leading-relaxed">
+                            This action will remove the donation from the active feed. NGOs will no longer be able to claim it. This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-3 mt-4">
+                        <AlertDialogCancel className="rounded-full h-12 px-8 border-muted hover:bg-muted font-bold transition-all">
+                            Keep Active
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmCancel}
+                            className="rounded-full h-12 px-8 bg-destructive hover:bg-destructive/90 text-white font-bold transition-all shadow-lg shadow-destructive/20"
+                        >
+                            Yes, Cancel it
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

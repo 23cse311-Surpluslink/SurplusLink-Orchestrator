@@ -22,6 +22,16 @@ import { VolunteerTrackerModal } from '@/components/common/volunteer-tracker-mod
 import DonationService from '@/services/donation.service';
 import { format } from 'date-fns';
 import { Donation } from '@/types';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DonorDonations() {
     const { user } = useAuth();
@@ -29,6 +39,7 @@ export default function DonorDonations() {
     const queryClient = useQueryClient();
     const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
     const [trackingDonation, setTrackingDonation] = useState<Donation | null>(null);
+    const [cancelId, setCancelId] = useState<string | null>(null);
 
     const { data: donations, isLoading } = useQuery({
         queryKey: ['my-donations'],
@@ -57,8 +68,13 @@ export default function DonorDonations() {
     });
 
     const handleCancel = (id: string) => {
-        if (confirm("Are you sure you want to cancel this donation?")) {
-            cancelMutation.mutate(id);
+        setCancelId(id);
+    };
+
+    const confirmCancel = () => {
+        if (cancelId) {
+            cancelMutation.mutate(cancelId);
+            setCancelId(null);
         }
     };
 
@@ -230,6 +246,28 @@ export default function DonorDonations() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
+                <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl animate-in zoom-in-95 duration-300">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-bold tracking-tight text-destructive">Abandon Donation?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground text-base leading-relaxed">
+                            Are you absolutely sure? This donation record will be moved to history as 'Cancelled' and will no longer be visible to any NGOs or volunteers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-3 mt-4">
+                        <AlertDialogCancel className="rounded-full h-12 px-8 border-muted hover:bg-muted font-bold transition-all">
+                            Nevermind
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmCancel}
+                            className="rounded-full h-12 px-8 bg-destructive hover:bg-destructive/90 text-white font-bold transition-all shadow-lg shadow-destructive/20"
+                        >
+                            Confirm Cancel
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
