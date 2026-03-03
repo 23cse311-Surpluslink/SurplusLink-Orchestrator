@@ -35,28 +35,55 @@ const setupCronJobs = () => {
         console.log('[Cron] System Supervisor: Checking for stalled missions...');
         try {
             const now = new Date();
-            const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000);
+            const tenMinsAgo = new Date(now.getTime() - 10 * 60000); // Nudge threshold
+            const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000); // Reassignment threshold
             const etaThreshold = 20 * 60000; // 20 minutes allowance
 
             const activeMissions = await Donation.find({
                 status: 'assigned',
                 deliveryStatus: { $nin: ['idle', 'delivered'] },
                 volunteer: { $exists: true }
-            }).populate('volunteer');
+            }).populate('volunteer').populate('claimedBy');
 
             for (const mission of activeMissions) {
                 const vol = mission.volunteer;
                 if (!vol) continue;
 
                 const lastHeartbeat = vol.volunteerProfile?.lastLocationUpdate || vol.updatedAt;
+
+                // 1. Nudge Logic (Warning)
+                if (lastHeartbeat < tenMinsAgo && lastHeartbeat > fifteenMinsAgo) {
+                    await createNotification(
+                        vol._id,
+                        'mission_nudge',
+                        'mission_nudge',
+                        mission._id,
+                        { title: mission.title }
+                    );
+                }
+
+                // 2. Delay Alert & Escalation Logic (Critical)
                 const isHeartbeatStalled = lastHeartbeat < fifteenMinsAgo;
                 const isETAExceeded = mission.estimatedArrivalAt &&
                     (now.getTime() > new Date(mission.estimatedArrivalAt).getTime() + etaThreshold);
 
                 if (isHeartbeatStalled || isETAExceeded) {
                     const reason = isHeartbeatStalled ? 'Heartbeat Timeout (Inactivity)' : 'ETA Violation (Overdue)';
-                    console.log(`[Supervisor] Flagging mission ${mission._id} for reassignment: ${reason}`);
-                    await reassignMission(mission._id, `System Supervisor: ${reason}`);
+                    console.log(`[Supervisor] Escalating mission ${mission._id}: ${reason}`);
+
+                    // Notify NGO about the delay
+                    if (mission.claimedBy) {
+                        await createNotification(
+                            mission.claimedBy._id,
+                            'mission_delayed',
+                            'mission_delayed',
+                            mission._id,
+                            { title: mission.title }
+                        );
+                    }
+
+                    // Trigger Escalation: Reassign Mission
+                    await reassignMission(mission._id, `System Escalation: ${reason}`);
                 }
             }
         } catch (error) {

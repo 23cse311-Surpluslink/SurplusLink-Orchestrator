@@ -15,6 +15,8 @@ const translations = {
         'donation_delivered': 'Your donation "{title}" has been delivered to the NGO!',
         'donation_rejected': 'Your donation "{title}" was rejected: {reason}',
         'mission_reassigned': 'The mission for "{title}" is being reassigned to ensure prompt delivery.',
+        'mission_delayed': 'ALERT: The mission for "{title}" is experiencing delays. We are actively working to resolve this.',
+        'mission_nudge': 'Are you still on track? Your mission for "{title}" hasn\'t had an update in a while.',
         'mission_verified': 'Mission Verified! Delivery for "{title}" confirmed. +{meals} meals impact!',
         'promoted': 'Congratulations! You\'ve been promoted to {tier} tier!',
         'welcome': 'Welcome to SurplusLink!',
