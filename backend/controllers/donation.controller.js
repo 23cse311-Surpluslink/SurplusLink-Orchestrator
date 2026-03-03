@@ -151,6 +151,10 @@ export const createDonation = async (req, res) => {
 
         const donation = await Donation.create(donationData);
 
+        // Record initial status in timeline
+        donation.addStatusHistory(req.user._id, 'Donation created and posted.');
+        await donation.save();
+
         // Audit Log
         await AuditLog.create({
             action: 'CREATE_DONATION',
@@ -386,6 +390,9 @@ export const cancelDonation = async (req, res) => {
         }
 
         donation.status = 'cancelled';
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, 'Donation cancelled by donor.');
         await donation.save();
 
         await createNotification(
@@ -437,7 +444,8 @@ export const getDonationById = async (req, res) => {
         const donation = await Donation.findById(req.params.id)
             .populate('donor', 'name email organization coordinates')
             .populate('volunteer', 'name email phone avatar volunteerProfile.currentLocation')
-            .populate('claimedBy', 'organization name coordinates');
+            .populate('claimedBy', 'organization name coordinates')
+            .populate('statusHistory.updatedBy', 'name role organization');
 
         if (!donation) {
             return res.status(404).json({ message: 'Donation not found' });
@@ -469,6 +477,9 @@ export const completeDonation = async (req, res, next) => {
 
         donation.status = 'completed';
         donation.feedback = { rating, comment };
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, 'Donation successfully completed and verified.');
         await donation.save();
 
         // --- IMPACT ENGINE (US 7.1 & 7.2) ---
@@ -697,6 +708,9 @@ export const claimDonation = async (req, res, next) => {
         donation.status = 'assigned';
         donation.claimedBy = req.user.id;
         donation.claimedAt = Date.now();
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, `Claimed by NGO: ${req.user.organization}`);
         await donation.save();
 
         // Audit Log
@@ -742,6 +756,9 @@ export const reassignMission = async (donationId, reason = 'Stalled or abandoned
         donation.deliveryStatus = 'idle';
         donation.status = 'assigned';
         donation.estimatedArrivalAt = undefined;
+
+        // Update timeline
+        donation.addStatusHistory(null, `Mission reassigned. Reason: ${reason}`); // System action
         await donation.save();
 
         if (oldVolunteer) {
@@ -873,6 +890,9 @@ export const rejectDonation = async (req, res, next) => {
 
         donation.status = 'rejected';
         donation.rejectionReason = rejectionReason;
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, `Rejected by NGO. Reason: ${rejectionReason}`);
         await donation.save();
 
         let formattedReason = rejectionReason;
@@ -1095,6 +1115,10 @@ export const acceptMission = async (req, res, next) => {
             return res.status(400).json({ message: 'Mission already taken.' });
         }
 
+        // Update timeline
+        updatedDonation.addStatusHistory(req.user._id, `Mission accepted by volunteer: ${req.user.name}`);
+        await updatedDonation.save();
+
         // Update Volunteer State for Equity & Load Balancing
         await User.findByIdAndUpdate(volunteerId, {
             $inc: { currentTaskCount: 1 },
@@ -1155,6 +1179,9 @@ export const updateDeliveryStatus = async (req, res, next) => {
         }
 
         donation.deliveryStatus = status;
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, `Delivery status updated to: ${status.replace(/_/g, ' ')}`);
         await donation.save();
 
         // Safety Heartbeat: Update volunteer's activity timestamp
@@ -1199,6 +1226,9 @@ export const confirmPickup = async (req, res, next) => {
         donation.deliveryStatus = 'picked_up';
         donation.pickupPhoto = pickupPhoto;
         donation.pickedUpAt = Date.now();
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, 'Food successfully picked up from donor.');
         await donation.save();
 
         if (donation.claimedBy) {
@@ -1258,6 +1288,9 @@ export const confirmDelivery = async (req, res, next) => {
         donation.deliveryPhoto = deliveryPhoto;
         donation.deliveryNotes = notes;
         donation.deliveredAt = Date.now();
+
+        // Update timeline
+        donation.addStatusHistory(req.user._id, `Food delivered to NGO: ${donation.claimedBy?.organization || 'NGO'}`);
         await donation.save();
 
         // Level-Up Engine: Update volunteer rank based on successful physical completion

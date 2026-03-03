@@ -144,6 +144,15 @@ const donationSchema = new mongoose.Schema(
         estimatedArrivalAt: {
             type: Date,
         },
+        statusHistory: [
+            {
+                status: String,
+                deliveryStatus: String,
+                timestamp: { type: Date, default: Date.now },
+                updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                note: String,
+            },
+        ],
     },
     {
         timestamps: true,
@@ -190,6 +199,15 @@ donationSchema.set('toJSON', {
 
 // Index for GeoJSON queries
 donationSchema.index({ coordinates: '2dsphere' });
+
+donationSchema.methods.addStatusHistory = function (userId, note = '') {
+    this.statusHistory.push({
+        status: this.status,
+        deliveryStatus: this.deliveryStatus,
+        updatedBy: userId,
+        note,
+    });
+};
 
 const Donation = mongoose.model('Donation', donationSchema);
 

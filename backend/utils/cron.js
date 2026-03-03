@@ -106,6 +106,9 @@ const setupCronJobs = () => {
 
             for (const donation of expiredDonations) {
                 donation.status = 'expired';
+
+                // Update timeline
+                donation.addStatusHistory(null, 'Donation expired: Pickup window has passed.');
                 await donation.save();
 
                 await createNotification(
@@ -147,6 +150,9 @@ const setupCronJobs = () => {
                     const top3 = expandedVolunteers.slice(0, 3);
                     donation.dispatchedTo = top3.map(v => v._id);
                     donation.dispatchedAt = new Date();
+
+                    // Update timeline
+                    donation.addStatusHistory(null, 'Mission radius expanded: Alerting more volunteers in 20km radius.');
                     await donation.save();
 
                     for (const v of top3) {
