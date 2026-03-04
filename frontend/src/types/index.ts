@@ -36,6 +36,18 @@ export interface User {
   violationCount?: number;
   volunteerProfile?: VolunteerProfile;
   stats?: UserStats;
+  notificationPreferences?: {
+    enabled: boolean;
+    channels: {
+      email: boolean;
+      push: boolean;
+    };
+    types: {
+      donations: boolean;
+      missions: boolean;
+      reminders: boolean;
+    };
+  };
 }
 
 export interface Donation {
@@ -98,6 +110,18 @@ export interface Donation {
     avatar?: string;
     volunteerProfile?: VolunteerProfile;
   };
+  statusHistory?: {
+    status: string;
+    deliveryStatus?: string;
+    timestamp: string;
+    updatedBy?: {
+      id: string;
+      name: string;
+      role: string;
+      organization?: string;
+    };
+    note?: string;
+  }[];
 }
 
 export interface Notification {
@@ -105,7 +129,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: 'pickup' | 'delivery' | 'hygiene' | 'system' | 'match' | 'priority_dispatch';
+  type: 'pickup' | 'delivery' | 'hygiene' | 'system' | 'match' | 'priority_dispatch' | 'donation_created' | 'donation_assigned' | 'donation_picked_up' | 'donation_delivered' | 'donation_cancelled' | 'donation_rejected' | 'volunteer_accepted' | 'mission_reassigned' | 'level_up' | 'general';
   read: boolean;
   createdAt: string;
 }

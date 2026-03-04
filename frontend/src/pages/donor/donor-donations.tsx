@@ -4,7 +4,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { PlusCircle, AlertCircle, Clock, MapPin, Package, Navigation } from 'lucide-react';
+import {
+    PlusCircle,
+    AlertCircle,
+    Clock,
+    MapPin,
+    Package,
+    Navigation,
+    Loader2,
+    Calendar,
+    History
+} from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -22,6 +32,7 @@ import { VolunteerTrackerModal } from '@/components/common/volunteer-tracker-mod
 import DonationService from '@/services/donation.service';
 import { format } from 'date-fns';
 import { Donation } from '@/types';
+import { cn } from '@/lib/utils';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -237,6 +248,43 @@ export default function DonorDonations() {
                                 <div className="bg-blue-50 p-3 rounded-lg text-sm border border-blue-100">
                                     <p className="text-black font-medium mb-1">Claimed By</p>
                                     <p className="text-orange-500 font-bold">{selectedDonation.ngoName || "NGO"}</p>
+                                </div>
+                            )}
+
+                            {/* Logistics Timeline (Epic 8.6) */}
+                            {selectedDonation.statusHistory && selectedDonation.statusHistory.length > 0 && (
+                                <div className="pt-4 border-t border-border/50">
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                                        <History className="h-3 w-3" />
+                                        Logistics Timeline
+                                    </h4>
+                                    <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-muted/50">
+                                        {selectedDonation.statusHistory.map((log, idx) => (
+                                            <div key={idx} className="relative pl-8 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${idx * 100}ms` }}>
+                                                <div className={cn(
+                                                    "absolute left-0 top-1.5 h-[24px] w-[24px] rounded-full border-4 border-background flex items-center justify-center shadow-sm",
+                                                    idx === 0 ? "bg-primary text-white scale-110" : "bg-muted text-muted-foreground"
+                                                )}>
+                                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className={cn("text-xs font-bold capitalize", idx === 0 ? "text-primary" : "text-foreground")}>
+                                                            {log.status.replace(/_/g, ' ')}
+                                                        </p>
+                                                        <span className="text-[10px] font-medium text-muted-foreground">
+                                                            {format(new Date(log.timestamp), 'MMM d, HH:mm')}
+                                                        </span>
+                                                    </div>
+                                                    {log.note && (
+                                                        <p className="text-[11px] text-muted-foreground leading-snug">
+                                                            {log.note}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

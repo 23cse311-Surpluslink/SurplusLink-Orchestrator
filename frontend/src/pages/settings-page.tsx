@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Save, ArrowLeft, Loader2, Navigation, CheckCircle2, Sparkles, Languages, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Save, ArrowLeft, Loader2, Navigation, CheckCircle2, Sparkles, Languages, Eye, EyeOff, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAccessibility } from '@/contexts/accessibility-context';
 import { Switch } from '@/components/ui/switch';
@@ -22,6 +22,12 @@ export function SettingsPage() {
     const navigate = useNavigate();
     const { i18n } = useTranslation();
     const { simplifiedMode, setSimplifiedMode, highContrast, setHighContrast } = useAccessibility();
+
+    const [notificationPrefs, setNotificationPrefs] = useState(user?.notificationPreferences || {
+        enabled: true,
+        channels: { email: true, push: true },
+        types: { donations: true, missions: true, reminders: true }
+    });
 
     const [address, setAddress] = useState(user?.address || '');
     const [isSaving, setIsSaving] = useState(false);
@@ -39,7 +45,8 @@ export function SettingsPage() {
         try {
             await api.put('/users/profile', {
                 address,
-                coordinates: coords
+                coordinates: coords,
+                notificationPreferences: notificationPrefs
             });
             await refreshUser();
             toast({
@@ -233,6 +240,89 @@ export function SettingsPage() {
                                 </p>
                             </div>
                         </div>
+                    </Card>
+
+                    <Card className="rounded-[2.5rem] border-none shadow-2xl bg-card overflow-hidden">
+                        <CardHeader className="px-8 pt-8 text-center flex flex-col items-center">
+                            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-3">
+                                <Bell className="h-6 w-6" />
+                            </div>
+                            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                                Notification Control Center
+                            </Label>
+                        </CardHeader>
+                        <CardContent className="px-8 pb-8 space-y-6">
+                            {/* Master Toggle */}
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Global Notifications</Label>
+                                    <p className="text-[10px] text-muted-foreground font-medium">Enable/Disable all platform alerts.</p>
+                                </div>
+                                <Switch
+                                    checked={notificationPrefs.enabled}
+                                    onCheckedChange={(val) => setNotificationPrefs({ ...notificationPrefs, enabled: val })}
+                                />
+                            </div>
+
+                            {/* Channels Section */}
+                            <div className={cn("space-y-3 transition-opacity duration-300", !notificationPrefs.enabled && "opacity-40 animate-pulse pointer-events-none")}>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Channels</Label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-bold">Email</Label>
+                                            <Switch
+                                                className="scale-75"
+                                                checked={notificationPrefs.channels.email}
+                                                onCheckedChange={(val) => setNotificationPrefs({
+                                                    ...notificationPrefs,
+                                                    channels: { ...notificationPrefs.channels, email: val }
+                                                })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-bold">In-App/Push</Label>
+                                            <Switch
+                                                className="scale-75"
+                                                checked={notificationPrefs.channels.push}
+                                                onCheckedChange={(val) => setNotificationPrefs({
+                                                    ...notificationPrefs,
+                                                    channels: { ...notificationPrefs.channels, push: val }
+                                                })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Activity Categories */}
+                            <div className={cn("space-y-3 transition-opacity duration-300", !notificationPrefs.enabled && "opacity-40 pointer-events-none")}>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Categories</Label>
+                                <div className="space-y-2">
+                                    {[
+                                        { id: 'donations', label: 'Donation Updates', desc: 'Status changes & pickup alerts.' },
+                                        { id: 'missions', label: 'Mission Coordination', desc: 'Volunteer activity & matching.' },
+                                        { id: 'reminders', label: 'Safety & Expiry', desc: 'Nudges for high-urgency items.' }
+                                    ].map((cat) => (
+                                        <div key={cat.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/40">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-xs font-bold">{cat.label}</Label>
+                                                <p className="text-[9px] text-muted-foreground font-medium">{cat.desc}</p>
+                                            </div>
+                                            <Switch
+                                                checked={notificationPrefs.types[cat.id as keyof typeof notificationPrefs.types]}
+                                                onCheckedChange={(val) => setNotificationPrefs({
+                                                    ...notificationPrefs,
+                                                    types: { ...notificationPrefs.types, [cat.id]: val }
+                                                })}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
                     </Card>
 
                     <Card className="rounded-[2.5rem] border-none shadow-2xl bg-card overflow-hidden">

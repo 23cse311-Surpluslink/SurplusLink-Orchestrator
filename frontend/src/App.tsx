@@ -39,6 +39,7 @@ import VolunteerNotifications from "./pages/volunteer/notifications";
 import AccountPage from "./pages/account-page";
 import { SettingsPage } from "./pages/settings-page";
 import { NgoSettingsPage } from "./pages/ngo/settings-page";
+import NgoNotifications from "./pages/ngo/notifications";
 import { MyClaimsPage } from "./pages/ngo/my-claims";
 import { NearbyDonationsPage } from "./pages/ngo/nearby-donations";
 import { NgoFeedbackPage } from "./pages/ngo/feedback-page";
@@ -81,7 +82,7 @@ const App = () => (
                     <Route path="nearby" element={<NearbyDonationsPage />} />
                     <Route path="accepted" element={<MyClaimsPage />} />
                     <Route path="fleet" element={<NgoFleetDashboard />} />
-                    <Route path="notifications" element={<DonorNotifications />} />
+                    <Route path="notifications" element={<NgoNotifications />} />
                     <Route path="feedback" element={<NgoFeedbackPage />} />
                     <Route path="impact" element={<NgoImpactPage />} />
                     <Route path="impact-report" element={<NgoImpactReport />} />
